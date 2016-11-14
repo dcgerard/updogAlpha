@@ -33,7 +33,7 @@ test_that("updog works", {
                 p1size = p1size, p2counts = p2counts, p2size = p2size,
                 ploidy = ploidy)
 
-  expect_true(all(rowSums(uout) == 1))
+  expect_true(all(abs(rowSums(uout) - 1) < 10 ^ -14))
 
 }
 )
