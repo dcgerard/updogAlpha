@@ -12,7 +12,8 @@ LazyData: true
 URL: https://github.com/dcgerard/updog
 BugReports: http://github.com/dcgerard/updog/issues
 Suggests:
-    testthat
+    testthat,
+    covr
 Imports:
     assertthat
 RoxygenNote: 5.0.1
