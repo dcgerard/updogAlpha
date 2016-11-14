@@ -1,0 +1,18 @@
+Package: updog
+Type: Package
+Title: Using Parental DNA for Offspring Genotyping
+Version: 0.1.0
+Authors@R: person("David", "Gerard", email = "dcgerard@uchicago.edu", role = c("aut", "cre"))
+Description: Implements a Bayesian approach to estimating the genotype
+    of offspring given both their sequence data and the sequence data from
+    their parents. This package works for species of any ploidy.
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
+URL: https://github.com/dcgerard/updog
+BugReports: http://github.com/dcgerard/updog/issues
+Suggests:
+    testthat
+Imports:
+    assertthat
+RoxygenNote: 5.0.1
