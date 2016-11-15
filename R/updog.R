@@ -23,12 +23,14 @@
 #'   number of reads in the ith sample of parent 2.
 #' @param ploidy A positive integer. The number of copies of the genome in the
 #'   species.
+#' @param seq_error A proportion. The known sequencing error rate.
 #'
 #' @author David Gerard
 #'
 #' @export
 #'
-updog <- function(ocounts, osize, p1counts, p1size, p2counts, p2size, ploidy) {
+updog <- function(ocounts, osize, p1counts, p1size, p2counts, p2size, ploidy,
+                  seq_error = 0.1) {
 
   ## check input -------------------------------------------------------------
   assertthat::assert_that(all(ocounts >= 0))
@@ -49,33 +51,22 @@ updog <- function(ocounts, osize, p1counts, p1size, p2counts, p2size, ploidy) {
   ## derive offspring genotype probabilities given parental genotypes.
   qarray <- get_q_array(ploidy = ploidy)
 
-
-  ## initialize parameters
+  ## Derive prior probabilities on offspring genotypes
   phi_vec <- r1vec ## posterior prob of p1 genotype
   psi_vec <- r2vec ## posterior prob of p2 genotype
 
   harray <- sweep(qarray, MARGIN = 1, STATS = phi_vec, FUN = `*`)
   harray <- sweep(harray, MARGIN = 2, STATS = psi_vec, FUN = `*`)
   hl <- apply(harray, 3, sum)
+  postprob <- mapply(FUN = bin_post, ocounts, osize,
+                     MoreArgs = list(prior = c(hl), seq_error = seq_error))
 
+  return_list <- list()
+  return_list$opostprob <- postprob
+  return_list$p1postprob <- phi_vec
+  return_list$p2postprob <- psi_vec
 
-  pk <- seq(0, ploidy) / ploidy
-  lmat  <- outer(ocounts, log(pk), FUN = `*`)
-  olmat <- outer(osize - ocounts, log(1 - pk), FUN = `*`)
-
-  tmat <- lmat + olmat
-  tmat[ocounts == 0, 1] <- 0
-  tmat[ocounts == osize, ploidy + 1] <- 0
-  logprobmat <- sweep(tmat, MARGIN = 2, STATS = log(hl), FUN = `+`)
-  logprobmat[logprobmat == -Inf] <- NA
-  rowmax <- apply(logprobmat, 1, max, na.rm = TRUE)
-  logprobmat <- logprobmat - rowmax
-  logprobmat[is.na(logprobmat)] <- -Inf
-
-  exppmat <- exp(logprobmat)
-  postprob <- exppmat / rowSums(exppmat)
-
-  return(postprob)
+  return(return_list)
 }
 
 #' Derive the probabilities of an offspring's genotype given its parental
@@ -136,21 +127,31 @@ get_q_array <- function(ploidy) {
 #'   \code{(1/4, 1/4, 1/4, 1/4)} as the prior probability for the genotypes
 #'   (Aaaa, AAaa, AAAa, AAAA) where "A" is the reference allele in a 4-ploid
 #'   individual.
+#' @param seq_error A non-negative numeric. This is the known sequencing error
+#'   rate. This is a course high-ball error rate given by Li et. al. (2011).
 #'
 #' @author David Gerard
 #'
 #' @export
 #'
-bin_post <- function(ncounts, ssize, prior) {
+#' @references Li, Yun, Carlo Sidore, Hyun Min Kang, Michael Boehnke, and
+#'   Gonçalo R. Abecasis.
+#'   \href{https://www.ncbi.nlm.nih.gov/pubmed/21460063}{"Low-coverage sequencing: implications for design of complex trait association studies."}
+#'   Genome research (2011).
+#'
+#'
+bin_post <- function(ncounts, ssize, prior, seq_error = 0.01) {
 
   ## check input -------------------------------------------------------------
   assertthat::assert_that(all(ncounts >= 0))
   assertthat::assert_that(all(ssize >= 1))
   assertthat::assert_that(all(prior >= 0))
   assertthat::assert_that(all(ssize >= ncounts))
+  assertthat::assert_that(seq_error >= 0)
+  assertthat::assert_that(seq_error <= 1)
 
 
-  if (sum(prior == 1)) {
+  if (abs(sum(prior) - 1) < 10 ^ -14) {
     ploidy <- length(prior) - 1
   } else {
     ploidy <- prior
@@ -162,27 +163,35 @@ bin_post <- function(ncounts, ssize, prior) {
   ## calculate log-probabilities ---------------------------------------------
   pk <- seq(0, ploidy) / ploidy ## the possible probabilities
 
+  ## deal with error rate
+  pk <- (1 - seq_error) * pk + seq_error * (1 - pk) / 3
+
   nsum <- sum(ncounts)
   tsum <- sum(ssize)
 
   logprob <- nsum * log(pk) + (tsum - nsum) * log(1 - pk) + log(prior)
-  logprob_b <- logprob
   ## temp <- stats::dbinom(x = nsum, size = tsum, prob = pk, log = TRUE) + log(prior)
   ## assertthat::are_equal(exp(logprob) / sum(exp(logprob)), exp(temp) / sum(exp(temp)))
 
 
   ## Exponentiate and deal with special cases --------------------------------
-  if (nsum == 0) {
-    logprob_b[1] <- log(prior[1])
-    logprob_b[1:ploidy] <- logprob_b[1:ploidy] - max(logprob_b[1:ploidy])
-    postprob <- exp(logprob_b) / sum(exp(logprob_b[1:ploidy]))
-  } else if (nsum == tsum) {
-    logprob_b[ploidy + 1] <- log(prior[ploidy + 1])
-    logprob_b[2:(ploidy + 1)] <- logprob_b[2:(ploidy + 1)] - max(logprob_b[2:(ploidy + 1)])
-    postprob <- exp(logprob_b) / sum(exp(logprob_b[2:(ploidy + 1)]))
+  if (seq_error < 10 ^ -14) {
+    logprob_b <- logprob
+    if (nsum == 0) {
+      logprob_b[1] <- log(prior[1])
+      logprob_b[1:ploidy] <- logprob_b[1:ploidy] - max(logprob_b[1:ploidy])
+      postprob <- exp(logprob_b) / sum(exp(logprob_b[1:ploidy]))
+    } else if (nsum == tsum) {
+      logprob_b[ploidy + 1] <- log(prior[ploidy + 1])
+      logprob_b[2:(ploidy + 1)] <- logprob_b[2:(ploidy + 1)] - max(logprob_b[2:(ploidy + 1)])
+      postprob <- exp(logprob_b) / sum(exp(logprob_b[2:(ploidy + 1)]))
+    } else {
+      logprob_b[2:ploidy] <- logprob_b[2:ploidy] - max(logprob_b[2:ploidy])
+      postprob <- exp(logprob_b) / sum(exp(logprob_b[2:ploidy]))
+    }
   } else {
-    logprob_b[2:ploidy] <- logprob_b[2:ploidy] - max(logprob_b[2:ploidy])
-    postprob <- exp(logprob_b) / sum(exp(logprob_b[2:ploidy]))
+    logprob <- logprob - max(logprob)
+    postprob <- exp(logprob) / sum(exp(logprob))
   }
 
   ## test when third case only

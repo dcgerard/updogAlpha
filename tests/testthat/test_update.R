@@ -11,18 +11,20 @@ test_that("bin_post works", {
   expect_equal(sum(postprob), 1)
 
   ## test zeros
-  postprob1 <- bin_post(ncounts = 0, ssize = 2, prior = 2)
-  postprob2 <- bin_post(ncounts = 2, ssize = 2, prior = 2)
+  postprob1 <- bin_post(ncounts = 0, ssize = 2, prior = 2, seq_error = 0)
+  postprob2 <- bin_post(ncounts = 2, ssize = 2, prior = 2, seq_error = 0)
   temp <- ((1 - seq(0, 2) / 2) ^ 2) / 3
   expect_true(all(abs(temp / sum(temp) - postprob1) < 10 ^ -14))
   expect_true(all(abs(temp / sum(temp) - postprob2[3:1]) < 10 ^ -14))
+
+
 }
 )
 
 test_that("updog works", {
   set.seed(734)
-  ocounts  <- c(11, 13, 0, 11)
-  osize    <- c(21, 37, 2, 11)
+  ocounts  <- c(11, 13, 0, 100)
+  osize    <- c(21, 37, 2, 101)
   p1counts <- c(11, 9, 7, 7)
   p1size   <- c(23, 29, 17, 15)
   p2counts <- c(7, 9, 11)
@@ -33,7 +35,7 @@ test_that("updog works", {
                 p1size = p1size, p2counts = p2counts, p2size = p2size,
                 ploidy = ploidy)
 
-  expect_true(all(abs(rowSums(uout) - 1) < 10 ^ -14))
+  expect_true(all(abs(colSums(uout$opostprob) - 1) < 10 ^ -14))
 
 }
 )
