@@ -26,7 +26,7 @@ genotype. For example, setting \code{prior = 3} will result in using
 individual.}
 
 \item{seq_error}{A non-negative numeric. This is the known sequencing error
-rate. This is a course high-ball error rate given by Li et. al. (2011).}
+rate. This is a rough high-ball error rate given by Li et. al. (2011).}
 }
 \description{
 The function assumes that all data come from independent samples on the same

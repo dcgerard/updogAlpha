@@ -23,14 +23,57 @@
 #'   number of reads in the ith sample of parent 2.
 #' @param ploidy A positive integer. The number of copies of the genome in the
 #'   species.
-#' @param seq_error A proportion. The known sequencing error rate.
+#' @param seq_error A non-negative numeric. This is the known sequencing error
+#'   rate. This is a rough high-ball error rate given by Li et. al. (2011).
+#' @param do_mcmc A logical. Should we also run a Gibbs sampler to jointly estimate
+#'   the parental and child genotypes (\code{TRUE}) or not (\code{FALSE})? If \code{TRUE},
+#'   the total number of iterations run is \code{burnin + iteramx}.
+#' @param burnin A non-negative integer. The number of iterations to ignore
+#'   in the Gibbs sampler if \code{do_mcmc = TRUE}.
+#' @param itermax A positive integer. The number of iterations to collect
+#'   in the Gibbs sampler if \code{do_mcmc = TRUE}.
+#'
+#'
+#' @return A list with some or all of the following elements:
+#'   \code{opostprob}: A matrix of proportions whose (i, j)th element
+#'   is the posterior probability that child j has i - 1 copies of the reference allele.
+#'   That is, the rows index the genotype and the columns index the offspring.
+#'   These are derived by the one-offspring-at-a-time procedure.
+#'
+#'   \code{p1postprob}: A vector of proportions whose ith element is the posterior
+#'   probability that parent 1 has i - 1 copies of the reference allele.
+#'   These are derived ONLY from parent 1's sequence data and not jointly with
+#'   all of the data.
+#'
+#'   \code{p2postprob}: A vector of proportions whose ith element is the posterior
+#'   probability that parent 2 has i - 1 copies of the reference allele.
+#'   These are derived ONLY from parent 2's sequence data and not jointly with
+#'   all of the data.
+#'
+#'   \code{m_opostprob}: A matrix of proportions whose (i, j)th element
+#'   is the posterior probability that child j has i - 1 copies of the reference allele.
+#'   These are derived from the joint analysis with MCMC.
+#'
+#'   \code{m_p1postprob}: A vector of proportions whose ith element is the posterior
+#'   probability that parent 1 has i - 1 copies of the reference allele.
+#'   These are derived from the joint analysis with MCMC.
+#'
+#'   \code{m_p2postprob}: A vector of proportions whose ith element is the posterior
+#'   probability that parent 2 has i - 1 copies of the reference allele.
+#'   These are derived from the joint analysis with MCMC.
 #'
 #' @author David Gerard
 #'
 #' @export
 #'
+#' @references Li, Yun, Carlo Sidore, Hyun Min Kang, Michael Boehnke, and
+#'   Gonçalo R. Abecasis.
+#'   \href{https://www.ncbi.nlm.nih.gov/pubmed/21460063}{"Low-coverage sequencing: implications for design of complex trait association studies."}
+#'   Genome research (2011).
+#'
 updog <- function(ocounts, osize, p1counts, p1size, p2counts, p2size, ploidy,
-                  seq_error = 0.1) {
+                  seq_error = 0.1, do_mcmc = FALSE,
+                  burnin = 250, itermax = 1000) {
 
   ## check input -------------------------------------------------------------
   assertthat::assert_that(all(ocounts >= 0))
@@ -43,6 +86,9 @@ updog <- function(ocounts, osize, p1counts, p1size, p2counts, p2size, ploidy,
   assertthat::assert_that(all(p1counts <= p1size))
   assertthat::assert_that(all(p2counts <= p2size))
   assertthat::assert_that(ploidy >= 1)
+  assertthat::assert_that(is.logical(do_mcmc))
+  assertthat::assert_that(burnin >= 0)
+  assertthat::assert_that(burnin < itermax)
 
   ## derive posteriors of parental genotypes given just parental sequence data.
   r1vec <- bin_post(ncounts = p1counts, ssize = p1size, prior = ploidy)
@@ -58,14 +104,118 @@ updog <- function(ocounts, osize, p1counts, p1size, p2counts, p2size, ploidy,
   harray <- sweep(qarray, MARGIN = 1, STATS = phi_vec, FUN = `*`)
   harray <- sweep(harray, MARGIN = 2, STATS = psi_vec, FUN = `*`)
   hl <- apply(harray, 3, sum)
+
+  ## get posterior probabilities of offspring genotypes.
   postprob <- mapply(FUN = bin_post, ocounts, osize,
                      MoreArgs = list(prior = c(hl), seq_error = seq_error))
 
   return_list <- list()
-  return_list$opostprob <- postprob
+  return_list$opostprob  <- postprob
   return_list$p1postprob <- phi_vec
   return_list$p2postprob <- psi_vec
 
+  if (do_mcmc) {
+    mout <- updog_mcmc(ocounts = ocounts, osize = osize, qarray = qarray, r1vec = r1vec,
+                       r2vec = r2vec, seq_error = seq_error, itermax = itermax, burnin = burnin)
+    return_list$m_opostprob  <- mout$opostprob
+    return_list$m_p1postprob <- mout$p1postprob
+    return_list$m_p2postprob <- mout$p2postprob
+  }
+
+  return(return_list)
+}
+
+#' The updog Gibbs sampler to jointly estimate the parental and offspring genotypes.
+#'
+#' @inheritParams updog
+#' @param qarray An array of proportions. Each dimension size is equal to the ploidy plus 1.
+#' @param r1vec The posterior probabilities of the genotypes of parent 1 conditional only
+#'   on the sequence data from parent 1.
+#' @param r2vec The posterior probabilities of the genotypes of parent 2 conditional only
+#'   on the sequence data from parent 2.
+#'
+#' @author David Gerard
+#'
+updog_mcmc <- function(ocounts, osize, qarray, r1vec, r2vec, seq_error = 0.01, itermax = 1000,
+                       burnin = 250) {
+
+  ploidy <- length(r1vec) - 1
+  assertthat::are_equal(length(r2vec), ploidy + 1)
+  assertthat::are_equal(length(ocounts), length(osize))
+  assertthat::assert_that(all(ocounts <= osize))
+  assertthat::assert_that(all(dim(qarray) == ploidy + 1))
+
+  ## calculate log-probabilities ---------------------------------------------
+  pk <- seq(0, ploidy) / ploidy ## the possible probabilities
+  ## deal with error rate ----------------------------------------------------
+  pk <- (1 - seq_error) * pk + seq_error * (1 - pk) / 3
+
+  ## the total number of samples for each genotype
+  tot_p1 <- rep(0, length = ploidy + 1)
+  tot_p2 <- rep(0, length = ploidy + 1)
+  tot_o  <- matrix(0, nrow = ploidy + 1, ncol = length(osize))
+
+  current_p1 <- sample(0:ploidy, size = 1, prob = r1vec)
+  current_p2 <- sample(0:ploidy, size = 1, prob = r2vec)
+
+  ## dbinom matrix for offspring
+  dbinommat <- mapply(FUN = stats::dbinom, ocounts, osize, MoreArgs = list(prob = pk, log = TRUE))
+  assertthat::are_equal(dbinommat[, 1], stats::dbinom(x = ocounts[1], size = osize[1], prob = pk, log = TRUE))
+
+
+  for (iterindex in 1:(itermax + burnin)) {
+
+    ## Update offspring ------------------------------------------------------
+    qvec <- log(qarray[current_p1 + 1, current_p2 + 1, ])
+    uprob_log<- qvec + dbinommat
+    max_prob <- apply(uprob_log[qvec != -Inf, ], 2, max)
+    uprobexp <- exp((sweep(x = uprob_log, MARGIN = 2, STATS = max_prob, FUN = "-")))
+    opmat <- sweep(x = uprobexp, MARGIN = 2, STATS = colSums(uprobexp), FUN = "/")
+    ## assertthat::are_equal(opmat, sweep(exp(uprob_log), MARGIN = 2, STATS = colSums(exp(uprob_log)), FUN = "/"))
+    current_o  <- apply(opmat, 2, function (x) { sample(0:ploidy, size = 1, prob = x) })
+    if (iterindex > burnin) {
+      tot_o[cbind(current_o + 1, 1:length(ocounts))] <- tot_o[cbind(current_o + 1, 1:length(ocounts))] + 1
+    }
+
+    ## Update parent1 --------------------------------------------------------
+    qmat <- log(qarray[, current_p2 + 1, ])
+    ek <- table(c(current_o, 0:ploidy)) - 1
+
+    tmat1 <- sweep(x = qmat, MARGIN = 2, STATS = ek, FUN = `*`)
+    tmat1[is.nan(tmat1)] <- 0
+    uproblog <- rowSums(tmat1) + r1vec
+    uproblog <- uproblog - max(uproblog[uproblog != -Inf])
+    p1pvec <- exp(uproblog) / sum(exp(uproblog))
+
+    current_p1 <- sample(0:ploidy, size = 1, prob = p1pvec)
+
+    if (iterindex > burnin) {
+      tot_p1[current_p1 + 1] <- tot_p1[current_p1 + 1] + 1
+    }
+
+    ## update parent2 --------------------------------------------------------
+    qmat <- log(qarray[current_p1 + 1, , ])
+    tmat2 <- sweep(x = qmat, MARGIN = 2, STATS = ek, FUN = `*`)
+    tmat2[is.nan(tmat2)] <- 0
+    uproblog <- rowSums(tmat2) + r2vec
+    uproblog <- uproblog - max(uproblog[uproblog != -Inf])
+    p2pvec <- exp(uproblog) / sum(exp(uproblog))
+
+    current_p2 <- sample(0:ploidy, size = 1, prob = p2pvec)
+
+    if (iterindex > burnin) {
+      tot_p2[current_p2 + 1] <- tot_p2[current_p2 + 1] + 1
+    }
+  }
+
+
+  p1postprob <- tot_p1 / itermax
+  p2postprob <- tot_p2 / itermax
+  opostprob  <- tot_o / itermax
+  return_list <- list()
+  return_list$p1postprob <- p1postprob
+  return_list$p2postprob <- p2postprob
+  return_list$opostprob  <- opostprob
   return(return_list)
 }
 
@@ -128,7 +278,7 @@ get_q_array <- function(ploidy) {
 #'   (Aaaa, AAaa, AAAa, AAAA) where "A" is the reference allele in a 4-ploid
 #'   individual.
 #' @param seq_error A non-negative numeric. This is the known sequencing error
-#'   rate. This is a course high-ball error rate given by Li et. al. (2011).
+#'   rate. This is a rough high-ball error rate given by Li et. al. (2011).
 #'
 #' @author David Gerard
 #'

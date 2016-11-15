@@ -33,7 +33,7 @@ test_that("updog works", {
 
   uout <- updog(ocounts = ocounts, osize = osize, p1counts = p1counts,
                 p1size = p1size, p2counts = p2counts, p2size = p2size,
-                ploidy = ploidy)
+                ploidy = ploidy, do_mcmc = TRUE)
 
   expect_true(all(abs(colSums(uout$opostprob) - 1) < 10 ^ -14))
 

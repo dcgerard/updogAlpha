@@ -5,7 +5,7 @@
 \title{Using Parental DNA for Offspring Genotyping.}
 \usage{
 updog(ocounts, osize, p1counts, p1size, p2counts, p2size, ploidy,
-  seq_error = 0.1)
+  seq_error = 0.1, do_mcmc = FALSE, burnin = 250, itermax = 1000)
 }
 \arguments{
 \item{ocounts}{A vector of non-negative integers. The ith element is the
@@ -29,7 +29,47 @@ number of reads in the ith sample of parent 2.}
 \item{ploidy}{A positive integer. The number of copies of the genome in the
 species.}
 
-\item{seq_error}{A proportion. The known sequencing error rate.}
+\item{seq_error}{A non-negative numeric. This is the known sequencing error
+rate. This is a rough high-ball error rate given by Li et. al. (2011).}
+
+\item{do_mcmc}{A logical. Should we also run a Gibbs sampler to jointly estimate
+the parental and child genotypes (\code{TRUE}) or not (\code{FALSE})? If \code{TRUE},
+the total number of iterations run is \code{burnin + iteramx}.}
+
+\item{burnin}{A non-negative integer. The number of iterations to ignore
+in the Gibbs sampler if \code{do_mcmc = TRUE}.}
+
+\item{itermax}{A positive integer. The number of iterations to collect
+in the Gibbs sampler if \code{do_mcmc = TRUE}.}
+}
+\value{
+A list with some or all of the following elements:
+  \code{opostprob}: A matrix of proportions whose (i, j)th element
+  is the posterior probability that child j has i - 1 copies of the reference allele.
+  That is, the rows index the genotype and the columns index the offspring.
+  These are derived by the one-offspring-at-a-time procedure.
+
+  \code{p1postprob}: A vector of proportions whose ith element is the posterior
+  probability that parent 1 has i - 1 copies of the reference allele.
+  These are derived ONLY from parent 1's sequence data and not jointly with
+  all of the data.
+
+  \code{p2postprob}: A vector of proportions whose ith element is the posterior
+  probability that parent 2 has i - 1 copies of the reference allele.
+  These are derived ONLY from parent 2's sequence data and not jointly with
+  all of the data.
+
+  \code{m_opostprob}: A matrix of proportions whose (i, j)th element
+  is the posterior probability that child j has i - 1 copies of the reference allele.
+  These are derived from the joint analysis with MCMC.
+
+  \code{m_p1postprob}: A vector of proportions whose ith element is the posterior
+  probability that parent 1 has i - 1 copies of the reference allele.
+  These are derived from the joint analysis with MCMC.
+
+  \code{m_p2postprob}: A vector of proportions whose ith element is the posterior
+  probability that parent 2 has i - 1 copies of the reference allele.
+  These are derived from the joint analysis with MCMC.
 }
 \description{
 This function takes parental and offspring sequence counts and returns
@@ -42,5 +82,11 @@ What is updog? Nothing much, what's up with you dawg!
 }
 \author{
 David Gerard
+}
+\references{
+Li, Yun, Carlo Sidore, Hyun Min Kang, Michael Boehnke, and
+  Gonçalo R. Abecasis.
+  \href{https://www.ncbi.nlm.nih.gov/pubmed/21460063}{"Low-coverage sequencing: implications for design of complex trait association studies."}
+  Genome research (2011).
 }
 
