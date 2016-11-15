@@ -226,6 +226,11 @@ updog_mcmc <- function(ocounts, osize, qarray, r1vec, r2vec, seq_error = 0.01, i
 #'
 #' @author David Gerard
 #'
+#' @return An three-way array of proportions. The (i, j, k)th element is the probability
+#'   of an offspring having k - 1 reference alleles given that parent 1 has i - 1
+#'   refrerence alleles and parent 2 has j - 1 reference alleles. Each dimension of
+#'   the array is \code{ploidy + 1}.
+#'
 #' @export
 #'
 get_q_array <- function(ploidy) {
@@ -279,6 +284,9 @@ get_q_array <- function(ploidy) {
 #'   individual.
 #' @param seq_error A non-negative numeric. This is the known sequencing error
 #'   rate. This is a rough high-ball error rate given by Li et. al. (2011).
+#'
+#' @return A vector of probabilities. The ith element is the posterior probability
+#'   that the individual has i - 1 copies of the reference allele.
 #'
 #' @author David Gerard
 #'

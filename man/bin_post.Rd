@@ -28,6 +28,10 @@ individual.}
 \item{seq_error}{A non-negative numeric. This is the known sequencing error
 rate. This is a rough high-ball error rate given by Li et. al. (2011).}
 }
+\value{
+A vector of probabilities. The ith element is the posterior probability
+  that the individual has i - 1 copies of the reference allele.
+}
 \description{
 The function assumes that all data come from independent samples on the same
 individual.

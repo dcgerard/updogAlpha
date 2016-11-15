@@ -10,6 +10,12 @@ get_q_array(ploidy)
 \arguments{
 \item{ploidy}{A positive integer. The ploidy of the species.}
 }
+\value{
+An three-way array of proportions. The (i, j, k)th element is the probability
+  of an offspring having k - 1 reference alleles given that parent 1 has i - 1
+  refrerence alleles and parent 2 has j - 1 reference alleles. Each dimension of
+  the array is \code{ploidy + 1}.
+}
 \description{
 Derive the probabilities of an offspring's genotype given its parental
 genotypes for all possible combinations of parental and offspring genotypes.
