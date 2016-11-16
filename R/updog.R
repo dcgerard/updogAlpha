@@ -229,7 +229,8 @@ updog_mcmc <- function(ocounts, osize, qarray, r1vec, r2vec, seq_error = 0.01, i
 #' @return An three-way array of proportions. The (i, j, k)th element is the probability
 #'   of an offspring having k - 1 reference alleles given that parent 1 has i - 1
 #'   refrerence alleles and parent 2 has j - 1 reference alleles. Each dimension of
-#'   the array is \code{ploidy + 1}.
+#'   the array is \code{ploidy + 1}. In the dimension names, "A" stands for the
+#'   reference allele and "a" stands for any other allele.
 #'
 #' @export
 #'
@@ -256,6 +257,14 @@ get_q_array <- function(ploidy) {
       }
     }
   }
+
+  ## get dimnames
+  dimvec <- sapply(mapply(FUN = c, lapply(X = 0:ploidy, FUN = rep.int, x = "A"),
+                          lapply(X = ploidy:0, FUN = rep.int, x = "a"),
+                          SIMPLIFY = FALSE),
+                   FUN = paste, collapse = "")
+  dimnames(qarray) <- list(parent1 = dimvec, parent2 = dimvec, offspring = dimvec)
+
 
   assertthat::assert_that(all(abs(apply(qarray, c(1, 2), sum) - 1) < 10 ^ -14))
 
@@ -356,4 +365,30 @@ bin_post <- function(ncounts, ssize, prior, seq_error = 0.01) {
   ## assertthat::are_equal(postprob, exp(logprob) / sum(exp(logprob)))
 
   return(postprob)
+}
+
+
+
+
+# segreg_poly = function to compute Mendelian segregation in polyploid
+# <m> ploidy
+# <dP> parent 1 genotype - Ex: {AAAAAA=6},{AAAAAa=5}, ... , {aaaaaa=0}
+# <dQ> parent 2 genotype
+segreg_poly <- function(m, dP, dQ) {
+ if (m%%2 != 0)
+   stop("m must be an even number")
+ p.dose <- numeric((m + 1))
+ p.names <- character((m + 1))
+ seg.p1 <- stats::dhyper(x = c(0:(m + 1)), m = dP, n = (m - dP), k = m/2)
+ seg.p2 <- stats::dhyper(x = c(0:(m + 1)), m = dQ, n = (m - dQ), k = m/2)
+ M <- tcrossprod(seg.p1, seg.p2)
+ for (i in 1:nrow(M)) {
+   for (j in 1:ncol(M)) {
+     p.dose[i + j - 1] <- p.dose[i + j - 1] + M[i, j]
+   }
+ }
+ p.dose <- p.dose[!is.na(p.dose)]
+ for (i in 0:m) p.names[i + 1] <- paste(paste(rep("A", i), collapse = ""), paste(rep("a", (m - i)), collapse = ""), sep = "")
+ names(p.dose) <- p.names
+ return(p.dose)
 }
