@@ -2,10 +2,11 @@
 % Please edit documentation in R/updog.R
 \name{updog}
 \alias{updog}
-\title{Using Parental DNA for Offspring Genotyping.}
+\title{Using Parental Data for Offspring Genotyping.}
 \usage{
-updog(ocounts, osize, p1counts, p1size, p2counts, p2size, ploidy,
-  seq_error = 0.1, do_mcmc = FALSE, burnin = 250, itermax = 1000)
+updog(ocounts, osize, ploidy, p1counts = NULL, p1size = NULL,
+  p2counts = NULL, p2size = NULL, seq_error = 0.1, do_mcmc = FALSE,
+  burnin = 250, itermax = 1000)
 }
 \arguments{
 \item{ocounts}{A vector of non-negative integers. The ith element is the
@@ -14,20 +15,28 @@ number of reads of the reference allele the ith child.}
 \item{osize}{A vector of positive integers. The ith element is the total
 number of reads for the ith child.}
 
-\item{p1counts}{A vector of non-negative integers. The ith element is the
-number of reads of the reference allele in the ith sample of parent 1.}
-
-\item{p1size}{A vector of positive integers. The ith element is the total
-number of reads in the ith sample of parent 1.}
-
-\item{p2counts}{A vector of non-negative integers. The ith element is the
-number of reads of the reference allele in the ith sample of parent 2.}
-
-\item{p2size}{A vector of positive integers. The ith element is the total
-number of reads in the ith sample of parent 2.}
-
 \item{ploidy}{A positive integer. The number of copies of the genome in the
 species.}
+
+\item{p1counts}{A vector of non-negative integers. The ith element is the
+number of reads of the reference allele in the ith sample of parent 1.
+If \code{NULL} then the prior probabilities on parent 1's genotype will default
+to uniform.}
+
+\item{p1size}{A vector of positive integers. The ith element is the total
+number of reads in the ith sample of parent 1.
+If \code{NULL} then the prior probabilities on parent 1's genotype will default
+to uniform.}
+
+\item{p2counts}{A vector of non-negative integers. The ith element is the
+number of reads of the reference allele in the ith sample of parent 2.
+If \code{NULL} then the prior probabilities on parent 2's genotype will default
+to uniform.}
+
+\item{p2size}{A vector of positive integers. The ith element is the total
+number of reads in the ith sample of parent 2.
+If \code{NULL} then the prior probabilities on parent 2's genotype will default
+to uniform.}
 
 \item{seq_error}{A non-negative numeric. This is the known sequencing error
 rate. This is a rough high-ball error rate given by Li et. al. (2011).}
@@ -72,13 +81,16 @@ A list with some or all of the following elements:
   These are derived from the joint analysis with MCMC.
 }
 \description{
-This function takes parental and offspring sequence counts and returns
-posterior probabilities on the genotype of all offspring. This isn't fully
-Bayesian because I only update the parental probabilities with just their
-sequencing data.
+This function fits a hierarchical model to sequence counts from a collection
+of siblings and return genotyped information. The hierarchy comes from the fact
+that they share the same parents. If you also have parental sequencing data,
+then you can include this to improve estimates.
 }
 \details{
-What is updog? Nothing much, what's up with you dawg!
+If you have a lot of parental sequencing data, then it could suffice to run
+\code{updog} with \code{do_mcmc} set to \code{FALSE}. Otherwise, you will
+probably want to borrow strength between the offspring by setting \code{do_mcmc}
+to \code{TRUE}.
 }
 \author{
 David Gerard

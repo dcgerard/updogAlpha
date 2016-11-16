@@ -1,6 +1,6 @@
 Package: updog
 Type: Package
-Title: Using Parental DNA for Offspring Genotyping
+Title: Using Parental Data for Offspring Genotyping
 Version: 0.1.0
 Authors@R: person("David", "Gerard", email = "dcgerard@uchicago.edu", role = c("aut", "cre"))
 Description: Implements a Bayesian approach to estimating the genotype

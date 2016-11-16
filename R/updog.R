@@ -1,13 +1,16 @@
 
 
-#' Using Parental DNA for Offspring Genotyping.
+#' Using Parental Data for Offspring Genotyping.
 #'
-#' This function takes parental and offspring sequence counts and returns
-#' posterior probabilities on the genotype of all offspring. This isn't fully
-#' Bayesian because I only update the parental probabilities with just their
-#' sequencing data.
+#' This function fits a hierarchical model to sequence counts from a collection
+#' of siblings and return genotyped information. The hierarchy comes from the fact
+#' that they share the same parents. If you also have parental sequencing data,
+#' then you can include this to improve estimates.
 #'
-#' What is updog? Nothing much, what's up with you dawg!
+#' If you have a lot of parental sequencing data, then it could suffice to run
+#' \code{updog} with \code{do_mcmc} set to \code{FALSE}. Otherwise, you will
+#' probably want to borrow strength between the offspring by setting \code{do_mcmc}
+#' to \code{TRUE}.
 #'
 #' @param ocounts A vector of non-negative integers. The ith element is the
 #'   number of reads of the reference allele the ith child.
@@ -15,12 +18,20 @@
 #'   number of reads for the ith child.
 #' @param p1counts A vector of non-negative integers. The ith element is the
 #'   number of reads of the reference allele in the ith sample of parent 1.
+#'   If \code{NULL} then the prior probabilities on parent 1's genotype will default
+#'   to uniform.
 #' @param p1size A vector of positive integers. The ith element is the total
 #'   number of reads in the ith sample of parent 1.
+#'   If \code{NULL} then the prior probabilities on parent 1's genotype will default
+#'   to uniform.
 #' @param p2counts A vector of non-negative integers. The ith element is the
 #'   number of reads of the reference allele in the ith sample of parent 2.
+#'   If \code{NULL} then the prior probabilities on parent 2's genotype will default
+#'   to uniform.
 #' @param p2size A vector of positive integers. The ith element is the total
 #'   number of reads in the ith sample of parent 2.
+#'   If \code{NULL} then the prior probabilities on parent 2's genotype will default
+#'   to uniform.
 #' @param ploidy A positive integer. The number of copies of the genome in the
 #'   species.
 #' @param seq_error A non-negative numeric. This is the known sequencing error
@@ -71,28 +82,41 @@
 #'   \href{https://www.ncbi.nlm.nih.gov/pubmed/21460063}{"Low-coverage sequencing: implications for design of complex trait association studies."}
 #'   Genome research (2011).
 #'
-updog <- function(ocounts, osize, p1counts, p1size, p2counts, p2size, ploidy,
+updog <- function(ocounts, osize,  ploidy, p1counts = NULL,
+                  p1size = NULL, p2counts = NULL, p2size = NULL,
                   seq_error = 0.1, do_mcmc = FALSE,
                   burnin = 250, itermax = 1000) {
 
   ## check input -------------------------------------------------------------
   assertthat::assert_that(all(ocounts >= 0))
-  assertthat::assert_that(all(p1counts >= 0))
-  assertthat::assert_that(all(p2counts >= 0))
   assertthat::assert_that(all(osize >= 1))
-  assertthat::assert_that(all(p1size >= 1))
-  assertthat::assert_that(all(p2size >= 1))
   assertthat::assert_that(all(ocounts <= osize))
-  assertthat::assert_that(all(p1counts <= p1size))
-  assertthat::assert_that(all(p2counts <= p2size))
+
+  ## get priors on parental genotypes
+  if (is.null(p1counts) | is.null(p1size)) {
+    r1vec <- rep(1 / (ploidy + 1), times = ploidy + 1)
+  } else {
+    assertthat::assert_that(all(p1counts >= 0))
+    assertthat::assert_that(all(p1size >= 1))
+    assertthat::assert_that(all(p1counts <= p1size))
+    r1vec <- bin_post(ncounts = p1counts, ssize = p1size, prior = ploidy,
+                      seq_error = seq_error)
+  }
+
+  if (is.null(p2counts) | is.null(p2size)) {
+    r2vec <- rep(1 / (ploidy + 1), times = ploidy + 1)
+  } else {
+    assertthat::assert_that(all(p2counts >= 0))
+    assertthat::assert_that(all(p2size >= 1))
+    assertthat::assert_that(all(p2counts <= p2size))
+    r2vec <- bin_post(ncounts = p2counts, ssize = p2size, prior = ploidy,
+                      seq_error = seq_error)
+  }
+
   assertthat::assert_that(ploidy >= 1)
   assertthat::assert_that(is.logical(do_mcmc))
   assertthat::assert_that(burnin >= 0)
   assertthat::assert_that(burnin < itermax)
-
-  ## derive posteriors of parental genotypes given just parental sequence data.
-  r1vec <- bin_post(ncounts = p1counts, ssize = p1size, prior = ploidy)
-  r2vec <- bin_post(ncounts = p2counts, ssize = p2size, prior = ploidy)
 
   ## derive offspring genotype probabilities given parental genotypes.
   qarray <- get_q_array(ploidy = ploidy)
