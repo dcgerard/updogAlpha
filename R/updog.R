@@ -293,6 +293,8 @@ get_q_array <- function(ploidy) {
 #'   individual.
 #' @param seq_error A non-negative numeric. This is the known sequencing error
 #'   rate. This is a rough high-ball error rate given by Li et. al. (2011).
+#' @param divide_by_three A logical. Should we use asymmetry in the error rates
+#'   (\code{TRUE}) or not (\code{FALSE})? Defaults to \code{FALSE}.
 #'
 #' @return A vector of probabilities. The ith element is the posterior probability
 #'   that the individual has i - 1 copies of the reference allele.
@@ -307,7 +309,7 @@ get_q_array <- function(ploidy) {
 #'   Genome research (2011).
 #'
 #'
-bin_post <- function(ncounts, ssize, prior, seq_error = 0.01) {
+bin_post <- function(ncounts, ssize, prior, seq_error = 0.01, divide_by_three = FALSE) {
 
   ## check input -------------------------------------------------------------
   assertthat::assert_that(all(ncounts >= 0))
@@ -331,7 +333,13 @@ bin_post <- function(ncounts, ssize, prior, seq_error = 0.01) {
   pk <- seq(0, ploidy) / ploidy ## the possible probabilities
 
   ## deal with error rate
-  pk <- (1 - seq_error) * pk + seq_error * (1 - pk) / 3
+  if (!divide_by_three) {
+    pk <- (1 - seq_error) * pk + seq_error * (1 - pk)
+  } else {
+    pk <- (1 - seq_error) * pk + seq_error * (1 - pk) / 3
+  }
+
+
 
   nsum <- sum(ncounts)
   tsum <- sum(ssize)

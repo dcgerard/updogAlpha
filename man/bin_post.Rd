@@ -5,7 +5,7 @@
 \title{Calculates posterior probabilities of a genotype given just the sequence
 counts.}
 \usage{
-bin_post(ncounts, ssize, prior, seq_error = 0.01)
+bin_post(ncounts, ssize, prior, seq_error = 0.01, divide_by_three = FALSE)
 }
 \arguments{
 \item{ncounts}{A vector of non-negative integers. The ith element is the
@@ -27,6 +27,9 @@ individual.}
 
 \item{seq_error}{A non-negative numeric. This is the known sequencing error
 rate. This is a rough high-ball error rate given by Li et. al. (2011).}
+
+\item{divide_by_three}{A logical. Should we use asymmetry in the error rates
+(\code{TRUE}) or not (\code{FALSE})? Defaults to \code{FALSE}.}
 }
 \value{
 A vector of probabilities. The ith element is the posterior probability
