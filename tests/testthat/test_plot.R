@@ -14,7 +14,7 @@ test_that("plot works", {
   seq_error <- 0.01
 
   plot_geno(ocounts = ocounts, osize = osize, ploidy = 6, p1counts = p1counts, p1size = p1size,
-            p2counts = p2counts, p2size = p2size)
+            p2counts = p2counts, p2size = p2size, col = rep(3, length = length(ocounts)))
 
 }
 )

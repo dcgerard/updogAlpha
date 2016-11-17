@@ -396,7 +396,7 @@ plot_geno <- function(ocounts, osize, ploidy, p1counts = NULL, p1size = NULL, p2
   maxcount <- max(max(dfdat$A), max(dfdat$a))
   if (!is.null(col)) {
     assertthat::are_equal(length(col), length(ocounts))
-    dfdat$genotype <- col
+    dfdat$genotype <- as.factor(col)
   }
 
   slopevec <- pk / (1 - pk)
@@ -406,15 +406,20 @@ plot_geno <- function(ocounts, osize, ploidy, p1counts = NULL, p1size = NULL, p2
                          xend = xend, yend = yend)
 
   ## Plot children
-   pl <- ggplot2::ggplot(data = dfdat, mapping = ggplot2::aes_string(y = "A", x = "a")) +
-     ggplot2::geom_point() +
-     ggplot2::theme_bw() +
-     ggplot2::xlim(0, maxcount) +
-     ggplot2::ylim(0, maxcount) +
-     ggplot2::ylab("Counts A") +
-     ggplot2::xlab("Counts a")  +
-     ggplot2::geom_segment(data = df_lines, mapping = ggplot2::aes_string(x = "x", y = "y", xend = "xend", yend = "yend"),
-                           lty = 2, alpha = 1/2)
+  if (is.null(col)) {
+    pl <- ggplot2::ggplot(data = dfdat, mapping = ggplot2::aes_string(y = "A", x = "a"))
+  } else {
+    pl <- ggplot2::ggplot(data = dfdat, mapping = ggplot2::aes_string(y = "A", x = "a", col = "genotype"))
+  }
+
+  pl <- pl + ggplot2::geom_point() +
+    ggplot2::theme_bw() +
+    ggplot2::xlim(0, maxcount) +
+    ggplot2::ylim(0, maxcount) +
+    ggplot2::ylab("Counts A") +
+    ggplot2::xlab("Counts a")  +
+    ggplot2::geom_segment(data = df_lines, mapping = ggplot2::aes_string(x = "x", y = "y", xend = "xend", yend = "yend"),
+                          lty = 2, alpha = 1/2, color = "black")
 
    ## add parents if we have them
    if (!is.null(p1size) & !is.null(p1counts)) {
