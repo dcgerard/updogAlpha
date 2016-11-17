@@ -406,14 +406,14 @@ plot_geno <- function(ocounts, osize, ploidy, p1counts = NULL, p1size = NULL, p2
                          xend = xend, yend = yend)
 
   ## Plot children
-   pl <- ggplot2::ggplot(data = dfdat, mapping = ggplot2::aes(y = A, x = a)) +
+   pl <- ggplot2::ggplot(data = dfdat, mapping = ggplot2::aes_string(y = "A", x = "a")) +
      ggplot2::geom_point() +
      ggplot2::theme_bw() +
      ggplot2::xlim(0, maxcount) +
      ggplot2::ylim(0, maxcount) +
      ggplot2::ylab("Counts A") +
      ggplot2::xlab("Counts a")  +
-     ggplot2::geom_segment(data = df_lines, mapping = ggplot2::aes(x = x, y = y, xend = xend, yend = yend),
+     ggplot2::geom_segment(data = df_lines, mapping = ggplot2::aes_string(x = "x", y = "y", xend = "xend", yend = "yend"),
                            lty = 2, alpha = 1/2)
 
    ## add parents if we have them
