@@ -43,6 +43,8 @@
 #'   in the Gibbs sampler if \code{do_mcmc = TRUE}.
 #' @param itermax A positive integer. The number of iterations to collect
 #'   in the Gibbs sampler if \code{do_mcmc = TRUE}.
+#' @param iterate A logical. Should we perform the iterative posterior approximation
+#'   scheme (\code{TRUE}) or note (\code{FALSE})?
 #'
 #'
 #' @return A list with some or all of the following elements:
@@ -84,7 +86,7 @@
 #'
 updog <- function(ocounts, osize,  ploidy, p1counts = NULL,
                   p1size = NULL, p2counts = NULL, p2size = NULL,
-                  seq_error = 0.1, do_mcmc = FALSE,
+                  seq_error = 0.1, do_mcmc = FALSE, iterate = FALSE,
                   burnin = 250, itermax = 1000) {
 
   ## check input -------------------------------------------------------------
@@ -121,9 +123,18 @@ updog <- function(ocounts, osize,  ploidy, p1counts = NULL,
   ## derive offspring genotype probabilities given parental genotypes.
   qarray <- get_q_array(ploidy = ploidy)
 
-  ## Derive prior probabilities on offspring genotypes
-  phi_vec <- r1vec ## posterior prob of p1 genotype
-  psi_vec <- r2vec ## posterior prob of p2 genotype
+  ## iterate to get r1vec and r2vec
+  if (iterate) {
+    itout <- updog_iterate(ocounts = ocounts, osize = osize,
+                           qarray = qarray, r1vec = r1vec,
+                           r2vec = r2vec, seq_error = seq_error)
+    phi_vec <- itout$r1vec
+    psi_vec <- itout$r2vec
+  } else {
+    ## Derive prior probabilities on offspring genotypes
+    phi_vec <- r1vec ## posterior prob of p1 genotype
+    psi_vec <- r2vec ## posterior prob of p2 genotype
+  }
 
   harray <- sweep(qarray, MARGIN = 1, STATS = phi_vec, FUN = `*`)
   harray <- sweep(harray, MARGIN = 2, STATS = psi_vec, FUN = `*`)
@@ -149,6 +160,62 @@ updog <- function(ocounts, osize,  ploidy, p1counts = NULL,
   return(return_list)
 }
 
+
+#' Iterate between indiividual level estimates and joint averaging.
+#'
+#' @inheritParams updog
+#' @inheritParams updog_mcmc
+#' @param itermax The number of times to iterate between the two approaches.
+#' @param tol A positive numeric. The tolderance for the stopping criteria.
+#'
+#' @author David Gerard
+#'
+updog_iterate <- function(ocounts, osize, qarray, r1vec, r2vec, seq_error = 0.01, itermax = 1000,
+                          tol = 10 ^ -4) {
+  ploidy <- length(r1vec) - 1
+  assertthat::are_equal(length(r2vec), ploidy + 1)
+  # assertthat::are_equal(length(ocounts), length(osize))
+  assertthat::assert_that(all(ocounts <= osize))
+  assertthat::assert_that(all(dim(qarray) == ploidy + 1))
+  assertthat::assert_that(tol > 0)
+
+  ## calculate log-probabilities ---------------------------------------------
+  pk <- seq(0, ploidy) / ploidy ## the possible probabilities
+  ## deal with error rate ----------------------------------------------------
+  pk <- (1 - seq_error) * pk + seq_error * (1 - pk)
+
+  ## binom density where the rows indexs the genotypes and the columns index the individuals
+  dbinommat <- mapply(FUN = stats::dbinom, ocounts, osize, MoreArgs = list(prob = pk, log = FALSE))
+  dimnames(dbinommat) = list(genotype = get_dimname(ploidy), offspring = 1:ncol(dbinommat))
+  assertthat::assert_that(all(abs(dbinommat[, 1] -
+                                    stats::dbinom(x = ocounts[1], size = osize[1], prob = pk, log = FALSE)) < 10 ^ -14))
+
+  ## update parent 1 and parent
+  err <- tol + 1
+  while (index < itermax & err > tol) {
+    r1old <- r1vec
+    harray <- sweep(qarray, MARGIN = 1, STATS = r1vec, FUN = `*`)
+    harray <- sweep(harray, MARGIN = 2, STATS = r2vec, FUN = `*`)
+    h2array <- apply(dbinommat, 2, function(x) {sweep(harray, MARGIN = 3, STATS = x, FUN = `*`) })
+    h3array <- array(h2array, dim = c(rep(ploidy + 1, 3), length(ocounts)))
+    dimvec <- get_dimname(ploidy)
+    dimnames(h3array) = list(parent1 = dimvec, parent2 = dimvec, offspring = dimvec, individual = 1:length(ocounts))
+    up1prob <- apply(h3array, c(1, 4), sum)
+    up2prob <- apply(h3array, c(2, 4), sum)
+
+    p1prob <- sweep(up1prob, MARGIN = 2, STATS = colSums(up1prob), FUN = `/`)
+    p2prob <- sweep(up2prob, MARGIN = 2, STATS = colSums(up2prob), FUN = `/`)
+
+    r1vec <- rowMeans(p1prob)
+
+    index <- index + 1
+    err <- sum(abs(r1vec - r1old))
+
+    cat(err, "\n")
+  }
+  return(list(r1vec = r1vec, r2vec = r2vec))
+}
+
 #' The updog Gibbs sampler to jointly estimate the parental and offspring genotypes.
 #'
 #' @inheritParams updog
@@ -172,7 +239,7 @@ updog_mcmc <- function(ocounts, osize, qarray, r1vec, r2vec, seq_error = 0.01, i
   ## calculate log-probabilities ---------------------------------------------
   pk <- seq(0, ploidy) / ploidy ## the possible probabilities
   ## deal with error rate ----------------------------------------------------
-  pk <- (1 - seq_error) * pk + seq_error * (1 - pk) / 3
+  pk <- (1 - seq_error) * pk + seq_error * (1 - pk)
 
   ## the total number of samples for each genotype
   tot_p1 <- rep(0, length = ploidy + 1)
@@ -283,16 +350,32 @@ get_q_array <- function(ploidy) {
   }
 
   ## get dimnames
-  dimvec <- sapply(mapply(FUN = c, lapply(X = 0:ploidy, FUN = rep.int, x = "A"),
-                          lapply(X = ploidy:0, FUN = rep.int, x = "a"),
-                          SIMPLIFY = FALSE),
-                   FUN = paste, collapse = "")
+
+  dimvec <- get_dimname(ploidy)
   dimnames(qarray) <- list(parent1 = dimvec, parent2 = dimvec, offspring = dimvec)
 
 
   assertthat::assert_that(all(abs(apply(qarray, c(1, 2), sum) - 1) < 10 ^ -14))
 
   return(qarray)
+}
+
+#' Returns a vector character strings that are all of the possible combinations of the
+#' reference allele and the non-reference allele.
+#'
+#' @param ploidy The ploidy of the species.
+#'
+#' @return For example, if \code{ploidy = 3} then this will return c("aaa", "Aaa", "AAa", "AAA")
+#'
+#' @author David Gerard
+#'
+#'
+get_dimname <- function(ploidy) {
+  dimvec <- sapply(mapply(FUN = c, lapply(X = 0:ploidy, FUN = rep.int, x = "A"),
+                          lapply(X = ploidy:0, FUN = rep.int, x = "a"),
+                          SIMPLIFY = FALSE),
+                   FUN = paste, collapse = "")
+  return(dimvec)
 }
 
 #' Calculates posterior probabilities of a genotype given just the sequence

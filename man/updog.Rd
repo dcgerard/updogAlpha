@@ -6,7 +6,7 @@
 \usage{
 updog(ocounts, osize, ploidy, p1counts = NULL, p1size = NULL,
   p2counts = NULL, p2size = NULL, seq_error = 0.1, do_mcmc = FALSE,
-  burnin = 250, itermax = 1000)
+  iterate = FALSE, burnin = 250, itermax = 1000)
 }
 \arguments{
 \item{ocounts}{A vector of non-negative integers. The ith element is the
@@ -44,6 +44,9 @@ rate. This is a rough high-ball error rate given by Li et. al. (2011).}
 \item{do_mcmc}{A logical. Should we also run a Gibbs sampler to jointly estimate
 the parental and child genotypes (\code{TRUE}) or not (\code{FALSE})? If \code{TRUE},
 the total number of iterations run is \code{burnin + iteramx}.}
+
+\item{iterate}{A logical. Should we perform the iterative posterior approximation
+scheme (\code{TRUE}) or note (\code{FALSE})?}
 
 \item{burnin}{A non-negative integer. The number of iterations to ignore
 in the Gibbs sampler if \code{do_mcmc = TRUE}.}

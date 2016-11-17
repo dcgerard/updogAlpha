@@ -43,5 +43,17 @@ test_that("updog works", {
   uout$m_opostprob
   uout2$m_opostprob
 
+  # uout <- updog(ocounts = ocounts, osize = osize, p1counts = p1counts,
+  #               p1size = p1size, p2counts = p2counts, p2size = p2size,
+  #               ploidy = ploidy, do_mcmc = TRUE, iterate = TRUE)
+  #
+  # plot(uout$opostprob, uout$m_opostprob)
+  # abline(0, 1)
+  #
+  # plot(uout$p1postprob, uout$m_p1postprob)
+  # abline(0, 1)
+  #
+  # plot(uout$p2postprob, uout$m_p2postprob)
+
 }
 )
