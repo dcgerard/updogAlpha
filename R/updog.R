@@ -360,6 +360,80 @@ get_q_array <- function(ploidy) {
   return(qarray)
 }
 
+#' Make those awesome plots that Felipe showed me, but using ggplot2.
+#'
+#' @param ocounts A vector of non-negative integers. The number of reference alleles observed in the offspring.
+#' @param osize A vector of positive integers. The total number of reads in the offspring.
+#' @param p1counts A vector of non-negative integers. The number of reference alleles observed in parent 1.
+#' @param p1size A vector of positive integers. The total number of reads in parent 1.
+#' @param p2counts A vector of non-negative integers. The number of reference alleles observed in parent 2.
+#' @param p2size A vector of positive integers. The total number of reads in parent 2.
+#' @param ploidy A non-negative integer. The ploidy of the species.
+#' @param col The color labels.
+#' @param seq_error The average sequencing error rate.
+#'
+#' @export
+#'
+#' @author David Gerard
+#'
+plot_geno <- function(ocounts, osize, ploidy, p1counts = NULL, p1size = NULL, p2counts = NULL,
+                      p2size = NULL, col = NULL, seq_error = 0.01) {
+  if (!requireNamespace("ggplot2", quietly = TRUE)) {
+    stop("ggplot2 must be installed to use this function")
+  }
+
+  assertthat::assert_that(all(ocounts >= 0))
+  assertthat::assert_that(all(osize >= ocounts))
+  assertthat::assert_that(ploidy >= 1)
+  assertthat::assert_that(seq_error>= 0)
+
+
+  ## get probabilities
+  pk <- seq(0, ploidy) / ploidy ## the possible probabilities
+  pk <- (1 - seq_error) * pk + seq_error * (1 - pk)
+
+  dfdat <- data.frame(A = ocounts, a = osize - ocounts)
+  maxcount <- max(max(dfdat$A), max(dfdat$a))
+  if (!is.null(col)) {
+    assertthat::are_equal(length(col), length(ocounts))
+    dfdat$genotype <- col
+  }
+
+  slopevec <- pk / (1 - pk)
+  xend <- pmin(rep(maxcount, ploidy + 1), maxcount / slopevec)
+  yend <- pmin(rep(maxcount, ploidy + 1), maxcount * slopevec)
+  df_lines <- data.frame(x = rep(0, ploidy + 1), y = rep(0, ploidy + 1),
+                         xend = xend, yend = yend)
+
+  ## Plot children
+   pl <- ggplot2::ggplot(data = dfdat, mapping = ggplot2::aes(y = A, x = a)) +
+     ggplot2::geom_point() +
+     ggplot2::theme_bw() +
+     ggplot2::xlim(0, maxcount) +
+     ggplot2::ylim(0, maxcount) +
+     ggplot2::ylab("Counts A") +
+     ggplot2::xlab("Counts a")  +
+     ggplot2::geom_segment(data = df_lines, mapping = ggplot2::aes(x = x, y = y, xend = xend, yend = yend),
+                           lty = 2, alpha = 1/2)
+
+   ## add parents if we have them
+   if (!is.null(p1size) & !is.null(p1counts)) {
+     assertthat::assert_that(all(p1counts >= 0))
+     assertthat::assert_that(all(p1size >= p1counts))
+     p1dat <- data.frame(A = p1counts, a = p1size - p1counts)
+     pl <- pl + ggplot2::geom_point(data = p1dat, size = 3, color = "red", pch = 3)
+   }
+   if (!is.null(p2size) & !is.null(p2counts)) {
+     assertthat::assert_that(all(p2counts >= 0))
+     assertthat::assert_that(all(p2size >= p2counts))
+     p2dat <- data.frame(A = p2counts, a = p2size - p2counts)
+     pl <- pl + ggplot2::geom_point(data = p2dat, size = 3, color = "blue", pch = 4)
+   }
+
+   print(pl)
+   return(pl)
+}
+
 #' Returns a vector character strings that are all of the possible combinations of the
 #' reference allele and the non-reference allele.
 #'

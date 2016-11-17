@@ -13,7 +13,8 @@ URL: https://github.com/dcgerard/updog
 BugReports: http://github.com/dcgerard/updog/issues
 Suggests:
     testthat,
-    covr
+    covr,
+    ggplot2
 Imports:
     assertthat
 RoxygenNote: 5.0.1
