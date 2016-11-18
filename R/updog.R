@@ -86,7 +86,7 @@
 #'
 updog <- function(ocounts, osize,  ploidy, p1counts = NULL,
                   p1size = NULL, p2counts = NULL, p2size = NULL,
-                  seq_error = 0.1, do_mcmc = FALSE, iterate = FALSE,
+                  seq_error = 0.01, do_mcmc = FALSE, iterate = FALSE,
                   burnin = 250, itermax = 1000) {
 
   ## check input -------------------------------------------------------------
@@ -192,6 +192,7 @@ updog_iterate <- function(ocounts, osize, qarray, r1vec, r2vec, seq_error = 0.01
 
   ## update parent 1 and parent
   err <- tol + 1
+  index <- 1
   while (index < itermax & err > tol) {
     r1old <- r1vec
     harray <- sweep(qarray, MARGIN = 1, STATS = r1vec, FUN = `*`)
