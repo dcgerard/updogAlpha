@@ -30,6 +30,7 @@ test_that("updog works", {
   p2counts <- c(7, 9, 11)
   p2size   <- c(11, 9, 11)
   ploidy   <- 6
+  seq_error <- 0.01
 
   uout <- updog(ocounts = ocounts, osize = osize, p1counts = p1counts,
                 p1size = p1size, p2counts = p2counts, p2size = p2size,

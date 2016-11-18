@@ -6,7 +6,7 @@
 \usage{
 updog(ocounts, osize, ploidy, p1counts = NULL, p1size = NULL,
   p2counts = NULL, p2size = NULL, seq_error = 0.01, do_mcmc = FALSE,
-  iterate = FALSE, burnin = 250, itermax = 1000)
+  iterate = FALSE, burnin = 250, itermax = 1000, integrate = FALSE)
 }
 \arguments{
 \item{ocounts}{A vector of non-negative integers. The ith element is the
@@ -53,6 +53,11 @@ in the Gibbs sampler if \code{do_mcmc = TRUE}.}
 
 \item{itermax}{A positive integer. The number of iterations to collect
 in the Gibbs sampler if \code{do_mcmc = TRUE}.}
+
+\item{integrate}{A logical. Should we integrate over our uncertainty in the parental
+genotypes (\code{TRUE}) or not (\code{FALSE}). The default is \code{FALSE} because
+we usually know the parental genotypes with near certainty so it's not important
+to integrate over our uncertainty in them.}
 }
 \value{
 A list with some or all of the following elements:

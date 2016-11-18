@@ -2,5 +2,6 @@
 
 export(bin_post)
 export(get_q_array)
+export(get_transition_mat)
 export(plot_geno)
 export(updog)

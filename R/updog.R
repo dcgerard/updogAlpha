@@ -45,6 +45,10 @@
 #'   in the Gibbs sampler if \code{do_mcmc = TRUE}.
 #' @param iterate A logical. Should we perform the iterative posterior approximation
 #'   scheme (\code{TRUE}) or note (\code{FALSE})?
+#' @param integrate A logical. Should we integrate over our uncertainty in the parental
+#'   genotypes (\code{TRUE}) or not (\code{FALSE}). The default is \code{FALSE} because
+#'   we usually know the parental genotypes with near certainty so it's not important
+#'   to integrate over our uncertainty in them.
 #'
 #'
 #' @return A list with some or all of the following elements:
@@ -87,7 +91,7 @@
 updog <- function(ocounts, osize,  ploidy, p1counts = NULL,
                   p1size = NULL, p2counts = NULL, p2size = NULL,
                   seq_error = 0.01, do_mcmc = FALSE, iterate = FALSE,
-                  burnin = 250, itermax = 1000) {
+                  burnin = 250, itermax = 1000, integrate = FALSE) {
 
   ## check input -------------------------------------------------------------
   assertthat::assert_that(all(ocounts >= 0))
@@ -136,9 +140,15 @@ updog <- function(ocounts, osize,  ploidy, p1counts = NULL,
     psi_vec <- r2vec ## posterior prob of p2 genotype
   }
 
-  harray <- sweep(qarray, MARGIN = 1, STATS = phi_vec, FUN = `*`)
-  harray <- sweep(harray, MARGIN = 2, STATS = psi_vec, FUN = `*`)
-  hl <- apply(harray, 3, sum)
+  if (integrate) {
+    harray <- sweep(qarray, MARGIN = 1, STATS = phi_vec, FUN = `*`)
+    harray <- sweep(harray, MARGIN = 2, STATS = psi_vec, FUN = `*`)
+    hl <- apply(harray, 3, sum)
+  } else {
+    genop1 <- which.max(r1vec)
+    genop2 <- which.max(r2vec)
+    hl <- qarray[genop1, genop2, ]
+  }
 
   ## get posterior probabilities of offspring genotypes.
   postprob <- mapply(FUN = bin_post, ocounts, osize,
@@ -361,6 +371,29 @@ get_q_array <- function(ploidy) {
   assertthat::assert_that(all(abs(apply(qarray, c(1, 2), sum) - 1) < 10 ^ -14))
 
   return(qarray)
+}
+
+
+#' Get the transition probabilities from going from one ploidy to another assuming a constant error rate.
+#'
+#' @param ploidy The ploidy of the species.
+#' @param eps The probability of one allele switching.
+#'
+#' @author David Gerard
+#'
+#' @export
+#'
+get_transition_mat <- function(ploidy, eps) {
+  bmat <- matrix(NA, nrow = ploidy + 1, ncol = ploidy + 1)
+  ## Transition from i to j
+  for (i in 0:ploidy) {
+    for (j in 0:ploidy) {
+      bmat[i + 1, j + 1] <- sum(stats::dbinom(x = 0:j, size = i, prob = 1 - eps) *
+                                  stats::dbinom(x = j:0, size = ploidy - i, prob = eps))
+    }
+  }
+  assertthat::assert_that(all(abs(rowSums(bmat) - 1) < 10 ^ -14))
+  return(bmat)
 }
 
 #' Make those awesome plots that Felipe showed me, but using ggplot2.
