@@ -195,6 +195,7 @@ updog_iterate <- function(ocounts, osize, qarray, r1vec, r2vec, seq_error = 0.01
   index <- 1
   while (index < itermax & err > tol) {
     r1old <- r1vec
+    r2old <- r2vec
     harray <- sweep(qarray, MARGIN = 1, STATS = r1vec, FUN = `*`)
     harray <- sweep(harray, MARGIN = 2, STATS = r2vec, FUN = `*`)
     h2array <- apply(dbinommat, 2, function(x) {sweep(harray, MARGIN = 3, STATS = x, FUN = `*`) })
@@ -208,9 +209,10 @@ updog_iterate <- function(ocounts, osize, qarray, r1vec, r2vec, seq_error = 0.01
     p2prob <- sweep(up2prob, MARGIN = 2, STATS = colSums(up2prob), FUN = `/`)
 
     r1vec <- rowMeans(p1prob)
+    r2vec <- rowMeans(p2prob)
 
     index <- index + 1
-    err <- sum(abs(r1vec - r1old))
+    err <- sum(abs(r1vec - r1old)) + sum(abs(r2vec - r2old))
 
     cat(err, "\n")
   }

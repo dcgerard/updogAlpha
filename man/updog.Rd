@@ -5,7 +5,7 @@
 \title{Using Parental Data for Offspring Genotyping.}
 \usage{
 updog(ocounts, osize, ploidy, p1counts = NULL, p1size = NULL,
-  p2counts = NULL, p2size = NULL, seq_error = 0.1, do_mcmc = FALSE,
+  p2counts = NULL, p2size = NULL, seq_error = 0.01, do_mcmc = FALSE,
   iterate = FALSE, burnin = 250, itermax = 1000)
 }
 \arguments{
