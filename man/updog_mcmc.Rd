@@ -25,11 +25,9 @@ on the sequence data from parent 2.}
 \item{seq_error}{A non-negative numeric. This is the known sequencing error
 rate. This is a rough high-ball error rate given by Li et. al. (2011).}
 
-\item{itermax}{A positive integer. The number of iterations to collect
-in the Gibbs sampler if \code{do_mcmc = TRUE}.}
+\item{itermax}{The maximum number of iterations to run the Gibbs sampler.}
 
-\item{burnin}{A non-negative integer. The number of iterations to ignore
-in the Gibbs sampler if \code{do_mcmc = TRUE}.}
+\item{burnin}{The number of iterations to skip.}
 }
 \description{
 The updog Gibbs sampler to jointly estimate the parental and offspring genotypes.

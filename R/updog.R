@@ -36,15 +36,6 @@
 #'   species.
 #' @param seq_error A non-negative numeric. This is the known sequencing error
 #'   rate. This is a rough high-ball error rate given by Li et. al. (2011).
-#' @param do_mcmc A logical. Should we also run a Gibbs sampler to jointly estimate
-#'   the parental and child genotypes (\code{TRUE}) or not (\code{FALSE})? If \code{TRUE},
-#'   the total number of iterations run is \code{burnin + iteramx}.
-#' @param burnin A non-negative integer. The number of iterations to ignore
-#'   in the Gibbs sampler if \code{do_mcmc = TRUE}.
-#' @param itermax A positive integer. The number of iterations to collect
-#'   in the Gibbs sampler if \code{do_mcmc = TRUE}.
-#' @param iterate A logical. Should we perform the iterative posterior approximation
-#'   scheme (\code{TRUE}) or note (\code{FALSE})?
 #' @param integrate A logical. Should we integrate over our uncertainty in the parental
 #'   genotypes (\code{TRUE}) or not (\code{FALSE}). The default is \code{FALSE} because
 #'   we usually know the parental genotypes with near certainty so it's not important
@@ -90,8 +81,7 @@
 #'
 updog <- function(ocounts, osize,  ploidy, p1counts = NULL,
                   p1size = NULL, p2counts = NULL, p2size = NULL,
-                  seq_error = 0.01, do_mcmc = FALSE, iterate = FALSE,
-                  burnin = 250, itermax = 1000, integrate = FALSE) {
+                  seq_error = 0.01, integrate = FALSE) {
 
   ## check input -------------------------------------------------------------
   assertthat::assert_that(all(ocounts >= 0))
@@ -120,25 +110,15 @@ updog <- function(ocounts, osize,  ploidy, p1counts = NULL,
   }
 
   assertthat::assert_that(ploidy >= 1)
-  assertthat::assert_that(is.logical(do_mcmc))
-  assertthat::assert_that(burnin >= 0)
-  assertthat::assert_that(burnin < itermax)
 
   ## derive offspring genotype probabilities given parental genotypes.
   qarray <- get_q_array(ploidy = ploidy)
 
-  ## iterate to get r1vec and r2vec
-  if (iterate) {
-    itout <- updog_iterate(ocounts = ocounts, osize = osize,
-                           qarray = qarray, r1vec = r1vec,
-                           r2vec = r2vec, seq_error = seq_error)
-    phi_vec <- itout$r1vec
-    psi_vec <- itout$r2vec
-  } else {
-    ## Derive prior probabilities on offspring genotypes
-    phi_vec <- r1vec ## posterior prob of p1 genotype
-    psi_vec <- r2vec ## posterior prob of p2 genotype
-  }
+
+  ## Derive prior probabilities on offspring genotypes
+  phi_vec <- r1vec ## posterior prob of p1 genotype
+  psi_vec <- r2vec ## posterior prob of p2 genotype
+
 
   if (integrate) {
     harray <- sweep(qarray, MARGIN = 1, STATS = phi_vec, FUN = `*`)
@@ -158,14 +138,6 @@ updog <- function(ocounts, osize,  ploidy, p1counts = NULL,
   return_list$opostprob  <- postprob
   return_list$p1postprob <- phi_vec
   return_list$p2postprob <- psi_vec
-
-  if (do_mcmc) {
-    mout <- updog_mcmc(ocounts = ocounts, osize = osize, qarray = qarray, r1vec = r1vec,
-                       r2vec = r2vec, seq_error = seq_error, itermax = itermax, burnin = burnin)
-    return_list$m_opostprob  <- mout$opostprob
-    return_list$m_p1postprob <- mout$p1postprob
-    return_list$m_p2postprob <- mout$p2postprob
-  }
 
   return(return_list)
 }
@@ -237,6 +209,8 @@ updog_iterate <- function(ocounts, osize, qarray, r1vec, r2vec, seq_error = 0.01
 #'   on the sequence data from parent 1.
 #' @param r2vec The posterior probabilities of the genotypes of parent 2 conditional only
 #'   on the sequence data from parent 2.
+#' @param itermax The maximum number of iterations to run the Gibbs sampler.
+#' @param burnin The number of iterations to skip.
 #'
 #' @author David Gerard
 #'

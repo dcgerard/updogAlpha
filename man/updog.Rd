@@ -5,8 +5,7 @@
 \title{Using Parental Data for Offspring Genotyping.}
 \usage{
 updog(ocounts, osize, ploidy, p1counts = NULL, p1size = NULL,
-  p2counts = NULL, p2size = NULL, seq_error = 0.01, do_mcmc = FALSE,
-  iterate = FALSE, burnin = 250, itermax = 1000, integrate = FALSE)
+  p2counts = NULL, p2size = NULL, seq_error = 0.01, integrate = FALSE)
 }
 \arguments{
 \item{ocounts}{A vector of non-negative integers. The ith element is the
@@ -40,19 +39,6 @@ to uniform.}
 
 \item{seq_error}{A non-negative numeric. This is the known sequencing error
 rate. This is a rough high-ball error rate given by Li et. al. (2011).}
-
-\item{do_mcmc}{A logical. Should we also run a Gibbs sampler to jointly estimate
-the parental and child genotypes (\code{TRUE}) or not (\code{FALSE})? If \code{TRUE},
-the total number of iterations run is \code{burnin + iteramx}.}
-
-\item{iterate}{A logical. Should we perform the iterative posterior approximation
-scheme (\code{TRUE}) or note (\code{FALSE})?}
-
-\item{burnin}{A non-negative integer. The number of iterations to ignore
-in the Gibbs sampler if \code{do_mcmc = TRUE}.}
-
-\item{itermax}{A positive integer. The number of iterations to collect
-in the Gibbs sampler if \code{do_mcmc = TRUE}.}
 
 \item{integrate}{A logical. Should we integrate over our uncertainty in the parental
 genotypes (\code{TRUE}) or not (\code{FALSE}). The default is \code{FALSE} because
