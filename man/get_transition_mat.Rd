@@ -2,7 +2,8 @@
 % Please edit documentation in R/updog.R
 \name{get_transition_mat}
 \alias{get_transition_mat}
-\title{Get the transition probabilities from going from one ploidy to another assuming a constant error rate.}
+\title{Get the transition probabilities from going from one ploidy to
+another assuming a constant error rate.}
 \usage{
 get_transition_mat(ploidy, eps)
 }
@@ -12,7 +13,8 @@ get_transition_mat(ploidy, eps)
 \item{eps}{The probability of one allele switching.}
 }
 \description{
-Get the transition probabilities from going from one ploidy to another assuming a constant error rate.
+Get the transition probabilities from going from one ploidy to
+another assuming a constant error rate.
 }
 \author{
 David Gerard

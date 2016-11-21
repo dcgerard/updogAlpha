@@ -2,8 +2,8 @@
 % Please edit documentation in R/updog.R
 \name{get_dimname}
 \alias{get_dimname}
-\title{Returns a vector character strings that are all of the possible combinations of the
-reference allele and the non-reference allele.}
+\title{Returns a vector character strings that are all of the possible
+combinations of the reference allele and the non-reference allele.}
 \usage{
 get_dimname(ploidy)
 }
@@ -11,11 +11,12 @@ get_dimname(ploidy)
 \item{ploidy}{The ploidy of the species.}
 }
 \value{
-For example, if \code{ploidy = 3} then this will return c("aaa", "Aaa", "AAa", "AAA")
+For example, if \code{ploidy = 3} then this will return
+    c("aaa", "Aaa", "AAa", "AAA")
 }
 \description{
-Returns a vector character strings that are all of the possible combinations of the
-reference allele and the non-reference allele.
+Returns a vector character strings that are all of the possible
+combinations of the reference allele and the non-reference allele.
 }
 \author{
 David Gerard

@@ -2,8 +2,9 @@
 % Please edit documentation in R/updog.R
 \name{get_q_array}
 \alias{get_q_array}
-\title{Derive the probabilities of an offspring's genotype given its parental
-genotypes for all possible combinations of parental and offspring genotypes.}
+\title{Derive the probabilities of an offspring's genotype given its
+parental genotypes for all possible combinations of parental and
+offspring genotypes.}
 \usage{
 get_q_array(ploidy)
 }
@@ -11,15 +12,17 @@ get_q_array(ploidy)
 \item{ploidy}{A positive integer. The ploidy of the species.}
 }
 \value{
-An three-way array of proportions. The (i, j, k)th element is the probability
-  of an offspring having k - 1 reference alleles given that parent 1 has i - 1
-  refrerence alleles and parent 2 has j - 1 reference alleles. Each dimension of
-  the array is \code{ploidy + 1}. In the dimension names, "A" stands for the
-  reference allele and "a" stands for any other allele.
+An three-way array of proportions. The (i, j, k)th element
+    is the probability of an offspring having k - 1 reference
+    alleles given that parent 1 has i - 1 refrerence alleles and
+    parent 2 has j - 1 reference alleles. Each dimension of the
+    array is \code{ploidy + 1}. In the dimension names, "A" stands
+    for the reference allele and "a" stands for any other allele.
 }
 \description{
-Derive the probabilities of an offspring's genotype given its parental
-genotypes for all possible combinations of parental and offspring genotypes.
+Derive the probabilities of an offspring's genotype given its
+parental genotypes for all possible combinations of parental and
+offspring genotypes.
 }
 \author{
 David Gerard

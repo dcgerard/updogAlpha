@@ -8,83 +8,90 @@ updog(ocounts, osize, ploidy, p1counts = NULL, p1size = NULL,
   p2counts = NULL, p2size = NULL, seq_error = 0.01, integrate = FALSE)
 }
 \arguments{
-\item{ocounts}{A vector of non-negative integers. The ith element is the
-number of reads of the reference allele the ith child.}
+\item{ocounts}{A vector of non-negative integers. The ith element
+is the number of reads of the reference allele the ith child.}
 
-\item{osize}{A vector of positive integers. The ith element is the total
-number of reads for the ith child.}
+\item{osize}{A vector of positive integers. The ith element is the
+total number of reads for the ith child.}
 
-\item{ploidy}{A positive integer. The number of copies of the genome in the
-species.}
+\item{ploidy}{A positive integer. The number of copies of the
+genome in the species.}
 
-\item{p1counts}{A vector of non-negative integers. The ith element is the
-number of reads of the reference allele in the ith sample of parent 1.
-If \code{NULL} then the prior probabilities on parent 1's genotype will default
-to uniform.}
+\item{p1counts}{A vector of non-negative integers. The ith element
+is the number of reads of the reference allele in the ith
+sample of parent 1.  If \code{NULL} then the prior
+probabilities on parent 1's genotype will default to uniform.}
 
-\item{p1size}{A vector of positive integers. The ith element is the total
-number of reads in the ith sample of parent 1.
-If \code{NULL} then the prior probabilities on parent 1's genotype will default
-to uniform.}
+\item{p1size}{A vector of positive integers. The ith element is the
+total number of reads in the ith sample of parent 1.  If
+\code{NULL} then the prior probabilities on parent 1's genotype
+will default to uniform.}
 
-\item{p2counts}{A vector of non-negative integers. The ith element is the
-number of reads of the reference allele in the ith sample of parent 2.
-If \code{NULL} then the prior probabilities on parent 2's genotype will default
-to uniform.}
+\item{p2counts}{A vector of non-negative integers. The ith element
+is the number of reads of the reference allele in the ith
+sample of parent 2.  If \code{NULL} then the prior
+probabilities on parent 2's genotype will default to uniform.}
 
-\item{p2size}{A vector of positive integers. The ith element is the total
-number of reads in the ith sample of parent 2.
-If \code{NULL} then the prior probabilities on parent 2's genotype will default
-to uniform.}
+\item{p2size}{A vector of positive integers. The ith element is the
+total number of reads in the ith sample of parent 2.  If
+\code{NULL} then the prior probabilities on parent 2's genotype
+will default to uniform.}
 
-\item{seq_error}{A non-negative numeric. This is the known sequencing error
-rate. This is a rough high-ball error rate given by Li et. al. (2011).}
+\item{seq_error}{A non-negative numeric. This is the known
+sequencing error rate. This is a rough high-ball error rate
+given by Li et. al. (2011).}
 
-\item{integrate}{A logical. Should we integrate over our uncertainty in the parental
-genotypes (\code{TRUE}) or not (\code{FALSE}). The default is \code{FALSE} because
-we usually know the parental genotypes with near certainty so it's not important
-to integrate over our uncertainty in them.}
+\item{integrate}{A logical. Should we integrate over our
+uncertainty in the parental genotypes (\code{TRUE}) or not
+(\code{FALSE}). The default is \code{FALSE} because we usually
+know the parental genotypes with near certainty so it's not
+important to integrate over our uncertainty in them.}
 }
 \value{
 A list with some or all of the following elements:
-  \code{opostprob}: A matrix of proportions whose (i, j)th element
-  is the posterior probability that child j has i - 1 copies of the reference allele.
-  That is, the rows index the genotype and the columns index the offspring.
-  These are derived by the one-offspring-at-a-time procedure.
+    \code{opostprob}: A matrix of proportions whose (i, j)th
+    element is the posterior probability that child j has i - 1
+    copies of the reference allele.  That is, the rows index the
+    genotype and the columns index the offspring.  These are
+    derived by the one-offspring-at-a-time procedure.
 
-  \code{p1postprob}: A vector of proportions whose ith element is the posterior
-  probability that parent 1 has i - 1 copies of the reference allele.
-  These are derived ONLY from parent 1's sequence data and not jointly with
-  all of the data.
+  \code{p1postprob}: A vector of proportions whose ith element is
+  the posterior probability that parent 1 has i - 1 copies of the
+  reference allele.  These are derived ONLY from parent 1's
+  sequence data and not jointly with all of the data.
 
-  \code{p2postprob}: A vector of proportions whose ith element is the posterior
-  probability that parent 2 has i - 1 copies of the reference allele.
-  These are derived ONLY from parent 2's sequence data and not jointly with
-  all of the data.
+  \code{p2postprob}: A vector of proportions whose ith element is
+  the posterior probability that parent 2 has i - 1 copies of the
+  reference allele.  These are derived ONLY from parent 2's
+  sequence data and not jointly with all of the data.
 
-  \code{m_opostprob}: A matrix of proportions whose (i, j)th element
-  is the posterior probability that child j has i - 1 copies of the reference allele.
-  These are derived from the joint analysis with MCMC.
+  \code{m_opostprob}: A matrix of proportions whose (i, j)th
+  element is the posterior probability that child j has i - 1
+  copies of the reference allele.  These are derived from the joint
+  analysis with MCMC.
 
-  \code{m_p1postprob}: A vector of proportions whose ith element is the posterior
-  probability that parent 1 has i - 1 copies of the reference allele.
-  These are derived from the joint analysis with MCMC.
+  \code{m_p1postprob}: A vector of proportions whose ith element is
+  the posterior probability that parent 1 has i - 1 copies of the
+  reference allele.  These are derived from the joint analysis with
+  MCMC.
 
-  \code{m_p2postprob}: A vector of proportions whose ith element is the posterior
-  probability that parent 2 has i - 1 copies of the reference allele.
-  These are derived from the joint analysis with MCMC.
+  \code{m_p2postprob}: A vector of proportions whose ith element is
+  the posterior probability that parent 2 has i - 1 copies of the
+  reference allele.  These are derived from the joint analysis with
+  MCMC.
 }
 \description{
-This function fits a hierarchical model to sequence counts from a collection
-of siblings and return genotyped information. The hierarchy comes from the fact
-that they share the same parents. If you also have parental sequencing data,
-then you can include this to improve estimates.
+This function fits a hierarchical model to sequence counts from a
+collection of siblings and return genotyped information. The
+hierarchy comes from the fact that they share the same parents. If
+you also have parental sequencing data, then you can include this
+to improve estimates.
 }
 \details{
-If you have a lot of parental sequencing data, then it could suffice to run
-\code{updog} with \code{do_mcmc} set to \code{FALSE}. Otherwise, you will
-probably want to borrow strength between the offspring by setting \code{do_mcmc}
-to \code{TRUE}.
+If you have a lot of parental sequencing data, then it could
+suffice to run \code{updog} with \code{do_mcmc} set to
+\code{FALSE}. Otherwise, you will probably want to borrow strength
+between the offspring by setting \code{do_mcmc} to \code{TRUE}.
 }
 \author{
 David Gerard

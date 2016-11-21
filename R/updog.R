@@ -2,73 +2,80 @@
 
 #' Using Parental Data for Offspring Genotyping.
 #'
-#' This function fits a hierarchical model to sequence counts from a collection
-#' of siblings and return genotyped information. The hierarchy comes from the fact
-#' that they share the same parents. If you also have parental sequencing data,
-#' then you can include this to improve estimates.
+#' This function fits a hierarchical model to sequence counts from a
+#' collection of siblings and return genotyped information. The
+#' hierarchy comes from the fact that they share the same parents. If
+#' you also have parental sequencing data, then you can include this
+#' to improve estimates.
 #'
-#' If you have a lot of parental sequencing data, then it could suffice to run
-#' \code{updog} with \code{do_mcmc} set to \code{FALSE}. Otherwise, you will
-#' probably want to borrow strength between the offspring by setting \code{do_mcmc}
-#' to \code{TRUE}.
+#' If you have a lot of parental sequencing data, then it could
+#' suffice to run \code{updog} with \code{do_mcmc} set to
+#' \code{FALSE}. Otherwise, you will probably want to borrow strength
+#' between the offspring by setting \code{do_mcmc} to \code{TRUE}.
 #'
-#' @param ocounts A vector of non-negative integers. The ith element is the
-#'   number of reads of the reference allele the ith child.
-#' @param osize A vector of positive integers. The ith element is the total
-#'   number of reads for the ith child.
-#' @param p1counts A vector of non-negative integers. The ith element is the
-#'   number of reads of the reference allele in the ith sample of parent 1.
-#'   If \code{NULL} then the prior probabilities on parent 1's genotype will default
-#'   to uniform.
-#' @param p1size A vector of positive integers. The ith element is the total
-#'   number of reads in the ith sample of parent 1.
-#'   If \code{NULL} then the prior probabilities on parent 1's genotype will default
-#'   to uniform.
-#' @param p2counts A vector of non-negative integers. The ith element is the
-#'   number of reads of the reference allele in the ith sample of parent 2.
-#'   If \code{NULL} then the prior probabilities on parent 2's genotype will default
-#'   to uniform.
-#' @param p2size A vector of positive integers. The ith element is the total
-#'   number of reads in the ith sample of parent 2.
-#'   If \code{NULL} then the prior probabilities on parent 2's genotype will default
-#'   to uniform.
-#' @param ploidy A positive integer. The number of copies of the genome in the
-#'   species.
-#' @param seq_error A non-negative numeric. This is the known sequencing error
-#'   rate. This is a rough high-ball error rate given by Li et. al. (2011).
-#' @param integrate A logical. Should we integrate over our uncertainty in the parental
-#'   genotypes (\code{TRUE}) or not (\code{FALSE}). The default is \code{FALSE} because
-#'   we usually know the parental genotypes with near certainty so it's not important
-#'   to integrate over our uncertainty in them.
+#' @param ocounts A vector of non-negative integers. The ith element
+#'     is the number of reads of the reference allele the ith child.
+#' @param osize A vector of positive integers. The ith element is the
+#'     total number of reads for the ith child.
+#' @param p1counts A vector of non-negative integers. The ith element
+#'     is the number of reads of the reference allele in the ith
+#'     sample of parent 1.  If \code{NULL} then the prior
+#'     probabilities on parent 1's genotype will default to uniform.
+#' @param p1size A vector of positive integers. The ith element is the
+#'     total number of reads in the ith sample of parent 1.  If
+#'     \code{NULL} then the prior probabilities on parent 1's genotype
+#'     will default to uniform.
+#' @param p2counts A vector of non-negative integers. The ith element
+#'     is the number of reads of the reference allele in the ith
+#'     sample of parent 2.  If \code{NULL} then the prior
+#'     probabilities on parent 2's genotype will default to uniform.
+#' @param p2size A vector of positive integers. The ith element is the
+#'     total number of reads in the ith sample of parent 2.  If
+#'     \code{NULL} then the prior probabilities on parent 2's genotype
+#'     will default to uniform.
+#' @param ploidy A positive integer. The number of copies of the
+#'     genome in the species.
+#' @param seq_error A non-negative numeric. This is the known
+#'     sequencing error rate. This is a rough high-ball error rate
+#'     given by Li et. al. (2011).
+#' @param integrate A logical. Should we integrate over our
+#'     uncertainty in the parental genotypes (\code{TRUE}) or not
+#'     (\code{FALSE}). The default is \code{FALSE} because we usually
+#'     know the parental genotypes with near certainty so it's not
+#'     important to integrate over our uncertainty in them.
 #'
 #'
 #' @return A list with some or all of the following elements:
-#'   \code{opostprob}: A matrix of proportions whose (i, j)th element
-#'   is the posterior probability that child j has i - 1 copies of the reference allele.
-#'   That is, the rows index the genotype and the columns index the offspring.
-#'   These are derived by the one-offspring-at-a-time procedure.
+#'     \code{opostprob}: A matrix of proportions whose (i, j)th
+#'     element is the posterior probability that child j has i - 1
+#'     copies of the reference allele.  That is, the rows index the
+#'     genotype and the columns index the offspring.  These are
+#'     derived by the one-offspring-at-a-time procedure.
 #'
-#'   \code{p1postprob}: A vector of proportions whose ith element is the posterior
-#'   probability that parent 1 has i - 1 copies of the reference allele.
-#'   These are derived ONLY from parent 1's sequence data and not jointly with
-#'   all of the data.
+#'   \code{p1postprob}: A vector of proportions whose ith element is
+#'   the posterior probability that parent 1 has i - 1 copies of the
+#'   reference allele.  These are derived ONLY from parent 1's
+#'   sequence data and not jointly with all of the data.
 #'
-#'   \code{p2postprob}: A vector of proportions whose ith element is the posterior
-#'   probability that parent 2 has i - 1 copies of the reference allele.
-#'   These are derived ONLY from parent 2's sequence data and not jointly with
-#'   all of the data.
+#'   \code{p2postprob}: A vector of proportions whose ith element is
+#'   the posterior probability that parent 2 has i - 1 copies of the
+#'   reference allele.  These are derived ONLY from parent 2's
+#'   sequence data and not jointly with all of the data.
 #'
-#'   \code{m_opostprob}: A matrix of proportions whose (i, j)th element
-#'   is the posterior probability that child j has i - 1 copies of the reference allele.
-#'   These are derived from the joint analysis with MCMC.
+#'   \code{m_opostprob}: A matrix of proportions whose (i, j)th
+#'   element is the posterior probability that child j has i - 1
+#'   copies of the reference allele.  These are derived from the joint
+#'   analysis with MCMC.
 #'
-#'   \code{m_p1postprob}: A vector of proportions whose ith element is the posterior
-#'   probability that parent 1 has i - 1 copies of the reference allele.
-#'   These are derived from the joint analysis with MCMC.
+#'   \code{m_p1postprob}: A vector of proportions whose ith element is
+#'   the posterior probability that parent 1 has i - 1 copies of the
+#'   reference allele.  These are derived from the joint analysis with
+#'   MCMC.
 #'
-#'   \code{m_p2postprob}: A vector of proportions whose ith element is the posterior
-#'   probability that parent 2 has i - 1 copies of the reference allele.
-#'   These are derived from the joint analysis with MCMC.
+#'   \code{m_p2postprob}: A vector of proportions whose ith element is
+#'   the posterior probability that parent 2 has i - 1 copies of the
+#'   reference allele.  These are derived from the joint analysis with
+#'   MCMC.
 #'
 #' @author David Gerard
 #'
@@ -114,6 +121,10 @@ updog <- function(ocounts, osize,  ploidy, p1counts = NULL,
   ## derive offspring genotype probabilities given parental genotypes.
   qarray <- get_q_array(ploidy = ploidy)
 
+  pk <- seq(0, ploidy) / ploidy ## the possible probabilities
+  pk <- (1 - seq_error) * pk + seq_error * (1 - pk)
+
+
 
   ## Derive prior probabilities on offspring genotypes
   phi_vec <- r1vec ## posterior prob of p1 genotype
@@ -143,172 +154,294 @@ updog <- function(ocounts, osize,  ploidy, p1counts = NULL,
 }
 
 
-#' Iterate between indiividual level estimates and joint averaging.
+#' Estimate parental genotypes using offspring genotypes.
 #'
 #' @inheritParams updog
-#' @inheritParams updog_mcmc
-#' @param itermax The number of times to iterate between the two approaches.
-#' @param tol A positive numeric. The tolderance for the stopping criteria.
+#' @param qarray An three-way array of proportions. The (i, j, k)th
+#'     element is the probability of an offspring having k - 1
+#'     reference alleles given that parent 1 has i - 1 refrerence
+#'     alleles and parent 2 has j - 1 reference alleles. Each
+#'     dimension of the array is \code{ploidy + 1}.
+#' @param r1vec A vector of prior probabilities whose ith element is
+#'     the prior probability that parent 1 has i -1 copies of allele
+#'     A.
+#' @param r2vec A vector of prior probabilities whose ith element is
+#'     the prior probability that parent 2 has i -1 copies of allele
+#'     A.
+#' @param pival A fudge factor. The probability of not begin a
+#'     mistake. Estimated if \code{est_fudge = TRUE}. Set to 0.99. Only used if \code{est_fudge = TRUE}.
+#' @param est_fudge A logical. Should we estimate the fudge factor
+#'     \code{TRUE} or not \code{FALSE}?
+#' @param pk The parameter space. Should all be between 0 and 1.
+#' @param tol A positive numeric. The tolerance for the stopping criterion.
+#' @param itermax A positive integer. The maximum number of iterations to run in the EM.
+#' @param alpha The alpha parameter in the beta distribution of the outliers. Only used if \code{est_fudge = TRUE}.
+#' @param beta The beta parameter in the beta distribution of the outliers. Only used if \code{est_fudge = TRUE}.
+#' @param update_geno A logical. Update the parental genotypes?
+#' @param update_pi A logical. Update the mixing proporiton?
+#' @param update_beta A logical. Update the beta distribution?
 #'
 #' @author David Gerard
 #'
-updog_iterate <- function(ocounts, osize, qarray, r1vec, r2vec, seq_error = 0.01, itermax = 1000,
-                          tol = 10 ^ -4) {
-  ploidy <- length(r1vec) - 1
-  assertthat::are_equal(length(r2vec), ploidy + 1)
-  # assertthat::are_equal(length(ocounts), length(osize))
-  assertthat::assert_that(all(ocounts <= osize))
-  assertthat::assert_that(all(dim(qarray) == ploidy + 1))
-  assertthat::assert_that(tol > 0)
+updog_maximize <- function(ocounts, osize, qarray, r1vec, r2vec, pk, pival = 0.99,
+                           alpha = 0.1, beta = 0.1,
+                           est_fudge = TRUE,
+                           tol = 10 ^ -4, itermax = 1000,
+                           update_geno = FALSE, update_pi = FALSE, update_beta = FALSE) {
 
-  ## calculate log-probabilities ---------------------------------------------
-  pk <- seq(0, ploidy) / ploidy ## the possible probabilities
-  ## deal with error rate ----------------------------------------------------
-  pk <- (1 - seq_error) * pk + seq_error * (1 - pk)
+    ploidy <- length(r1vec) - 1
+    assertthat::are_equal(ploidy + 1, length(r2vec))
+    assertthat::are_equal(length(ocounts), length(osize))
+    assertthat::assert_that(all(ocounts >= 0))
+    assertthat::assert_that(all(osize >= ocounts))
+    assertthat::assert_that(all(abs(dim(qarray) - ploidy - 1) < 10 ^ -14))
+    assertthat::are_equal(sum(r1vec), 1)
+    assertthat::are_equal(sum(r2vec), 1)
+    assertthat::assert_that(all(pk >= 0))
+    assertthat::assert_that(all(pk <= 1))
+    assertthat::assert_that(is.logical(est_fudge))
+    assertthat::assert_that(pival >= 0, pival <= 1)
+    assertthat::assert_that(tol > 0)
+    assertthat::assert_that(itermax > 0)
 
-  ## binom density where the rows indexs the genotypes and the columns index the individuals
-  dbinommat <- mapply(FUN = stats::dbinom, ocounts, osize, MoreArgs = list(prob = pk, log = FALSE))
-  dimnames(dbinommat) = list(genotype = get_dimname(ploidy), offspring = 1:ncol(dbinommat))
-  assertthat::assert_that(all(abs(dbinommat[, 1] -
-                                    stats::dbinom(x = ocounts[1], size = osize[1], prob = pk, log = FALSE)) < 10 ^ -14))
+    dbinommat <- mapply(FUN = stats::dbinom, ocounts, osize, MoreArgs = list(prob = pk))
+    ldbinommat <- mapply(FUN = stats::dbinom, ocounts, osize, MoreArgs = list(prob = pk, log = TRUE))
 
-  ## update parent 1 and parent
-  err <- tol + 1
-  index <- 1
-  while (index < itermax & err > tol) {
-    r1old <- r1vec
-    r2old <- r2vec
-    harray <- sweep(qarray, MARGIN = 1, STATS = r1vec, FUN = `*`)
-    harray <- sweep(harray, MARGIN = 2, STATS = r2vec, FUN = `*`)
-    h2array <- apply(dbinommat, 2, function(x) {sweep(harray, MARGIN = 3, STATS = x, FUN = `*`) })
-    h3array <- array(h2array, dim = c(rep(ploidy + 1, 3), length(ocounts)))
-    dimvec <- get_dimname(ploidy)
-    dimnames(h3array) = list(parent1 = dimvec, parent2 = dimvec, offspring = dimvec, individual = 1:length(ocounts))
-    up1prob <- apply(h3array, c(1, 4), sum)
-    up2prob <- apply(h3array, c(2, 4), sum)
+    if (update_geno) {
+      marg_lik_mat <- matrix(NA, nrow = ploidy + 1, ncol = ploidy + 1)
+      for (ell1 in 0:ploidy) {
+        for (ell2 in ell1:ploidy) {
+          ## avec <- qarray[ell1 + 1, ell2 + 1, ]
+          ## marg_lik_mat[ell1 + 1, ell2 + 1] <- sum(log(colSums(avec * dbinommat))) +
+          ##    log(r2vec[ell1 + 1]) + log(r2vec[ell2 + 1])
 
-    p1prob <- sweep(up1prob, MARGIN = 2, STATS = colSums(up1prob), FUN = `/`)
-    p2prob <- sweep(up2prob, MARGIN = 2, STATS = colSums(up2prob), FUN = `/`)
+          ## this is more numerically stable.
+          lavec <- log(qarray[ell1 + 1, ell2 + 1, ])
+          summands <- lavec + ldbinommat
+          which_not_inf <- !is.infinite(lavec)
+          colmax <- apply(summands[which_not_inf, , drop = FALSE], 2, max)
+          llval <- sum(log(colSums(exp(sweep(x = summands[which_not_inf, , drop = FALSE],
+                                             MARGIN = 2, STATS = colmax, FUN = `-`)))) +
+                         colmax) + log(r2vec[ell1 + 1]) + log(r2vec[ell2 + 1])
+          marg_lik_mat[ell1 + 1, ell2 + 1] <- llval
+        }
+      }
 
-    r1vec <- rowMeans(p1prob)
-    r2vec <- rowMeans(p2prob)
+      which_best <- which(marg_lik_mat == max(marg_lik_mat, na.rm = TRUE), arr.ind = TRUE)
 
-    index <- index + 1
-    err <- sum(abs(r1vec - r1old)) + sum(abs(r2vec - r2old))
+      p1geno <- which_best[1] - 1
+      p2geno <- which_best[2] - 1
+    }
 
-    cat(err, "\n")
-  }
-  return(list(r1vec = r1vec, r2vec = r2vec))
+    if (est_fudge) {
+      objval <- up_obj(pival = pival, p1geno = p1geno, p2geno = p2geno,
+                       alpha = alpha, beta = beta, ocounts = ocounts, osize = osize,
+                        dbinommat = dbinommat, qarray = qarray, r1vec = r1vec, r2vec = r2vec)
+
+      err <- tol + 1
+      iterindex <- 1
+      while (err > tol & iterindex < itermax) {
+        objold <- objval
+        fixout <- up_fix(pival = pival, p1geno = p1geno, p2geno = p2geno, alpha = alpha,
+                         beta = beta, ocounts = ocounts, osize = osize,
+                         ldbinommat = ldbinommat, qarray = qarray, r1vec = r1vec, r2vec = r2vec,
+                         update_pi = update_pi, update_geno = update_geno, update_beta = update_beta)
+
+        p1geno <- fixout$p1geno
+        p2geno <- fixout$p2geno
+        alpha  <- fixout$alpha
+        beta   <- fixout$beta
+        pival  <- fixout$pival
+        theta  <- fixout$theta
+
+        objval <- up_obj(pival = pival, p1geno = p1geno, p2geno = p2geno,
+                         alpha = alpha, beta = beta, ocounts = ocounts, osize = osize,
+                         dbinommat = dbinommat, qarray = qarray, r1vec = r1vec, r2vec = r2vec)
+
+        err <- abs(objval / objold - 1)
+
+        assertthat::assert_that(objval - objold > -10 ^ -14)
+      }
+    }
+
+    avec_final <- qarray[p1geno + 1, p2geno + 1, ]
+
+    bbvec <- dbetabinom(x = ocounts, size = osize, alpha = alpha, beta = beta, log = FALSE)
+    ## probmat <- sweep(x = pival * dbinommat, MARGIN = 2, STATS = (1 - pival) * bbvec, FUN = `+`) * avec_final
+
+    postprob <- sweep(x = dbinommat * avec_final, MARGIN = 2, STATS = colSums(dbinommat * avec_final), FUN = `/`)
+
+    ogeno <- apply(postprob, 2, which.max)
+
+    return_list <- list()
+    return_list$p1geno <- p1geno
+    return_list$p2geno <- p2geno
+    return_list$ogeno  <- ogeno
+    return_list$theta  <- theta
+    return_list$pival  <- pival
+    return_list$alpha  <- alpha
+    return_list$beta   <- beta
+    return_list$opostprob <- postprob
+
+    return(return_list)
 }
 
-#' The updog Gibbs sampler to jointly estimate the parental and offspring genotypes.
+#' Fixed-point iteration for updog EM.
 #'
 #' @inheritParams updog
-#' @param qarray An array of proportions. Each dimension size is equal to the ploidy plus 1.
-#' @param r1vec The posterior probabilities of the genotypes of parent 1 conditional only
-#'   on the sequence data from parent 1.
-#' @param r2vec The posterior probabilities of the genotypes of parent 2 conditional only
-#'   on the sequence data from parent 2.
-#' @param itermax The maximum number of iterations to run the Gibbs sampler.
-#' @param burnin The number of iterations to skip.
+#' @inheritParams updog_maximize
+#' @inheritParams up_obj
+#' @param update_pi A logical. Should we update the fudge factor
+#'     (\code{TRUE}) or not (\code{FALSE})?
+#' @param update_geno A logical. Should we update the parental
+#'     genotypes (\code{TRUE}) or not (\code{FALSE})?
+#' @param update_beta A logical. Should we update the outlier model
+#'     \code{TRUE} or not (\code{FALSE})?
+#' @param ldbinommat The log binomial densities of the counts. The rows index the
+#'     parental genotypes and the columns index the individuals.
+#'
+#' @author Davod Gerard
+#'
+#'
+up_fix <- function(pival, p1geno, p2geno, alpha, beta, ocounts, osize,
+                   ldbinommat, qarray, r1vec, r2vec, update_pi = TRUE,
+                   update_geno = TRUE, update_beta = TRUE) {
+
+    ploidy <- length(r1vec) - 1
+    assertthat::assert_that(p1geno %in% 0:ploidy)
+    assertthat::assert_that(p2geno %in% 0:ploidy)
+    assertthat::are_equal(ploidy, length(r2vec) - 1)
+    assertthat::assert_that(all(dim(qarray) == ploidy + 1))
+    assertthat::are_equal(ploidy, nrow(ldbinommat) - 1)
+    assertthat::assert_that(pival >= 0)
+    assertthat::assert_that(pival <= 1)
+    assertthat::assert_that(all(ocounts >= 0))
+    assertthat::assert_that(all(osize >= ocounts))
+    assertthat::are_equal(sum(r1vec), 1)
+    assertthat::are_equal(sum(r2vec), 1)
+    assertthat::assert_that(alpha > 0)
+    assertthat::assert_that(beta > 0)
+
+    avec <- qarray[p1geno + 1, p2geno + 1, ]
+
+    bbvec <- dbetabinom(x = ocounts, size = osize, alpha = alpha, beta = beta, log = FALSE)
+    num <- pival * colSums(avec * exp(ldbinommat))
+    denom <- num + (1 - pival) * bbvec
+
+    theta <- num / denom
+
+    ## update parental genotypes ----------------------------------------------------
+    if (update_geno) {
+        cat(p1geno, p2geno, "\n")
+        marg_lik_mat <- matrix(NA, nrow = ploidy + 1, ncol = ploidy + 1)
+        for (ell1 in 0:ploidy) {
+            for (ell2 in ell1:ploidy) {
+                # avec <- qarray[ell1 + 1, ell2 + 1, ]
+                # marg_lik_mat[ell1 + 1, ell2 + 1] <- sum(theta * log(colSums(avec * dbinommat))) +
+                #    log(r2vec[ell1 + 1]) + log(r2vec[ell2 + 1])
+
+                ## this is more numerically stable
+                lavec <- log(qarray[ell1 + 1, ell2 + 1, ])
+                summands <- lavec + ldbinommat
+                which_not_inf <- !is.infinite(lavec)
+                colmax <- apply(summands[which_not_inf, , drop = FALSE], 2, max)
+                llval <- sum(theta * log(colSums(exp(sweep(x = summands[which_not_inf, , drop = FALSE],
+                                                   MARGIN = 2, STATS = colmax, FUN = `-`)))) +
+                               colmax) + log(r2vec[ell1 + 1]) + log(r2vec[ell2 + 1])
+                marg_lik_mat[ell1 + 1, ell2 + 1] <- llval
+            }
+        }
+        which_best <- which(marg_lik_mat == max(marg_lik_mat, na.rm = TRUE), arr.ind = TRUE)
+        p1geno <- which_best[1] - 1
+        p2geno <- which_best[2] - 1
+    }
+
+    ## update pival ------------------------------------------------------------------
+    if (update_pi) {
+        pival <- mean(theta)
+    }
+
+
+    ## Update alpha and beta ---------------------------------------------------------
+    if (update_beta) {
+        oout <- stats::optim(par = c(alpha, beta), fn = dbbwrapper, lower = c(0, 0), upper = c(1, 1),
+                             method = "L-BFGS-B",
+                             control = list(fnscale = -1),
+                             x = ocounts, size = osize, theta = theta, log = TRUE)
+        alpha <- oout$par[1]
+        beta  <- oout$par[2]
+    }
+
+    return(list(p1geno = p1geno, p2geno = p2geno, theta = theta,
+                pival = pival, beta = beta, alpha = alpha))
+}
+
+dbbwrapper <- function(par, x, size, theta, log = TRUE) {
+  sum((1 - theta) * dbetabinom(x = x, size = size, alpha = par[1], beta = par[2], log = TRUE))
+}
+
+#' The objective function
+#'
+#' @inheritParams updog_maximize
+#' @inheritParams updog
+#' @param p1geno The genotype of parent 1
+#' @param p2geno The genotype of parent 2
+#' @param pival A proportion. The probability of not being a mistake.
+#' @param dbinommat A matrix. The rows index the genotype and the
+#'     columns index the offspring.  These are the binomial
+#'     probabilities of the count given the genotype.
+#' @param alpha The alpha parameter in \code{\link{dbetabinom}}.
+#' @param beta The beta parameter in \code{\link{dbetabinom}}.
 #'
 #' @author David Gerard
 #'
-updog_mcmc <- function(ocounts, osize, qarray, r1vec, r2vec, seq_error = 0.01, itermax = 1000,
-                       burnin = 250) {
-
-  ploidy <- length(r1vec) - 1
-  assertthat::are_equal(length(r2vec), ploidy + 1)
-  assertthat::are_equal(length(ocounts), length(osize))
-  assertthat::assert_that(all(ocounts <= osize))
-  assertthat::assert_that(all(dim(qarray) == ploidy + 1))
-
-  ## calculate log-probabilities ---------------------------------------------
-  pk <- seq(0, ploidy) / ploidy ## the possible probabilities
-  ## deal with error rate ----------------------------------------------------
-  pk <- (1 - seq_error) * pk + seq_error * (1 - pk)
-
-  ## the total number of samples for each genotype
-  tot_p1 <- rep(0, length = ploidy + 1)
-  tot_p2 <- rep(0, length = ploidy + 1)
-  tot_o  <- matrix(0, nrow = ploidy + 1, ncol = length(osize))
-
-  current_p1 <- sample(0:ploidy, size = 1, prob = r1vec)
-  current_p2 <- sample(0:ploidy, size = 1, prob = r2vec)
-
-  ## dbinom matrix for offspring
-  dbinommat <- mapply(FUN = stats::dbinom, ocounts, osize, MoreArgs = list(prob = pk, log = TRUE))
-  assertthat::are_equal(dbinommat[, 1], stats::dbinom(x = ocounts[1], size = osize[1], prob = pk, log = TRUE))
+up_obj <- function(pival, p1geno, p2geno, alpha, beta, ocounts, osize,
+                   dbinommat, qarray, r1vec, r2vec) {
 
 
-  for (iterindex in 1:(itermax + burnin)) {
 
-    ## Update offspring ------------------------------------------------------
-    qvec <- log(qarray[current_p1 + 1, current_p2 + 1, ])
-    uprob_log<- qvec + dbinommat
-    max_prob <- apply(uprob_log[qvec != -Inf, ], 2, max)
-    uprobexp <- exp((sweep(x = uprob_log, MARGIN = 2, STATS = max_prob, FUN = "-")))
-    opmat <- sweep(x = uprobexp, MARGIN = 2, STATS = colSums(uprobexp), FUN = "/")
-    ## assertthat::are_equal(opmat, sweep(exp(uprob_log), MARGIN = 2, STATS = colSums(exp(uprob_log)), FUN = "/"))
-    current_o  <- apply(opmat, 2, function (x) { sample(0:ploidy, size = 1, prob = x) })
-    if (iterindex > burnin) {
-      tot_o[cbind(current_o + 1, 1:length(ocounts))] <- tot_o[cbind(current_o + 1, 1:length(ocounts))] + 1
-    }
+    ploidy <- length(r1vec) - 1
+    assertthat::assert_that(p1geno %in% 0:ploidy)
+    assertthat::assert_that(p2geno %in% 0:ploidy)
+    assertthat::are_equal(ploidy, length(r2vec) - 1)
+    assertthat::assert_that(all(dim(qarray) == ploidy + 1))
+    assertthat::are_equal(ploidy, nrow(dbinommat) - 1)
+    assertthat::assert_that(pival >= 0)
+    assertthat::assert_that(pival <= 1)
+    assertthat::assert_that(all(ocounts >= 0))
+    assertthat::assert_that(all(osize >= ocounts))
+    assertthat::are_equal(sum(r1vec), 1)
+    assertthat::are_equal(sum(r2vec), 1)
+    assertthat::assert_that(alpha > 0)
+    assertthat::assert_that(beta > 0)
 
-    ## Update parent1 --------------------------------------------------------
-    qmat <- log(qarray[, current_p2 + 1, ])
-    ek <- table(c(current_o, 0:ploidy)) - 1
-
-    tmat1 <- sweep(x = qmat, MARGIN = 2, STATS = ek, FUN = `*`)
-    tmat1[is.nan(tmat1)] <- 0
-    uproblog <- rowSums(tmat1) + r1vec
-    uproblog <- uproblog - max(uproblog[uproblog != -Inf])
-    p1pvec <- exp(uproblog) / sum(exp(uproblog))
-
-    current_p1 <- sample(0:ploidy, size = 1, prob = p1pvec)
-
-    if (iterindex > burnin) {
-      tot_p1[current_p1 + 1] <- tot_p1[current_p1 + 1] + 1
-    }
-
-    ## update parent2 --------------------------------------------------------
-    qmat <- log(qarray[current_p1 + 1, , ])
-    tmat2 <- sweep(x = qmat, MARGIN = 2, STATS = ek, FUN = `*`)
-    tmat2[is.nan(tmat2)] <- 0
-    uproblog <- rowSums(tmat2) + r2vec
-    uproblog <- uproblog - max(uproblog[uproblog != -Inf])
-    p2pvec <- exp(uproblog) / sum(exp(uproblog))
-
-    current_p2 <- sample(0:ploidy, size = 1, prob = p2pvec)
-
-    if (iterindex > burnin) {
-      tot_p2[current_p2 + 1] <- tot_p2[current_p2 + 1] + 1
-    }
-  }
+    avec <- qarray[p1geno + 1, p2geno + 1, ]
 
 
-  p1postprob <- tot_p1 / itermax
-  p2postprob <- tot_p2 / itermax
-  opostprob  <- tot_o / itermax
-  return_list <- list()
-  return_list$p1postprob <- p1postprob
-  return_list$p2postprob <- p2postprob
-  return_list$opostprob  <- opostprob
-  return(return_list)
+    bbout <- dbetabinom(x = ocounts, size = osize, alpha = alpha, beta = beta)
+    binout <- colSums(avec * dbinommat)
+
+    obj <- sum(log(pival * binout + (1 - pival) * bbout))
+
+    return(obj)
 }
 
-#' Derive the probabilities of an offspring's genotype given its parental
-#' genotypes for all possible combinations of parental and offspring genotypes.
+
+
+#' Derive the probabilities of an offspring's genotype given its
+#' parental genotypes for all possible combinations of parental and
+#' offspring genotypes.
 #'
 #' @param ploidy A positive integer. The ploidy of the species.
 #'
 #' @author David Gerard
 #'
-#' @return An three-way array of proportions. The (i, j, k)th element is the probability
-#'   of an offspring having k - 1 reference alleles given that parent 1 has i - 1
-#'   refrerence alleles and parent 2 has j - 1 reference alleles. Each dimension of
-#'   the array is \code{ploidy + 1}. In the dimension names, "A" stands for the
-#'   reference allele and "a" stands for any other allele.
+#' @return An three-way array of proportions. The (i, j, k)th element
+#'     is the probability of an offspring having k - 1 reference
+#'     alleles given that parent 1 has i - 1 refrerence alleles and
+#'     parent 2 has j - 1 reference alleles. Each dimension of the
+#'     array is \code{ploidy + 1}. In the dimension names, "A" stands
+#'     for the reference allele and "a" stands for any other allele.
 #'
 #' @export
 #'
@@ -348,7 +481,8 @@ get_q_array <- function(ploidy) {
 }
 
 
-#' Get the transition probabilities from going from one ploidy to another assuming a constant error rate.
+#' Get the transition probabilities from going from one ploidy to
+#' another assuming a constant error rate.
 #'
 #' @param ploidy The ploidy of the species.
 #' @param eps The probability of one allele switching.
@@ -372,22 +506,29 @@ get_transition_mat <- function(ploidy, eps) {
 
 #' Make those awesome plots that Felipe showed me, but using ggplot2.
 #'
-#' @param ocounts A vector of non-negative integers. The number of reference alleles observed in the offspring.
-#' @param osize A vector of positive integers. The total number of reads in the offspring.
-#' @param p1counts A vector of non-negative integers. The number of reference alleles observed in parent 1.
-#' @param p1size A vector of positive integers. The total number of reads in parent 1.
-#' @param p2counts A vector of non-negative integers. The number of reference alleles observed in parent 2.
-#' @param p2size A vector of positive integers. The total number of reads in parent 2.
+#' @param ocounts A vector of non-negative integers. The number of
+#'     reference alleles observed in the offspring.
+#' @param osize A vector of positive integers. The total number of
+#'     reads in the offspring.
+#' @param p1counts A vector of non-negative integers. The number of
+#'     reference alleles observed in parent 1.
+#' @param p1size A vector of positive integers. The total number of
+#'     reads in parent 1.
+#' @param p2counts A vector of non-negative integers. The number of
+#'     reference alleles observed in parent 2.
+#' @param p2size A vector of positive integers. The total number of
+#'     reads in parent 2.
 #' @param ploidy A non-negative integer. The ploidy of the species.
 #' @param col The color labels.
 #' @param seq_error The average sequencing error rate.
+#' @param theta A vector of posterior probabilities of not being a mistake.
 #'
 #' @export
 #'
 #' @author David Gerard
 #'
 plot_geno <- function(ocounts, osize, ploidy, p1counts = NULL, p1size = NULL, p2counts = NULL,
-                      p2size = NULL, col = NULL, seq_error = 0.01) {
+                      p2size = NULL, col = NULL, seq_error = 0.01, theta = NULL) {
   if (!requireNamespace("ggplot2", quietly = TRUE)) {
     stop("ggplot2 must be installed to use this function")
   }
@@ -396,6 +537,9 @@ plot_geno <- function(ocounts, osize, ploidy, p1counts = NULL, p1size = NULL, p2
   assertthat::assert_that(all(osize >= ocounts))
   assertthat::assert_that(ploidy >= 1)
   assertthat::assert_that(seq_error>= 0)
+
+
+
 
 
   ## get probabilities
@@ -409,6 +553,12 @@ plot_geno <- function(ocounts, osize, ploidy, p1counts = NULL, p1size = NULL, p2
     dfdat$genotype <- as.factor(col)
   }
 
+  if(!is.null(theta)) {
+    assertthat::assert_that(all(theta >= 0))
+    assertthat::assert_that(all(theta <= 1))
+    dfdat$theta <- theta
+  }
+
   slopevec <- pk / (1 - pk)
   xend <- pmin(rep(maxcount, ploidy + 1), maxcount / slopevec)
   yend <- pmin(rep(maxcount, ploidy + 1), maxcount * slopevec)
@@ -416,11 +566,16 @@ plot_geno <- function(ocounts, osize, ploidy, p1counts = NULL, p1size = NULL, p2
                          xend = xend, yend = yend)
 
   ## Plot children
-  if (is.null(col)) {
+  if (is.null(col) & is.null(theta)) {
     pl <- ggplot2::ggplot(data = dfdat, mapping = ggplot2::aes_string(y = "A", x = "a"))
-  } else {
+  } else if (is.null(theta)) {
     pl <- ggplot2::ggplot(data = dfdat, mapping = ggplot2::aes_string(y = "A", x = "a", col = "genotype"))
+  } else if (is.null(col)) {
+    pl <- ggplot2::ggplot(data = dfdat, mapping = ggplot2::aes_string(y = "A", x = "a", alpha = "theta"))
+  } else {
+    pl <- ggplot2::ggplot(data = dfdat, mapping = ggplot2::aes_string(y = "A", x = "a", col = "genotype", alpha = "theta"))
   }
+
 
   pl <- pl + ggplot2::geom_point() +
     ggplot2::theme_bw() +
@@ -436,25 +591,26 @@ plot_geno <- function(ocounts, osize, ploidy, p1counts = NULL, p1size = NULL, p2
      assertthat::assert_that(all(p1counts >= 0))
      assertthat::assert_that(all(p1size >= p1counts))
      p1dat <- data.frame(A = p1counts, a = p1size - p1counts)
-     pl <- pl + ggplot2::geom_point(data = p1dat, size = 3, color = "red", pch = 3)
+     pl <- pl + ggplot2::geom_point(data = p1dat, size = 3, color = "black", pch = 3, alpha = 1)
    }
    if (!is.null(p2size) & !is.null(p2counts)) {
      assertthat::assert_that(all(p2counts >= 0))
      assertthat::assert_that(all(p2size >= p2counts))
      p2dat <- data.frame(A = p2counts, a = p2size - p2counts)
-     pl <- pl + ggplot2::geom_point(data = p2dat, size = 3, color = "blue", pch = 4)
+     pl <- pl + ggplot2::geom_point(data = p2dat, size = 3, color = "black", pch = 4, alpha = 1)
    }
 
    print(pl)
    return(pl)
 }
 
-#' Returns a vector character strings that are all of the possible combinations of the
-#' reference allele and the non-reference allele.
+#' Returns a vector character strings that are all of the possible
+#' combinations of the reference allele and the non-reference allele.
 #'
 #' @param ploidy The ploidy of the species.
 #'
-#' @return For example, if \code{ploidy = 3} then this will return c("aaa", "Aaa", "AAa", "AAA")
+#' @return For example, if \code{ploidy = 3} then this will return
+#'     c("aaa", "Aaa", "AAa", "AAA")
 #'
 #' @author David Gerard
 #'
@@ -467,42 +623,46 @@ get_dimname <- function(ploidy) {
   return(dimvec)
 }
 
-#' Calculates posterior probabilities of a genotype given just the sequence
-#' counts.
+#' Calculates posterior probabilities of a genotype given just the
+#' sequence counts.
 #'
-#' The function assumes that all data come from independent samples on the same
-#' individual.
+#' The function assumes that all data come from independent samples on
+#' the same individual.
 #'
-#' @param ncounts A vector of non-negative integers. The ith element is the
-#'   number of counts of the ith sample.
-#' @param ssize A vector of positive integers. The ith element is the total
-#'   number of counts of the ith sample.
-#' @param prior A vector of non-negative numerics that sum to one. The prior
-#'   probability on the genotype. The first element is the prior probability of
-#'   zero reference alleles, the second element is the prior probability of one
-#'   reference allele, etc. The length of \code{prior} is one more than the
-#'   ploidy of the species. You can alternatively specify \code{prior} as the
-#'   ploidy of the individual, for which it will set a uniform prior on the
-#'   genotype. For example, setting \code{prior = 3} will result in using
-#'   \code{(1/4, 1/4, 1/4, 1/4)} as the prior probability for the genotypes
-#'   (Aaaa, AAaa, AAAa, AAAA) where "A" is the reference allele in a 4-ploid
-#'   individual.
-#' @param seq_error A non-negative numeric. This is the known sequencing error
-#'   rate. This is a rough high-ball error rate given by Li et. al. (2011).
-#' @param divide_by_three A logical. Should we use asymmetry in the error rates
-#'   (\code{TRUE}) or not (\code{FALSE})? Defaults to \code{FALSE}.
+#' @param ncounts A vector of non-negative integers. The ith element
+#'     is the number of counts of the ith sample.
+#' @param ssize A vector of positive integers. The ith element is the
+#'     total number of counts of the ith sample.
+#' @param prior A vector of non-negative numerics that sum to one. The
+#'     prior probability on the genotype. The first element is the
+#'     prior probability of zero reference alleles, the second element
+#'     is the prior probability of one reference allele, etc. The
+#'     length of \code{prior} is one more than the ploidy of the
+#'     species. You can alternatively specify \code{prior} as the
+#'     ploidy of the individual, for which it will set a uniform prior
+#'     on the genotype. For example, setting \code{prior = 3} will
+#'     result in using \code{(1/4, 1/4, 1/4, 1/4)} as the prior
+#'     probability for the genotypes (Aaaa, AAaa, AAAa, AAAA) where
+#'     "A" is the reference allele in a 4-ploid individual.
+#' @param seq_error A non-negative numeric. This is the known
+#'     sequencing error rate. This is a rough high-ball error rate
+#'     given by Li et. al. (2011).
+#' @param divide_by_three A logical. Should we use asymmetry in the
+#'     error rates (\code{TRUE}) or not (\code{FALSE})? Defaults to
+#'     \code{FALSE}.
 #'
-#' @return A vector of probabilities. The ith element is the posterior probability
-#'   that the individual has i - 1 copies of the reference allele.
+#' @return A vector of probabilities. The ith element is the posterior
+#'     probability that the individual has i - 1 copies of the
+#'     reference allele.
 #'
 #' @author David Gerard
 #'
 #' @export
 #'
-#' @references Li, Yun, Carlo Sidore, Hyun Min Kang, Michael Boehnke, and
-#'   Gonçalo R. Abecasis.
-#'   \href{https://www.ncbi.nlm.nih.gov/pubmed/21460063}{"Low-coverage sequencing: implications for design of complex trait association studies."}
-#'   Genome research (2011).
+#' @references Li, Yun, Carlo Sidore, Hyun Min Kang, Michael Boehnke,
+#'     and Gonçalo R. Abecasis.
+#'     \href{https://www.ncbi.nlm.nih.gov/pubmed/21460063}{"Low-coverage sequencing: implications for design of complex trait association studies."}
+#'     Genome research (2011).
 #'
 #'
 bin_post <- function(ncounts, ssize, prior, seq_error = 0.01, divide_by_three = FALSE) {
@@ -595,4 +755,36 @@ segreg_poly <- function(m, dP, dQ) {
  for (i in 0:m) p.names[i + 1] <- paste(paste(rep("A", i), collapse = ""), paste(rep("a", (m - i)), collapse = ""), sep = "")
  names(p.dose) <- p.names
  return(p.dose)
+}
+
+
+#' Beta-binomial density function.
+#'
+#' @param x The observed counts.
+#' @param size The number of trials.
+#' @param alpha The alpha parameter of the underlying beta.
+#' @param beta The beta parameter of the underlying beta
+#' @param log A logical. Should we return the log of the density
+#'     (\code{TRUE}) or not (\code{FALSE})?
+#'
+#' @export
+#'
+#' @author David Gerard
+#'
+dbetabinom <- function(x, size, alpha, beta, log = FALSE) {
+
+    ## check input
+    assertthat::assert_that(all(x >= 0))
+    assertthat::assert_that(all(size >= x))
+    assertthat::assert_that(alpha > 0)
+    assertthat::assert_that(beta > 0)
+    assertthat::assert_that(is.logical(log))
+
+    ldense <- lchoose(size, x) + lbeta(x + alpha, size - x + beta) - lbeta(alpha, beta)
+
+    if (log) {
+        return(ldense)
+    } else {
+        return(exp(ldense))
+    }
 }

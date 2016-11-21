@@ -5,26 +5,35 @@
 \title{Make those awesome plots that Felipe showed me, but using ggplot2.}
 \usage{
 plot_geno(ocounts, osize, ploidy, p1counts = NULL, p1size = NULL,
-  p2counts = NULL, p2size = NULL, col = NULL, seq_error = 0.01)
+  p2counts = NULL, p2size = NULL, col = NULL, seq_error = 0.01,
+  theta = NULL)
 }
 \arguments{
-\item{ocounts}{A vector of non-negative integers. The number of reference alleles observed in the offspring.}
+\item{ocounts}{A vector of non-negative integers. The number of
+reference alleles observed in the offspring.}
 
-\item{osize}{A vector of positive integers. The total number of reads in the offspring.}
+\item{osize}{A vector of positive integers. The total number of
+reads in the offspring.}
 
 \item{ploidy}{A non-negative integer. The ploidy of the species.}
 
-\item{p1counts}{A vector of non-negative integers. The number of reference alleles observed in parent 1.}
+\item{p1counts}{A vector of non-negative integers. The number of
+reference alleles observed in parent 1.}
 
-\item{p1size}{A vector of positive integers. The total number of reads in parent 1.}
+\item{p1size}{A vector of positive integers. The total number of
+reads in parent 1.}
 
-\item{p2counts}{A vector of non-negative integers. The number of reference alleles observed in parent 2.}
+\item{p2counts}{A vector of non-negative integers. The number of
+reference alleles observed in parent 2.}
 
-\item{p2size}{A vector of positive integers. The total number of reads in parent 2.}
+\item{p2size}{A vector of positive integers. The total number of
+reads in parent 2.}
 
 \item{col}{The color labels.}
 
 \item{seq_error}{The average sequencing error rate.}
+
+\item{theta}{A vector of posterior probabilities of not being a mistake.}
 }
 \description{
 Make those awesome plots that Felipe showed me, but using ggplot2.

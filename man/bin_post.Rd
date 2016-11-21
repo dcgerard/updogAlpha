@@ -2,50 +2,54 @@
 % Please edit documentation in R/updog.R
 \name{bin_post}
 \alias{bin_post}
-\title{Calculates posterior probabilities of a genotype given just the sequence
-counts.}
+\title{Calculates posterior probabilities of a genotype given just the
+sequence counts.}
 \usage{
 bin_post(ncounts, ssize, prior, seq_error = 0.01, divide_by_three = FALSE)
 }
 \arguments{
-\item{ncounts}{A vector of non-negative integers. The ith element is the
-number of counts of the ith sample.}
+\item{ncounts}{A vector of non-negative integers. The ith element
+is the number of counts of the ith sample.}
 
-\item{ssize}{A vector of positive integers. The ith element is the total
-number of counts of the ith sample.}
+\item{ssize}{A vector of positive integers. The ith element is the
+total number of counts of the ith sample.}
 
-\item{prior}{A vector of non-negative numerics that sum to one. The prior
-probability on the genotype. The first element is the prior probability of
-zero reference alleles, the second element is the prior probability of one
-reference allele, etc. The length of \code{prior} is one more than the
-ploidy of the species. You can alternatively specify \code{prior} as the
-ploidy of the individual, for which it will set a uniform prior on the
-genotype. For example, setting \code{prior = 3} will result in using
-\code{(1/4, 1/4, 1/4, 1/4)} as the prior probability for the genotypes
-(Aaaa, AAaa, AAAa, AAAA) where "A" is the reference allele in a 4-ploid
-individual.}
+\item{prior}{A vector of non-negative numerics that sum to one. The
+prior probability on the genotype. The first element is the
+prior probability of zero reference alleles, the second element
+is the prior probability of one reference allele, etc. The
+length of \code{prior} is one more than the ploidy of the
+species. You can alternatively specify \code{prior} as the
+ploidy of the individual, for which it will set a uniform prior
+on the genotype. For example, setting \code{prior = 3} will
+result in using \code{(1/4, 1/4, 1/4, 1/4)} as the prior
+probability for the genotypes (Aaaa, AAaa, AAAa, AAAA) where
+"A" is the reference allele in a 4-ploid individual.}
 
-\item{seq_error}{A non-negative numeric. This is the known sequencing error
-rate. This is a rough high-ball error rate given by Li et. al. (2011).}
+\item{seq_error}{A non-negative numeric. This is the known
+sequencing error rate. This is a rough high-ball error rate
+given by Li et. al. (2011).}
 
-\item{divide_by_three}{A logical. Should we use asymmetry in the error rates
-(\code{TRUE}) or not (\code{FALSE})? Defaults to \code{FALSE}.}
+\item{divide_by_three}{A logical. Should we use asymmetry in the
+error rates (\code{TRUE}) or not (\code{FALSE})? Defaults to
+\code{FALSE}.}
 }
 \value{
-A vector of probabilities. The ith element is the posterior probability
-  that the individual has i - 1 copies of the reference allele.
+A vector of probabilities. The ith element is the posterior
+    probability that the individual has i - 1 copies of the
+    reference allele.
 }
 \description{
-The function assumes that all data come from independent samples on the same
-individual.
+The function assumes that all data come from independent samples on
+the same individual.
 }
 \author{
 David Gerard
 }
 \references{
-Li, Yun, Carlo Sidore, Hyun Min Kang, Michael Boehnke, and
-  Gonçalo R. Abecasis.
-  \href{https://www.ncbi.nlm.nih.gov/pubmed/21460063}{"Low-coverage sequencing: implications for design of complex trait association studies."}
-  Genome research (2011).
+Li, Yun, Carlo Sidore, Hyun Min Kang, Michael Boehnke,
+    and Gonçalo R. Abecasis.
+    \href{https://www.ncbi.nlm.nih.gov/pubmed/21460063}{"Low-coverage sequencing: implications for design of complex trait association studies."}
+    Genome research (2011).
 }
 
