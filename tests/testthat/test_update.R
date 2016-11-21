@@ -34,10 +34,10 @@ test_that("updog works", {
 
   uout <- updog(ocounts = ocounts, osize = osize, p1counts = p1counts,
                 p1size = p1size, p2counts = p2counts, p2size = p2size,
-                ploidy = ploidy)
+                ploidy = ploidy, do_eb = FALSE)
 
   uout2 <- updog(ocounts = ocounts, osize = osize,
-                ploidy = ploidy)
+                ploidy = ploidy, do_eb = FALSE)
 
   expect_true(all(abs(colSums(uout$opostprob) - 1) < 10 ^ -14))
 
@@ -118,7 +118,7 @@ test_that("up_fix increases the up_obj at every iteration", {
 
     maxout <- updog_maximize(ocounts = ocounts, osize = osize, qarray = qarray,
                    r1vec = r1vec, r2vec = r2vec, pk = pk, pival = 0.99,
-                   alpha = 0.01, beta = 0.01,
+                   alpha = 0.1, beta = 0.1,
                    est_fudge = TRUE,
                    tol = 10 ^ -4, itermax = 1000,
                    update_geno = TRUE, update_pi = TRUE, update_beta = TRUE)

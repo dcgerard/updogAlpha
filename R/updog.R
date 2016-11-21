@@ -43,6 +43,10 @@
 #'     (\code{FALSE}). The default is \code{FALSE} because we usually
 #'     know the parental genotypes with near certainty so it's not
 #'     important to integrate over our uncertainty in them.
+#' @param update_geno A logical. Update the parental genotypes?
+#' @param update_pi A logical. Update the mixing proporiton?
+#' @param update_beta A logical. Update the beta distribution?
+#' @param do_eb Should we do emprical bayes?
 #'
 #'
 #' @return A list with some or all of the following elements:
@@ -88,7 +92,8 @@
 #'
 updog <- function(ocounts, osize,  ploidy, p1counts = NULL,
                   p1size = NULL, p2counts = NULL, p2size = NULL,
-                  seq_error = 0.01, integrate = FALSE) {
+                  seq_error = 0.01, integrate = FALSE, do_eb = TRUE,
+                  update_geno = TRUE, update_pi = TRUE, update_beta = TRUE) {
 
   ## check input -------------------------------------------------------------
   assertthat::assert_that(all(ocounts >= 0))
@@ -123,6 +128,14 @@ updog <- function(ocounts, osize,  ploidy, p1counts = NULL,
 
   pk <- seq(0, ploidy) / ploidy ## the possible probabilities
   pk <- (1 - seq_error) * pk + seq_error * (1 - pk)
+
+
+  if (do_eb) {
+    umout <- updog_maximize(ocounts = ocounts, osize = osize, qarray = qarray, r1vec = r1vec, r2vec = r2vec,
+                            pk = pk, pival = 0.99, alpha = 0.1, beta = 0.1, est_fudge = TRUE, tol = 10 ^ -4, itermax = 1000,
+                            update_geno = update_geno, update_pi = update_pi, update_beta = update_beta)
+    return(umout)
+  }
 
 
 
@@ -267,9 +280,9 @@ updog_maximize <- function(ocounts, osize, qarray, r1vec, r2vec, pk, pival = 0.9
     avec_final <- qarray[p1geno + 1, p2geno + 1, ]
 
     bbvec <- dbetabinom(x = ocounts, size = osize, alpha = alpha, beta = beta, log = FALSE)
-    ## probmat <- sweep(x = pival * dbinommat, MARGIN = 2, STATS = (1 - pival) * bbvec, FUN = `+`) * avec_final
+    probmat <- sweep(x = pival * dbinommat, MARGIN = 2, STATS = (1 - pival) * bbvec, FUN = `+`) * avec_final
 
-    postprob <- sweep(x = dbinommat * avec_final, MARGIN = 2, STATS = colSums(dbinommat * avec_final), FUN = `/`)
+    postprob <- sweep(x = probmat, MARGIN = 2, STATS = colSums(probmat), FUN = `/`)
 
     ogeno <- apply(postprob, 2, which.max)
 

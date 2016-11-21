@@ -5,7 +5,9 @@
 \title{Using Parental Data for Offspring Genotyping.}
 \usage{
 updog(ocounts, osize, ploidy, p1counts = NULL, p1size = NULL,
-  p2counts = NULL, p2size = NULL, seq_error = 0.01, integrate = FALSE)
+  p2counts = NULL, p2size = NULL, seq_error = 0.01, integrate = FALSE,
+  do_eb = TRUE, update_geno = TRUE, update_pi = TRUE,
+  update_beta = TRUE)
 }
 \arguments{
 \item{ocounts}{A vector of non-negative integers. The ith element
@@ -46,6 +48,14 @@ uncertainty in the parental genotypes (\code{TRUE}) or not
 (\code{FALSE}). The default is \code{FALSE} because we usually
 know the parental genotypes with near certainty so it's not
 important to integrate over our uncertainty in them.}
+
+\item{do_eb}{Should we do emprical bayes?}
+
+\item{update_geno}{A logical. Update the parental genotypes?}
+
+\item{update_pi}{A logical. Update the mixing proporiton?}
+
+\item{update_beta}{A logical. Update the beta distribution?}
 }
 \value{
 A list with some or all of the following elements:
