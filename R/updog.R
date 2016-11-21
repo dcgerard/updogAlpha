@@ -377,7 +377,8 @@ up_fix <- function(pival, p1geno, p2geno, alpha, beta, ocounts, osize,
 
     ## Update alpha and beta ---------------------------------------------------------
     if (update_beta) {
-        oout <- stats::optim(par = c(alpha, beta), fn = dbbwrapper, lower = c(0, 0), upper = c(1, 1),
+      abeps <- 0.0001
+        oout <- stats::optim(par = c(alpha, beta), fn = dbbwrapper, lower = c(abeps, abeps), upper = c(1, 1),
                              method = "L-BFGS-B",
                              control = list(fnscale = -1),
                              x = ocounts, size = osize, theta = theta, log = TRUE)
@@ -434,7 +435,7 @@ up_obj <- function(pival, p1geno, p2geno, alpha, beta, ocounts, osize,
     bbout <- dbetabinom(x = ocounts, size = osize, alpha = alpha, beta = beta)
     binout <- colSums(avec * dbinommat)
 
-    obj <- sum(log(pival * binout + (1 - pival) * bbout))
+    obj <- sum(log(pival * binout + (1 - pival) * bbout)) + log(r1vec[p1geno + 1]) + log(r2vec[p2geno + 1])
 
     return(obj)
 }

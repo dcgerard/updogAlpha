@@ -25,6 +25,7 @@ test_that("get_q_array is same as segreg_poly", {
 
 test_that("dbetabinom is correct", {
 
+  if (requireNamespace("VGAM", quietly = TRUE)) {
     alpha <- 1
     beta <- 3
 
@@ -36,6 +37,6 @@ test_that("dbetabinom is correct", {
     b <- VGAM::dbetabinom(x = 11, size = 23, prob = mu, rho = rho)
 
     expect_equal(a, b)
-    
+  }
 }
 )

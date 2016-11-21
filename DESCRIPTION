@@ -14,7 +14,8 @@ BugReports: http://github.com/dcgerard/updog/issues
 Suggests:
     testthat,
     covr,
-    ggplot2
+    ggplot2,
+    VGAM
 Imports:
     assertthat
 RoxygenNote: 5.0.1
