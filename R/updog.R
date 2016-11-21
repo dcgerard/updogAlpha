@@ -226,7 +226,7 @@ updog_maximize <- function(ocounts, osize, qarray, r1vec, r2vec, pk, pival = 0.9
         for (ell2 in ell1:ploidy) {
           ## avec <- qarray[ell1 + 1, ell2 + 1, ]
           ## marg_lik_mat[ell1 + 1, ell2 + 1] <- sum(log(colSums(avec * dbinommat))) +
-          ##    log(r2vec[ell1 + 1]) + log(r2vec[ell2 + 1])
+          ##    log(r1vec[ell1 + 1]) + log(r2vec[ell2 + 1])
 
           ## this is more numerically stable.
           lavec <- log(qarray[ell1 + 1, ell2 + 1, ])
@@ -235,7 +235,7 @@ updog_maximize <- function(ocounts, osize, qarray, r1vec, r2vec, pk, pival = 0.9
           colmax <- apply(summands[which_not_inf, , drop = FALSE], 2, max)
           llval <- sum(log(colSums(exp(sweep(x = summands[which_not_inf, , drop = FALSE],
                                              MARGIN = 2, STATS = colmax, FUN = `-`)))) +
-                         colmax) + log(r2vec[ell1 + 1]) + log(r2vec[ell2 + 1])
+                         colmax) + log(r1vec[ell1 + 1]) + log(r2vec[ell2 + 1])
           marg_lik_mat[ell1 + 1, ell2 + 1] <- llval
         }
       }
@@ -284,7 +284,7 @@ updog_maximize <- function(ocounts, osize, qarray, r1vec, r2vec, pk, pival = 0.9
 
     postprob <- sweep(x = probmat, MARGIN = 2, STATS = colSums(probmat), FUN = `/`)
 
-    ogeno <- apply(postprob, 2, which.max)
+    ogeno <- apply(postprob, 2, which.max) - 1
 
     return_list <- list()
     return_list$p1geno <- p1geno
@@ -351,7 +351,7 @@ up_fix <- function(pival, p1geno, p2geno, alpha, beta, ocounts, osize,
             for (ell2 in ell1:ploidy) {
                 # avec <- qarray[ell1 + 1, ell2 + 1, ]
                 # marg_lik_mat[ell1 + 1, ell2 + 1] <- sum(theta * log(colSums(avec * dbinommat))) +
-                #    log(r2vec[ell1 + 1]) + log(r2vec[ell2 + 1])
+                #    log(r1vec[ell1 + 1]) + log(r2vec[ell2 + 1])
 
                 ## this is more numerically stable
                 lavec <- log(qarray[ell1 + 1, ell2 + 1, ])
@@ -360,7 +360,7 @@ up_fix <- function(pival, p1geno, p2geno, alpha, beta, ocounts, osize,
                 colmax <- apply(summands[which_not_inf, , drop = FALSE], 2, max)
                 llval <- sum(theta * log(colSums(exp(sweep(x = summands[which_not_inf, , drop = FALSE],
                                                    MARGIN = 2, STATS = colmax, FUN = `-`)))) +
-                               colmax) + log(r2vec[ell1 + 1]) + log(r2vec[ell2 + 1])
+                               colmax) + log(r1vec[ell1 + 1]) + log(r2vec[ell2 + 1])
                 marg_lik_mat[ell1 + 1, ell2 + 1] <- llval
             }
         }

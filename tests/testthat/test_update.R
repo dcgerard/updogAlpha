@@ -116,12 +116,14 @@ test_that("up_fix increases the up_obj at every iteration", {
         expect_true(objout - objout_old > - 10 ^ -12)
     }
 
+    r1vec <- rep(1 / (ploidy + 1), length = ploidy + 1)
+    r2vec <- rep(1 / (ploidy + 1), length = ploidy + 1)
     maxout <- updog_maximize(ocounts = ocounts, osize = osize, qarray = qarray,
                    r1vec = r1vec, r2vec = r2vec, pk = pk, pival = 0.99,
                    alpha = 0.1, beta = 0.1,
                    est_fudge = TRUE,
                    tol = 10 ^ -4, itermax = 1000,
-                   update_geno = TRUE, update_pi = TRUE, update_beta = TRUE)
+                   update_geno = TRUE, update_pi = TRUE, update_beta = FALSE)
 
     plot_geno(ocounts = ocounts, osize = osize, ploidy = ploidy, p1counts = p1counts,
               p2counts = p2counts, p1size = p1size, p2size = p2size, col = maxout$ogeno, theta = maxout$theta)
