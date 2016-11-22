@@ -244,7 +244,7 @@ up_bb_fix <- function(pival, p1geno, p2geno, rho, out_mu, out_rho,
 
     ## update outlier model---------------------------------------------------
     if (update_outlier) {
-        if (all(1 - theta < 10 ^ -6)) {
+        if (all(1 - theta < 10 ^ -10)) {
             break
         }
 
