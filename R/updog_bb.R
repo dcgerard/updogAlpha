@@ -102,16 +102,16 @@ up_max_bb <- function(ocounts, osize, qarray, r1vec, r2vec, pk, pival = 0.99,
   ogeno <- apply(postprob, 2, which.max) - 1
 
   ## return values -----------------------------------------------------------
-  return_list <-  list()
-  return_list$pival   <- pival
-  return_list$rho     <- rho
-  return_list$out_mu  <- out_mu
-  return_list$out_rho <- out_rho
-  return_list$p1geno  <- p1geno
-  return_list$p2geno  <- p2geno
-  return_list$prob_ok <- fout$theta
-  return_list$postprob <- postprob
-  return_list$ogeno    <- ogeno
+  return_list           <-  list()
+  return_list$pival     <- pival
+  return_list$rho       <- rho
+  return_list$out_mu    <- out_mu
+  return_list$out_rho   <- out_rho
+  return_list$p1geno    <- p1geno
+  return_list$p2geno    <- p2geno
+  return_list$prob_ok   <- fout$theta
+  return_list$opostprob <- postprob
+  return_list$ogeno     <- ogeno
   return(return_list)
 }
 

@@ -65,11 +65,11 @@ to account for overdispersion (\code{TRUE}) or not (\code{FALSE})?}
 }
 \value{
 A list with some or all of the following elements:
-    \code{opostprob}: A matrix of proportions whose (i, j)th
+
+  \code{opostprob}: A matrix of proportions whose (i, j)th
     element is the posterior probability that child j has i - 1
     copies of the reference allele.  That is, the rows index the
-    genotype and the columns index the offspring.  These are
-    derived by the one-offspring-at-a-time procedure.
+    genotype and the columns index the offspring.
 
   \code{p1postprob}: A vector of proportions whose ith element is
   the posterior probability that parent 1 has i - 1 copies of the
@@ -81,20 +81,27 @@ A list with some or all of the following elements:
   reference allele.  These are derived ONLY from parent 2's
   sequence data and not jointly with all of the data.
 
-  \code{m_opostprob}: A matrix of proportions whose (i, j)th
-  element is the posterior probability that child j has i - 1
-  copies of the reference allele.  These are derived from the joint
-  analysis with MCMC.
+  \code{pival}: The estimated proportion of observations that are not outliers.
 
-  \code{m_p1postprob}: A vector of proportions whose ith element is
-  the posterior probability that parent 1 has i - 1 copies of the
-  reference allele.  These are derived from the joint analysis with
-  MCMC.
+  \code{rho}: The overdispersion parameter.
 
-  \code{m_p2postprob}: A vector of proportions whose ith element is
-  the posterior probability that parent 2 has i - 1 copies of the
-  reference allele.  These are derived from the joint analysis with
-  MCMC.
+  \code{out_mu}: The outlier distribution mean.
+
+  \code{out_rho}: The outlier distribution overdispersion parameter.
+
+  \code{p1geno}: The estimated genopype of parent 1.
+
+  \code{p2geno}: The estimated genotype of parent 2.
+
+  \code{prob_ok}: A vector of proportions. The ith element is the posterior
+      probability that the ith element is not an outlier.
+
+  \code{ogeno}: A vector of integers. The ith element is the estimated genotype
+      of the ith offspring.
+
+  \code{alpha}: The outlier distributions's shape 1 parameter.
+
+  \code{beta}: The outlier distributions's shape 2 parameter.
 }
 \description{
 This function fits a hierarchical model to sequence counts from a
