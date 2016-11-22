@@ -24,19 +24,23 @@ test_that("get_q_array is same as segreg_poly", {
 
 
 test_that("dbetabinom is correct", {
+  alpha <- 1
+  beta <- 3
 
+  mu <- alpha / (alpha + beta)
+  rho <- 1 / (1 + alpha + beta)
+  a <- dbetabinom(x = 11, size = 23, alpha = alpha, beta = beta)
   if (requireNamespace("VGAM", quietly = TRUE)) {
-    alpha <- 1
-    beta <- 3
-
-    mu <- alpha / (alpha + beta)
-    rho <- 1 / (1 + alpha + beta)
-
-
     a <- dbetabinom(x = 11, size = 23, alpha = alpha, beta = beta)
     b <- VGAM::dbetabinom(x = 11, size = 23, prob = mu, rho = rho)
-
     expect_equal(a, b)
   }
+  c <- dbetabinom_mu_rho(x = 11, size = 23, mu = mu, rho = rho)
+
+  expect_equal(a, c)
+
+  a <- dbetabinom(x = 11, size = 23, alpha = alpha, beta = beta, log = TRUE)
+  c <- dbetabinom_mu_rho(x = 11, size = 23, mu = mu, rho = rho, log = TRUE)
+  expect_equal(a, c)
 }
 )

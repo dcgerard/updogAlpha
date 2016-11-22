@@ -202,6 +202,7 @@ updog_maximize <- function(ocounts, osize, qarray, r1vec, r2vec, pk, pival = 0.9
                            tol = 10 ^ -4, itermax = 1000,
                            update_geno = FALSE, update_pi = FALSE, update_beta = FALSE) {
 
+    ## check input ---------------------------------------------------------------
     ploidy <- length(r1vec) - 1
     assertthat::are_equal(ploidy + 1, length(r2vec))
     assertthat::are_equal(length(ocounts), length(osize))
@@ -769,36 +770,4 @@ segreg_poly <- function(m, dP, dQ) {
  for (i in 0:m) p.names[i + 1] <- paste(paste(rep("A", i), collapse = ""), paste(rep("a", (m - i)), collapse = ""), sep = "")
  names(p.dose) <- p.names
  return(p.dose)
-}
-
-
-#' Beta-binomial density function.
-#'
-#' @param x The observed counts.
-#' @param size The number of trials.
-#' @param alpha The alpha parameter of the underlying beta.
-#' @param beta The beta parameter of the underlying beta
-#' @param log A logical. Should we return the log of the density
-#'     (\code{TRUE}) or not (\code{FALSE})?
-#'
-#' @export
-#'
-#' @author David Gerard
-#'
-dbetabinom <- function(x, size, alpha, beta, log = FALSE) {
-
-    ## check input
-    assertthat::assert_that(all(x >= 0))
-    assertthat::assert_that(all(size >= x))
-    assertthat::assert_that(alpha > 0)
-    assertthat::assert_that(beta > 0)
-    assertthat::assert_that(is.logical(log))
-
-    ldense <- lchoose(size, x) + lbeta(x + alpha, size - x + beta) - lbeta(alpha, beta)
-
-    if (log) {
-        return(ldense)
-    } else {
-        return(exp(ldense))
-    }
 }
