@@ -6,7 +6,7 @@
 \usage{
 plot_geno(ocounts, osize, ploidy, p1counts = NULL, p1size = NULL,
   p2counts = NULL, p2size = NULL, col = NULL, seq_error = 0.01,
-  theta = NULL)
+  prob_ok = NULL, maxpostprob = NULL)
 }
 \arguments{
 \item{ocounts}{A vector of non-negative integers. The number of
@@ -33,7 +33,9 @@ reads in parent 2.}
 
 \item{seq_error}{The average sequencing error rate.}
 
-\item{theta}{A vector of posterior probabilities of not being a mistake.}
+\item{prob_ok}{A vector of posterior probabilities of not being a mistake.}
+
+\item{maxpostprob}{A vector of the posterior probabilities of begin at the modal probability.}
 }
 \description{
 Make those awesome plots that Felipe showed me, but using ggplot2.

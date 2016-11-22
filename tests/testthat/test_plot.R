@@ -13,8 +13,10 @@ test_that("plot works", {
   ploidy <- 6
   seq_error <- 0.01
 
+  maxpostprob <- rbeta(n = 4, shape1 = 1, shape2 = 1)
+
   plot_geno(ocounts = ocounts, osize = osize, ploidy = 6, p1counts = p1counts, p1size = p1size,
-            p2counts = p2counts, p2size = p2size, col = rep(3, length = length(ocounts)))
+            p2counts = p2counts, p2size = p2size, col = rep(3, length = length(ocounts)), maxpostprob = maxpostprob)
 
 }
 )

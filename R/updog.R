@@ -119,37 +119,41 @@ updog <- function(ocounts, osize,  ploidy, p1counts = NULL,
   ## get priors on parental genotypes
   if (is.null(p1counts) | is.null(p1size)) {
     r1vec <- rep(1 / (ploidy + 1), times = ploidy + 1)
-  } else if (!overdispersion) {
+  } else {
     assertthat::assert_that(all(p1counts >= 0))
     assertthat::assert_that(all(p1size >= 1))
     assertthat::assert_that(all(p1counts <= p1size))
     r1vec <- bin_post(ncounts = p1counts, ssize = p1size, prior = ploidy,
                       seq_error = seq_error)
-  } else if (overdispersion) {
-    assertthat::assert_that(all(p1counts >= 0))
-    assertthat::assert_that(all(p1size >= 1))
-    assertthat::assert_that(all(p1counts <= p1size))
-    bbout <- bb_post(ncounts = p1counts, ssize = p1size, prior = ploidy, seq_error = seq_error)
-    r1vec <- bbout$prob
-    rho1 <- bbout$rho
   }
+
+  # else if (overdispersion) {
+  #   assertthat::assert_that(all(p1counts >= 0))
+  #   assertthat::assert_that(all(p1size >= 1))
+  #   assertthat::assert_that(all(p1counts <= p1size))
+  #   bbout <- bb_post(ncounts = p1counts, ssize = p1size, prior = ploidy, seq_error = seq_error)
+  #   r1vec <- bbout$prob
+  #   rho1 <- bbout$rho
+  # }
 
   if (is.null(p2counts) | is.null(p2size)) {
     r2vec <- rep(1 / (ploidy + 1), times = ploidy + 1)
-  } else if (!overdispersion) {
+  } else {
     assertthat::assert_that(all(p2counts >= 0))
     assertthat::assert_that(all(p2size >= 1))
     assertthat::assert_that(all(p2counts <= p2size))
     r2vec <- bin_post(ncounts = p2counts, ssize = p2size, prior = ploidy,
                       seq_error = seq_error)
-  } else if (overdispersion){
-    assertthat::assert_that(all(p2counts >= 0))
-    assertthat::assert_that(all(p2size >= 1))
-    assertthat::assert_that(all(p2counts <= p2size))
-    bbout <- bb_post(ncounts = p2counts, ssize = p2size, prior = ploidy, seq_error = seq_error)
-    r2vec <- bbout$prob
-    rho2  <- bbout$rho
   }
+
+  # else if (overdispersion){
+  #   assertthat::assert_that(all(p2counts >= 0))
+  #   assertthat::assert_that(all(p2size >= 1))
+  #   assertthat::assert_that(all(p2counts <= p2size))
+  #   bbout <- bb_post(ncounts = p2counts, ssize = p2size, prior = ploidy, seq_error = seq_error)
+  #   r2vec <- bbout$prob
+  #   rho2  <- bbout$rho
+  # }
 
   ## initialize overdispersion parameter
   if (is.null(rho1) & !is.null(rho2)) {
@@ -173,13 +177,13 @@ updog <- function(ocounts, osize,  ploidy, p1counts = NULL,
 
   if (do_eb & !overdispersion) {
     umout <- updog_maximize(ocounts = ocounts, osize = osize, qarray = qarray, r1vec = r1vec, r2vec = r2vec,
-                            pk = pk, pival = 0.99, alpha = 0.1, beta = 0.1, est_fudge = TRUE,
+                            pk = pk, pival = 0.99, alpha = 1, beta = 1, est_fudge = TRUE,
                             tol = 10 ^ -4, itermax = 1000,
                             update_geno = update_geno, update_pi = update_pi, update_beta = update_outlier)
     return(umout)
   } else if (do_eb & overdispersion) {
-    umout <- up_max_bb(ocounts, osize, qarray, r1vec, r2vec, pk, pival = 0.99, out_mu = 0.5,
-                       out_rho = 0.8, rho = rho, est_fudge = TRUE, tol = 10 ^ -4, itermax = 1000,
+    umout <- up_max_bb(ocounts, osize, qarray, r1vec, r2vec, pk, pival = 0.99, out_mu = 1/2,
+                       out_rho = 1/3, rho = rho, est_fudge = TRUE, tol = 10 ^ -4, itermax = 1000,
                        update_geno = update_geno, update_pival = update_pi, update_outlier = update_outlier,
                        update_rho = update_rho)
     return(umout)
@@ -291,6 +295,9 @@ updog_maximize <- function(ocounts, osize, qarray, r1vec, r2vec, pk, pival = 0.9
 
       p1geno <- which_best[1] - 1
       p2geno <- which_best[2] - 1
+    } else {
+      p1geno <- which.max(r1vec) - 1
+      p2geno <- which.max(r2vec) - 1
     }
 
     if (est_fudge) {
@@ -582,14 +589,15 @@ get_transition_mat <- function(ploidy, eps) {
 #' @param ploidy A non-negative integer. The ploidy of the species.
 #' @param col The color labels.
 #' @param seq_error The average sequencing error rate.
-#' @param theta A vector of posterior probabilities of not being a mistake.
+#' @param prob_ok A vector of posterior probabilities of not being a mistake.
+#' @param maxpostprob A vector of the posterior probabilities of begin at the modal probability.
 #'
 #' @export
 #'
 #' @author David Gerard
 #'
 plot_geno <- function(ocounts, osize, ploidy, p1counts = NULL, p1size = NULL, p2counts = NULL,
-                      p2size = NULL, col = NULL, seq_error = 0.01, theta = NULL) {
+                      p2size = NULL, col = NULL, seq_error = 0.01, prob_ok = NULL, maxpostprob = NULL) {
   if (!requireNamespace("ggplot2", quietly = TRUE)) {
     stop("ggplot2 must be installed to use this function")
   }
@@ -599,10 +607,6 @@ plot_geno <- function(ocounts, osize, ploidy, p1counts = NULL, p1size = NULL, p2
   assertthat::assert_that(ploidy >= 1)
   assertthat::assert_that(seq_error>= 0)
 
-
-
-
-
   ## get probabilities
   pk <- seq(0, ploidy) / ploidy ## the possible probabilities
   pk <- (1 - seq_error) * pk + seq_error * (1 - pk)
@@ -611,13 +615,19 @@ plot_geno <- function(ocounts, osize, ploidy, p1counts = NULL, p1size = NULL, p2
   maxcount <- max(max(dfdat$A), max(dfdat$a))
   if (!is.null(col)) {
     assertthat::are_equal(length(col), length(ocounts))
-    dfdat$genotype <- as.factor(col)
+    dfdat$genotype <- factor(col, levels = 0:ploidy)
   }
 
-  if(!is.null(theta)) {
-    assertthat::assert_that(all(theta >= 0))
-    assertthat::assert_that(all(theta <= 1))
-    dfdat$theta <- theta
+  if (!is.null(prob_ok)) {
+    assertthat::assert_that(all(prob_ok >= 0))
+    assertthat::assert_that(all(prob_ok <= 1))
+    dfdat$prob_ok <- prob_ok
+  }
+
+  if (!is.null(maxpostprob)) {
+    assertthat::assert_that(all(maxpostprob >= 0))
+    assertthat::assert_that(all(maxpostprob <= 1))
+    dfdat$maxpostprob <- maxpostprob
   }
 
   slopevec <- pk / (1 - pk)
@@ -627,25 +637,31 @@ plot_geno <- function(ocounts, osize, ploidy, p1counts = NULL, p1size = NULL, p2
                          xend = xend, yend = yend)
 
   ## Plot children
-  if (is.null(col) & is.null(theta)) {
+  if (is.null(prob_ok) & is.null(maxpostprob)) {
     pl <- ggplot2::ggplot(data = dfdat, mapping = ggplot2::aes_string(y = "A", x = "a"))
-  } else if (is.null(theta)) {
-    pl <- ggplot2::ggplot(data = dfdat, mapping = ggplot2::aes_string(y = "A", x = "a", col = "genotype"))
-  } else if (is.null(col)) {
-    pl <- ggplot2::ggplot(data = dfdat, mapping = ggplot2::aes_string(y = "A", x = "a", alpha = "theta"))
-  } else {
-    pl <- ggplot2::ggplot(data = dfdat, mapping = ggplot2::aes_string(y = "A", x = "a", col = "genotype", alpha = "theta"))
+  } else if (!is.null(prob_ok) & is.null(maxpostprob)) {
+    pl <- ggplot2::ggplot(data = dfdat, mapping = ggplot2::aes_string(y = "A", x = "a", alpha = "prob_ok"))
+  } else if (is.null(prob_ok) & !is.null(maxpostprob)) {
+    pl <- ggplot2::ggplot(data = dfdat, mapping = ggplot2::aes_string(y = "A", x = "a", size = "maxpostprob"))
+  } else if (!is.null(prob_ok) & !is.null(maxpostprob)) {
+    pl <- ggplot2::ggplot(data = dfdat, mapping = ggplot2::aes_string(y = "A", x = "a", alpha = "prob_ok", size = "maxpostprob"))
   }
 
+  if (!is.null(col)) {
+    pl <- pl + ggplot2::geom_point(ggplot2::aes_string(colour = "genotype")) + ggplot2::scale_color_hue(drop = FALSE)
+  } else {
+    pl <- pl + ggplot2::geom_point()
+  }
 
-  pl <- pl + ggplot2::geom_point() +
-    ggplot2::theme_bw() +
+  pl <- pl + ggplot2::scale_size(range = c(0.7, 3))
+
+  pl <- pl + ggplot2::theme_bw() +
     ggplot2::xlim(0, maxcount) +
     ggplot2::ylim(0, maxcount) +
     ggplot2::ylab("Counts A") +
     ggplot2::xlab("Counts a")  +
     ggplot2::geom_segment(data = df_lines, mapping = ggplot2::aes_string(x = "x", y = "y", xend = "xend", yend = "yend"),
-                          lty = 2, alpha = 1/2, color = "black")
+                          lty = 2, alpha = 1/2, color = "black", size = 0.5)
 
    ## add parents if we have them
    if (!is.null(p1size) & !is.null(p1counts)) {
@@ -660,8 +676,6 @@ plot_geno <- function(ocounts, osize, ploidy, p1counts = NULL, p1size = NULL, p2
      p2dat <- data.frame(A = p2counts, a = p2size - p2counts)
      pl <- pl + ggplot2::geom_point(data = p2dat, size = 3, color = "black", pch = 4, alpha = 1)
    }
-
-   print(pl)
    return(pl)
 }
 
@@ -781,6 +795,8 @@ bin_post <- function(ncounts, ssize, prior, seq_error = 0.01) {
 
   ## test when third case only
   ## assertthat::are_equal(postprob, exp(logprob) / sum(exp(logprob)))
+
+  names(postprob) <- get_dimname(ploidy)
 
   return(postprob)
 }
