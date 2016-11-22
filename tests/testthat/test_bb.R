@@ -60,3 +60,22 @@ test_that("up_bb_fix increases likelihood", {
 
 }
 )
+
+
+test_that("bb_post works", {
+
+  set.seed(1238)
+  ploidy  <- 6
+  ncounts <- rbinom(n = 11, size = 10, prob = 0.5)
+  ssize   <- rbinom(n = 11, size = 100, prob = 0.5)
+  prior   <- rep(1 / (ploidy + 1), length = ploidy + 1)
+  seq_error <- 0.01
+  pk <- seq(0, ploidy) / ploidy ## the possible probabilities
+  pk <- (1 - seq_error) * pk + seq_error * (1 - pk)
+  rho <- 0.01
+
+  bbout <- bb_post(ncounts = ncounts, ssize = ssize, prior = prior, seq_error = 0.01)
+
+
+}
+)

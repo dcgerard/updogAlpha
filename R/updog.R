@@ -42,11 +42,15 @@
 #'     uncertainty in the parental genotypes (\code{TRUE}) or not
 #'     (\code{FALSE}). The default is \code{FALSE} because we usually
 #'     know the parental genotypes with near certainty so it's not
-#'     important to integrate over our uncertainty in them.
+#'     important to integrate over our uncertainty in them. This is only
+#'     implemented if \code{do_eb = FALSE}
 #' @param update_geno A logical. Update the parental genotypes?
 #' @param update_pi A logical. Update the mixing proporiton?
-#' @param update_beta A logical. Update the beta distribution?
-#' @param do_eb Should we do emprical bayes?
+#' @param update_outlier A logical. Update the outlier distribution?
+#' @param update_rho A logical. Update the overdispersion parameter?
+#' @param do_eb Should we do empirical Bayes (\code{TRUE}) or not (\code{FALSE})?
+#' @param overdispersion A logical. Should we fit a beta-binomial model
+#'     to account for overdispersion (\code{TRUE}) or not (\code{FALSE})?
 #'
 #'
 #' @return A list with some or all of the following elements:
@@ -92,33 +96,62 @@
 #'
 updog <- function(ocounts, osize,  ploidy, p1counts = NULL,
                   p1size = NULL, p2counts = NULL, p2size = NULL,
-                  seq_error = 0.01, integrate = FALSE, do_eb = TRUE,
-                  update_geno = TRUE, update_pi = TRUE, update_beta = TRUE) {
+                  seq_error = 0.01, integrate = FALSE, do_eb = TRUE, overdispersion = TRUE,
+                  update_geno = FALSE, update_pi = TRUE, update_outlier = TRUE,
+                  update_rho = TRUE) {
 
   ## check input -------------------------------------------------------------
   assertthat::assert_that(all(ocounts >= 0))
   assertthat::assert_that(all(osize >= 1))
   assertthat::assert_that(all(ocounts <= osize))
+  assertthat::assert_that(is.logical(overdispersion))
 
+  rho1 <- NULL
+  rho2 <- NULL
   ## get priors on parental genotypes
   if (is.null(p1counts) | is.null(p1size)) {
     r1vec <- rep(1 / (ploidy + 1), times = ploidy + 1)
-  } else {
+  } else if (!overdispersion) {
     assertthat::assert_that(all(p1counts >= 0))
     assertthat::assert_that(all(p1size >= 1))
     assertthat::assert_that(all(p1counts <= p1size))
     r1vec <- bin_post(ncounts = p1counts, ssize = p1size, prior = ploidy,
                       seq_error = seq_error)
+  } else if (overdispersion) {
+    assertthat::assert_that(all(p1counts >= 0))
+    assertthat::assert_that(all(p1size >= 1))
+    assertthat::assert_that(all(p1counts <= p1size))
+    bbout <- bb_post(ncounts = p1counts, ssize = p1size, prior = ploidy, seq_error = seq_error)
+    r1vec <- bbout$prob
+    rho1 <- bbout$rho
   }
 
   if (is.null(p2counts) | is.null(p2size)) {
     r2vec <- rep(1 / (ploidy + 1), times = ploidy + 1)
-  } else {
+  } else if (!overdispersion) {
     assertthat::assert_that(all(p2counts >= 0))
     assertthat::assert_that(all(p2size >= 1))
     assertthat::assert_that(all(p2counts <= p2size))
     r2vec <- bin_post(ncounts = p2counts, ssize = p2size, prior = ploidy,
                       seq_error = seq_error)
+  } else if (overdispersion){
+    assertthat::assert_that(all(p2counts >= 0))
+    assertthat::assert_that(all(p2size >= 1))
+    assertthat::assert_that(all(p2counts <= p2size))
+    bbout <- bb_post(ncounts = p2counts, ssize = p2size, prior = ploidy, seq_error = seq_error)
+    r2vec <- bbout$prob
+    rho2  <- bbout$rho
+  }
+
+  ## initialize overdispersion parameter
+  if (is.null(rho1) & !is.null(rho2)) {
+    rho <- rho2
+  } else if (!is.null(rho1) & is.null(rho2)) {
+    rho <- rho1
+  } else if (!is.null(rho1) & !is.null(rho2)) {
+    rho <- (rho1 + rho2) / 2
+  } else {
+    rho <- 0.001
   }
 
   assertthat::assert_that(ploidy >= 1)
@@ -130,28 +163,33 @@ updog <- function(ocounts, osize,  ploidy, p1counts = NULL,
   pk <- (1 - seq_error) * pk + seq_error * (1 - pk)
 
 
-  if (do_eb) {
+  if (do_eb & !overdispersion) {
     umout <- updog_maximize(ocounts = ocounts, osize = osize, qarray = qarray, r1vec = r1vec, r2vec = r2vec,
-                            pk = pk, pival = 0.99, alpha = 0.1, beta = 0.1, est_fudge = TRUE, tol = 10 ^ -4, itermax = 1000,
-                            update_geno = update_geno, update_pi = update_pi, update_beta = update_beta)
+                            pk = pk, pival = 0.99, alpha = 0.1, beta = 0.1, est_fudge = TRUE,
+                            tol = 10 ^ -4, itermax = 1000,
+                            update_geno = update_geno, update_pi = update_pi, update_beta = update_outlier)
+    return(umout)
+  } else if (do_eb & overdispersion) {
+    umout <- up_max_bb(ocounts, osize, qarray, r1vec, r2vec, pk, pival = 0.99, out_mu = 0.5,
+                       out_rho = 0.8, rho = rho, est_fudge = TRUE, tol = 10 ^ -4, itermax = 1000,
+                       update_geno = update_geno, update_pival = update_pi, update_outlier = update_outlier,
+                       update_rho = update_rho)
     return(umout)
   }
 
+  if (overdispersion) {
+    warning("overdispersion not yet implemented when do_eb = FALSE")
+  }
 
-
-  ## Derive prior probabilities on offspring genotypes
-  phi_vec <- r1vec ## posterior prob of p1 genotype
-  psi_vec <- r2vec ## posterior prob of p2 genotype
-
-
+  ## naive estimator -------------------------------------------------------------
   if (integrate) {
-    harray <- sweep(qarray, MARGIN = 1, STATS = phi_vec, FUN = `*`)
-    harray <- sweep(harray, MARGIN = 2, STATS = psi_vec, FUN = `*`)
+    harray <- sweep(qarray, MARGIN = 1, STATS = r1vec, FUN = `*`)
+    harray <- sweep(harray, MARGIN = 2, STATS = r2vec, FUN = `*`)
     hl <- apply(harray, 3, sum)
   } else {
-    genop1 <- which.max(r1vec)
-    genop2 <- which.max(r2vec)
-    hl <- qarray[genop1, genop2, ]
+    genop1 <- which.max(r1vec) - 1
+    genop2 <- which.max(r2vec) - 1
+    hl <- qarray[genop1 + 1, genop2 + 1, ]
   }
 
   ## get posterior probabilities of offspring genotypes.
@@ -160,8 +198,8 @@ updog <- function(ocounts, osize,  ploidy, p1counts = NULL,
 
   return_list <- list()
   return_list$opostprob  <- postprob
-  return_list$p1postprob <- phi_vec
-  return_list$p2postprob <- psi_vec
+  return_list$p1postprob <- r1vec
+  return_list$p2postprob <- r2vec
 
   return(return_list)
 }
@@ -662,9 +700,6 @@ get_dimname <- function(ploidy) {
 #' @param seq_error A non-negative numeric. This is the known
 #'     sequencing error rate. This is a rough high-ball error rate
 #'     given by Li et. al. (2011).
-#' @param divide_by_three A logical. Should we use asymmetry in the
-#'     error rates (\code{TRUE}) or not (\code{FALSE})? Defaults to
-#'     \code{FALSE}.
 #'
 #' @return A vector of probabilities. The ith element is the posterior
 #'     probability that the individual has i - 1 copies of the
@@ -680,7 +715,7 @@ get_dimname <- function(ploidy) {
 #'     Genome research (2011).
 #'
 #'
-bin_post <- function(ncounts, ssize, prior, seq_error = 0.01, divide_by_three = FALSE) {
+bin_post <- function(ncounts, ssize, prior, seq_error = 0.01) {
 
   ## check input -------------------------------------------------------------
   assertthat::assert_that(all(ncounts >= 0))
@@ -704,11 +739,7 @@ bin_post <- function(ncounts, ssize, prior, seq_error = 0.01, divide_by_three = 
   pk <- seq(0, ploidy) / ploidy ## the possible probabilities
 
   ## deal with error rate
-  if (!divide_by_three) {
-    pk <- (1 - seq_error) * pk + seq_error * (1 - pk)
-  } else {
-    pk <- (1 - seq_error) * pk + seq_error * (1 - pk) / 3
-  }
+  pk <- (1 - seq_error) * pk + seq_error * (1 - pk)
 
 
 

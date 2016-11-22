@@ -6,8 +6,8 @@
 \usage{
 updog(ocounts, osize, ploidy, p1counts = NULL, p1size = NULL,
   p2counts = NULL, p2size = NULL, seq_error = 0.01, integrate = FALSE,
-  do_eb = TRUE, update_geno = TRUE, update_pi = TRUE,
-  update_beta = TRUE)
+  do_eb = TRUE, overdispersion = TRUE, update_geno = FALSE,
+  update_pi = TRUE, update_outlier = TRUE, update_rho = TRUE)
 }
 \arguments{
 \item{ocounts}{A vector of non-negative integers. The ith element
@@ -47,15 +47,21 @@ given by Li et. al. (2011).}
 uncertainty in the parental genotypes (\code{TRUE}) or not
 (\code{FALSE}). The default is \code{FALSE} because we usually
 know the parental genotypes with near certainty so it's not
-important to integrate over our uncertainty in them.}
+important to integrate over our uncertainty in them. This is only
+implemented if \code{do_eb = FALSE}}
 
-\item{do_eb}{Should we do emprical bayes?}
+\item{do_eb}{Should we do empirical Bayes (\code{TRUE}) or not (\code{FALSE})?}
+
+\item{overdispersion}{A logical. Should we fit a beta-binomial model
+to account for overdispersion (\code{TRUE}) or not (\code{FALSE})?}
 
 \item{update_geno}{A logical. Update the parental genotypes?}
 
 \item{update_pi}{A logical. Update the mixing proporiton?}
 
-\item{update_beta}{A logical. Update the beta distribution?}
+\item{update_outlier}{A logical. Update the outlier distribution?}
+
+\item{update_rho}{A logical. Update the overdispersion parameter?}
 }
 \value{
 A list with some or all of the following elements:

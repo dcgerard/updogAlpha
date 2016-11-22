@@ -429,3 +429,85 @@ dbetabinom_mu_rho <- function(x, size, mu, rho, log = FALSE) {
   beta  <- (1 - mu) * (1 - rho) / rho
   return(dbetabinom(x = x, size = size, alpha = alpha, beta = beta, log = log))
 }
+
+#' Posterior inference in beta-binomial model.
+#'
+#' The main difference between this function and \code{bin_post} is that here we also estimate an
+#' overdispersion parameter by maximum marginal likelihood.
+#'
+#' @inheritParams bin_post
+#' @param log A logical. Should we return the log probabilties (\code{TRUE}) or not (\code{FALSE})?
+#'
+#' @author David Gerard
+#'
+#' @export
+#'
+#'
+bb_post <- function(ncounts, ssize, prior, seq_error = 0.01, log = FALSE) {
+
+  if (abs(sum(prior) - 1) < 10 ^ -14) {
+    ploidy <- length(prior) - 1
+  } else {
+    ploidy <- prior
+    prior  <- rep(1 / (ploidy + 1), length = ploidy + 1)
+  }
+
+  assertthat::are_equal(length(ncounts), length(ssize))
+  assertthat::assert_that(seq_error >= 0)
+  assertthat::assert_that(seq_error <= 1)
+  assertthat::assert_that(all(ncounts >= 0))
+  assertthat::assert_that(all(ssize >= ncounts))
+
+  pk <- seq(0, ploidy) / ploidy ## the possible probabilities
+  pk <- (1 - seq_error) * pk + seq_error * (1 - pk)
+
+  rho <- 0.01
+  oout <- stats::optim(par = rho, fn = dbb_post_obj, ncounts = ncounts,
+                       ssize = ssize, prior = prior, pk = pk,
+                       control = list(fnscale = -1), method = "Brent",
+                       lower = 0, upper = 1)
+  rho <- oout$par
+
+  dbbmat <- matrix(NA, nrow = ploidy + 1, ncol = length(ncounts))
+  for(index in 1:(ploidy + 1)) {
+    dbbmat[index, ] <- dbetabinom_mu_rho(x = ncounts, size = ssize, mu = pk[index], rho = rho, log = TRUE)
+  }
+  tmat <- rowSums(dbbmat) + prior
+  tmat_max <- max(tmat)
+  ldenom <- log(sum(exp(tmat - tmat_max))) + tmat_max
+
+  lprob <- tmat - ldenom
+
+  if (log) {
+    return(list(lprob = lprob, rho = rho))
+  }  else {
+    probvec <- exp(lprob)
+    assertthat::are_equal(sum(probvec), 1)
+    return(list(prob = probvec, rho = rho))
+  }
+}
+
+
+dbb_post_obj <- function(rho, ncounts, ssize, prior, pk) {
+
+  ploidy <- length(prior) - 1
+  assertthat::are_equal(ploidy, length(pk) - 1)
+  assertthat::are_equal(length(ncounts), length(ssize))
+  assertthat::assert_that(all(ncounts >= 0))
+  assertthat::assert_that(all(ssize >= ncounts))
+  assertthat::assert_that(rho >= 0)
+  assertthat::assert_that(rho <= 1)
+
+  dbbmat <- matrix(NA, nrow = ploidy + 1, ncol = length(ncounts))
+  for(index in 1:(ploidy + 1)) {
+    dbbmat[index, ] <- dbetabinom_mu_rho(x = ncounts, size = ssize, mu = pk[index], rho = rho, log = TRUE)
+  }
+
+  tmat <- rowSums(dbbmat) + prior
+
+  tmat_max <- max(tmat)
+
+  return(log(sum(exp(tmat - tmat_max))) + tmat_max)
+}
+
+
