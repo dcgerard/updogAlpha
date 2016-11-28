@@ -188,13 +188,15 @@ up_bb_obj <- function(pival, p1geno, p2geno, rho, out_mu, out_rho,
 #'     distribution (\code{TRUE}) or not (\code{FALSE})?
 #' @param p1geno The current genotype of parent 1. Must be in \code{0:ploidy}.
 #' @param p2geno The current genotype of parent 1. Must be in \code{0:ploidy}.
+#' @param upper_rho The upperbound on the overdispersion parameter. Defaults to 1/3 which corrsponds
+#'     to bounding the shape at pk = 0.5 so that the density is finite at 0 and 1.
 #'
 #' @author David Gerard
 #'
 up_bb_fix <- function(pival, p1geno, p2geno, rho, out_mu, out_rho,
                       ocounts, osize, qarray, r1vec, r2vec, pk,
                       update_pival = TRUE, update_rho = TRUE,
-                      update_geno = FALSE, update_outlier = TRUE) {
+                      update_geno = FALSE, update_outlier = TRUE, upper_rho = 1/3) {
 
     ## check input -----------------------------------------------------------
     ploidy <- length(pk) - 1
@@ -219,6 +221,8 @@ up_bb_fix <- function(pival, p1geno, p2geno, rho, out_mu, out_rho,
     assertthat::assert_that(all(r2vec <= 1))
     assertthat::are_equal(length(r1vec), ploidy + 1)
     assertthat::are_equal(length(r2vec), ploidy + 1)
+    assertthat::assert_that(upper_rho >= 10^-6)
+    assertthat::assert_that(upper_rho <= 1)
 
     ## bbmat ------------------------------------------------------------------
     dbbmat <- matrix(NA, nrow = ploidy + 1, ncol = length(ocounts))
@@ -263,7 +267,7 @@ up_bb_fix <- function(pival, p1geno, p2geno, rho, out_mu, out_rho,
     if (!update_geno & update_rho) {
         eps_out <- 10^-6
         oout <- stats::optim(par = rho, fn = good_bb_obj,
-                             method = "Brent", lower = eps_out, upper = 1 - eps_out,
+                             method = "Brent", lower = eps_out, upper = upper_rho,
                              control = list(fnscale = -1), ocounts = ocounts,
                              osize = osize, theta = theta, pk = pk, avec = avec)
         rho <- oout$par
@@ -443,13 +447,17 @@ dbetabinom_mu_rho <- function(x, size, mu, rho, log = FALSE) {
 #' @export
 #'
 #'
-bb_post <- function(ncounts, ssize, prior, seq_error = 0.01, log = FALSE) {
+bb_post <- function(ncounts, ssize, prior, seq_error = NULL, log = FALSE) {
 
   if (abs(sum(prior) - 1) < 10 ^ -14) {
     ploidy <- length(prior) - 1
   } else {
     ploidy <- prior
     prior  <- rep(1 / (ploidy + 1), length = ploidy + 1)
+  }
+
+  if (is.null(seq_error)) {
+    seq_error <- est_seq_error(ncounts = ncounts, ssize = ssize, ploidy = ploidy)
   }
 
   assertthat::are_equal(length(ncounts), length(ssize))

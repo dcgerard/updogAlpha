@@ -23,8 +23,8 @@ on the sequence data from parent 1.}
 on the sequence data from parent 2.}
 
 \item{seq_error}{A non-negative numeric. This is the known
-sequencing error rate. This is a rough high-ball error rate
-given by Li et. al. (2011).}
+sequencing error rate. The default is to estimate this
+using data that are all approximately the reference allele.}
 
 \item{itermax}{The number of times to iterate between the two approaches.}
 

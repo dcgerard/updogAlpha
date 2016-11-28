@@ -3,6 +3,7 @@
 export(bb_post)
 export(bin_post)
 export(dbetabinom)
+export(est_seq_error)
 export(get_q_array)
 export(get_transition_mat)
 export(plot_geno)

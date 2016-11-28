@@ -36,8 +36,8 @@
 #' @param ploidy A positive integer. The number of copies of the
 #'     genome in the species.
 #' @param seq_error A non-negative numeric. This is the known
-#'     sequencing error rate. This is a rough high-ball error rate
-#'     given by Li et. al. (2011).
+#'     sequencing error rate. The default is to estimate this
+#'     using data that are all approximately the reference allele.
 #' @param integrate A logical. Should we integrate over our
 #'     uncertainty in the parental genotypes (\code{TRUE}) or not
 #'     (\code{FALSE}). The default is \code{FALSE} because we usually
@@ -97,14 +97,9 @@
 #'
 #' @export
 #'
-#' @references Li, Yun, Carlo Sidore, Hyun Min Kang, Michael Boehnke, and
-#'   Gonçalo R. Abecasis.
-#'   \href{https://www.ncbi.nlm.nih.gov/pubmed/21460063}{"Low-coverage sequencing: implications for design of complex trait association studies."}
-#'   Genome research (2011).
-#'
 updog <- function(ocounts, osize,  ploidy, p1counts = NULL,
                   p1size = NULL, p2counts = NULL, p2size = NULL,
-                  seq_error = 0.01, integrate = FALSE, do_eb = TRUE, overdispersion = TRUE,
+                  seq_error = NULL, integrate = FALSE, do_eb = TRUE, overdispersion = TRUE,
                   update_geno = FALSE, update_pi = TRUE, update_outlier = TRUE,
                   update_rho = TRUE) {
 
@@ -114,9 +109,14 @@ updog <- function(ocounts, osize,  ploidy, p1counts = NULL,
   assertthat::assert_that(all(ocounts <= osize))
   assertthat::assert_that(is.logical(overdispersion))
 
+  ## estimate seq_error ------------------------------------------------------
+  if (is.null(seq_error)) {
+    seq_error <- est_seq_error(ncounts = ocounts, ssize = osize, ploidy = ploidy)
+  }
+
+  ## get priors on parental genotypes ----------------------------------------
   rho1 <- NULL
   rho2 <- NULL
-  ## get priors on parental genotypes
   if (is.null(p1counts) | is.null(p1size)) {
     r1vec <- rep(1 / (ploidy + 1), times = ploidy + 1)
   } else {
@@ -212,6 +212,7 @@ updog <- function(ocounts, osize,  ploidy, p1counts = NULL,
   return_list$opostprob  <- postprob
   return_list$p1postprob <- r1vec
   return_list$p2postprob <- r2vec
+  return_list$seq_error  <- seq_error
 
   return(return_list)
 }

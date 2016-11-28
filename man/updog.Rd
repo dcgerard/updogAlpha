@@ -5,7 +5,7 @@
 \title{Using Parental Data for Offspring Genotyping.}
 \usage{
 updog(ocounts, osize, ploidy, p1counts = NULL, p1size = NULL,
-  p2counts = NULL, p2size = NULL, seq_error = 0.01, integrate = FALSE,
+  p2counts = NULL, p2size = NULL, seq_error = NULL, integrate = FALSE,
   do_eb = TRUE, overdispersion = TRUE, update_geno = FALSE,
   update_pi = TRUE, update_outlier = TRUE, update_rho = TRUE)
 }
@@ -40,8 +40,8 @@ total number of reads in the ith sample of parent 2.  If
 will default to uniform.}
 
 \item{seq_error}{A non-negative numeric. This is the known
-sequencing error rate. This is a rough high-ball error rate
-given by Li et. al. (2011).}
+sequencing error rate. The default is to estimate this
+using data that are all approximately the reference allele.}
 
 \item{integrate}{A logical. Should we integrate over our
 uncertainty in the parental genotypes (\code{TRUE}) or not
@@ -118,11 +118,5 @@ between the offspring by setting \code{do_mcmc} to \code{TRUE}.
 }
 \author{
 David Gerard
-}
-\references{
-Li, Yun, Carlo Sidore, Hyun Min Kang, Michael Boehnke, and
-  Gonçalo R. Abecasis.
-  \href{https://www.ncbi.nlm.nih.gov/pubmed/21460063}{"Low-coverage sequencing: implications for design of complex trait association studies."}
-  Genome research (2011).
 }
 

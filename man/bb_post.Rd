@@ -4,7 +4,7 @@
 \alias{bb_post}
 \title{Posterior inference in beta-binomial model.}
 \usage{
-bb_post(ncounts, ssize, prior, seq_error = 0.01, log = FALSE)
+bb_post(ncounts, ssize, prior, seq_error = NULL, log = FALSE)
 }
 \arguments{
 \item{ncounts}{A vector of non-negative integers. The ith element
