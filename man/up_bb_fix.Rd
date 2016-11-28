@@ -6,7 +6,7 @@
 \usage{
 up_bb_fix(pival, p1geno, p2geno, rho, out_mu, out_rho, ocounts, osize, qarray,
   r1vec, r2vec, pk, update_pival = TRUE, update_rho = TRUE,
-  update_geno = FALSE, update_outlier = TRUE, upper_rho = 1/3)
+  update_geno = FALSE, update_outlier = TRUE, upper_rho = NULL)
 }
 \arguments{
 \item{pival}{A fudge factor. The probability of not begin a
@@ -56,8 +56,8 @@ genotypes (\code{TRUE}) or not (\code{FALSE})?}
 \item{update_outlier}{A logical. Should we update the outlier
 distribution (\code{TRUE}) or not (\code{FALSE})?}
 
-\item{upper_rho}{The upperbound on the overdispersion parameter. Defaults to 1/3 which corrsponds
-to bounding the shape at pk = 0.5 so that the density is finite at 0 and 1.}
+\item{upper_rho}{The upperbound on the overdispersion parameter. Defaults to 1 / (ploidy + 1) which corrsponds
+to bounding smallest probabilities to have finite density at 0 and 1.}
 }
 \description{
 EM iteration for overdispersed binomial mixture model.

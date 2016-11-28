@@ -188,15 +188,15 @@ up_bb_obj <- function(pival, p1geno, p2geno, rho, out_mu, out_rho,
 #'     distribution (\code{TRUE}) or not (\code{FALSE})?
 #' @param p1geno The current genotype of parent 1. Must be in \code{0:ploidy}.
 #' @param p2geno The current genotype of parent 1. Must be in \code{0:ploidy}.
-#' @param upper_rho The upperbound on the overdispersion parameter. Defaults to 1/3 which corrsponds
-#'     to bounding the shape at pk = 0.5 so that the density is finite at 0 and 1.
+#' @param upper_rho The upperbound on the overdispersion parameter. Defaults to 1 / (ploidy + 1) which corrsponds
+#'     to bounding smallest probabilities to have finite density at 0 and 1.
 #'
 #' @author David Gerard
 #'
 up_bb_fix <- function(pival, p1geno, p2geno, rho, out_mu, out_rho,
                       ocounts, osize, qarray, r1vec, r2vec, pk,
                       update_pival = TRUE, update_rho = TRUE,
-                      update_geno = FALSE, update_outlier = TRUE, upper_rho = 1/3) {
+                      update_geno = FALSE, update_outlier = TRUE, upper_rho = NULL) {
 
     ## check input -----------------------------------------------------------
     ploidy <- length(pk) - 1
@@ -221,6 +221,11 @@ up_bb_fix <- function(pival, p1geno, p2geno, rho, out_mu, out_rho,
     assertthat::assert_that(all(r2vec <= 1))
     assertthat::are_equal(length(r1vec), ploidy + 1)
     assertthat::are_equal(length(r2vec), ploidy + 1)
+
+    if (is.null(upper_rho)) {
+      upper_rho <- 1 / (ploidy + 1)
+    }
+
     assertthat::assert_that(upper_rho >= 10^-6)
     assertthat::assert_that(upper_rho <= 1)
 
@@ -299,7 +304,7 @@ up_bb_fix <- function(pival, p1geno, p2geno, rho, out_mu, out_rho,
           } else {
             current_avec <- qarray[ell1 + 1, ell2 + 1, ]
             oout <- stats::optim(par = rho, fn = good_bb_obj,
-                                 method = "Brent", lower = eps_out, upper = 1 - eps_out,
+                                 method = "Brent", lower = eps_out, upper = upper_rho,
                                  control = list(fnscale = -1), ocounts = ocounts,
                                  osize = osize, theta = theta, pk = pk, avec = current_avec)
             marg_lik_mat[ell1 + 1, ell2 + 1] <- oout$value + log(r1vec[ell1 + 1]) + log(r2vec[ell2 + 1])
