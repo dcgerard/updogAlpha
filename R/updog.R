@@ -3,15 +3,16 @@
 #' Using Parental Data for Offspring Genotyping.
 #'
 #' This function fits a hierarchical model to sequence counts from a
-#' collection of siblings and return genotyped information. The
+#' collection of siblings and returns genotyped information. The
 #' hierarchy comes from the fact that they share the same parents. If
 #' you also have parental sequencing data, then you can include this
 #' to improve estimates.
 #'
 #' If you have a lot of parental sequencing data, then it could
-#' suffice to run \code{updog} with \code{do_mcmc} set to
-#' \code{FALSE}. Otherwise, you will probably want to borrow strength
-#' between the offspring by setting \code{do_mcmc} to \code{TRUE}.
+#' suffice to run \code{updog} with \code{update_geno} set to \code{FALSE}, which
+#' would save a lot of time.
+#' Otherwise, you will probably want to borrow strength
+#' between the offspring by setting \code{update_geno} to \code{TRUE}.
 #'
 #' @param ocounts A vector of non-negative integers. The ith element
 #'     is the number of reads of the reference allele the ith child.
@@ -44,13 +45,23 @@
 #'     know the parental genotypes with near certainty so it's not
 #'     important to integrate over our uncertainty in them. This is only
 #'     implemented if \code{do_eb = FALSE}
-#' @param update_geno A logical. Update the parental genotypes?
-#' @param update_pi A logical. Update the mixing proporiton?
-#' @param update_outlier A logical. Update the outlier distribution?
+#' @param update_geno A logical. Update the parental genotypes? If \code{FALSE} and if you have parental data, then
+#'     we fix the parental genotypes to be the maximum a posteriori values. If you do not have parental data,
+#'     then this should not be set to \code{FALSE}.
+#' @param update_pi A logical. Update the mixing proporiton? If \code{FALSE}, then
+#'     1\% of the observations are assumed to be outliers.
+#' @param update_outlier A logical. Update the outlier distribution? I \code{FALSE}, then
+#'     the outlier distribution is assumed to just be a uniform from 0 to 1.
 #' @param update_rho A logical. Update the overdispersion parameter?
 #' @param do_eb Should we do empirical Bayes (\code{TRUE}) or not (\code{FALSE})?
+#'     You should have a lot of parental data to be able to set this to \code{FALSE}.
 #' @param overdispersion A logical. Should we fit a beta-binomial model
-#'     to account for overdispersion (\code{TRUE}) or not (\code{FALSE})?
+#'     to account for overdispersion (\code{TRUE}) or not (\code{FALSE})? If
+#'     \code{overdispersion = TRUE} then we start the overdispersion parameter,
+#'     \code{rho} at 0.001, a very small value. If parental information is
+#'     provided, then we use that data as the starting values for \code{rho}. If
+#'     \code{update_rho} is \code{FALSE}, then these values are fixed throughout the
+#'     estimation procedure.
 #'
 #'
 #' @return A list with some or all of the following elements:
