@@ -51,3 +51,40 @@ est_seq_error <- function(ncounts, ssize, ploidy = NULL, eps = NULL) {
 
   return(seq_error)
 }
+
+
+#' Use posterior probabilities to update the estimated sequencing error.
+#'
+#' @param ocounts The offspring counts of the reference allele.
+#' @param osize The offspring total reads.
+#' @param opostprob The matrix output from up_max_bb
+#'
+#' @return The updated estimate of the sequencing error rate.
+#'
+#' @author David Gerard
+#'
+est_seq_post <- function(opostprob, ocounts, osize) {
+  assertthat::assert_that(all(ocounts >= 0))
+  assertthat::assert_that(all(osize >= ocounts))
+  assertthat::are_equal(length(ocounts), length(osize))
+  assertthat::are_equal(length(ocounts), ncol(opostprob))
+
+  ploidy <- nrow(opostprob) - 1
+
+  xi_vec <- opostprob[ploidy + 1, ]
+
+  ref_acounts <- ocounts
+  minor_acounts <- osize - ocounts
+
+  denom <- sum(minor_acounts^2 * xi_vec)
+  num   <- sum(minor_acounts * ref_acounts * xi_vec)
+
+  bhat <- num / denom
+
+  seq_error <- 1 / (1 + bhat)
+
+  return(seq_error)
+}
+
+
+

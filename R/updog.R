@@ -103,6 +103,11 @@
 #'
 #'   \code{beta}: The outlier distributions's shape 2 parameter.
 #'
+#'   \code{seq_error}: The sequencing error rate used during the updog iterates.
+#'
+#'   \code{adjusted_seq_error}: The adjusted estimate of the sequencing error rate
+#'       using the posterior probabilities from updog. Not used in updog. If this is very different
+#'       from \code{seq_error}, then you should re-run updog.
 #'
 #' @author David Gerard
 #'
@@ -191,14 +196,17 @@ updog <- function(ocounts, osize,  ploidy, p1counts = NULL,
                             pk = pk, pival = 0.99, alpha = 1, beta = 1, est_fudge = TRUE,
                             tol = 10 ^ -4, itermax = 1000,
                             update_geno = update_geno, update_pi = update_pi, update_beta = update_outlier)
-    umout$seq_error <- seq_error
-    return(umout)
   } else if (do_eb & overdispersion) {
     umout <- up_max_bb(ocounts, osize, qarray, r1vec, r2vec, pk, pival = 0.99, out_mu = 1/2,
                        out_rho = 1/3, rho = rho, est_fudge = TRUE, tol = 10 ^ -4, itermax = 1000,
                        update_geno = update_geno, update_pival = update_pi, update_outlier = update_outlier,
                        update_rho = update_rho)
+  }
+
+  if (do_eb) {
     umout$seq_error <- seq_error
+    adjusted_seq_error <- est_seq_post(opostprob = umout$opostprob, ocounts = ocounts, osize = osize)
+    umout$adjusted_seq_error <- adjusted_seq_error
     return(umout)
   }
 

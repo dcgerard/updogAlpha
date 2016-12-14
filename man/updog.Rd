@@ -112,6 +112,12 @@ A list with some or all of the following elements:
   \code{alpha}: The outlier distributions's shape 1 parameter.
 
   \code{beta}: The outlier distributions's shape 2 parameter.
+
+  \code{seq_error}: The sequencing error rate used during the updog iterates.
+
+  \code{adjusted_seq_error}: The adjusted estimate of the sequencing error rate
+      using the posterior probabilities from updog. Not used in updog. If this is very different
+      from \code{seq_error}, then you should re-run updog.
 }
 \description{
 This function fits a hierarchical model to sequence counts from a
