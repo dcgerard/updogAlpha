@@ -105,9 +105,6 @@
 #'
 #'   \code{seq_error}: The sequencing error rate used during the updog iterates.
 #'
-#'   \code{adjusted_seq_error}: The adjusted estimate of the sequencing error rate
-#'       using the posterior probabilities from updog. Not used in updog. If this is very different
-#'       from \code{seq_error}, then you should re-run updog.
 #'
 #' @author David Gerard
 #'
@@ -205,8 +202,8 @@ updog <- function(ocounts, osize,  ploidy, p1counts = NULL,
 
   if (do_eb) {
     umout$seq_error <- seq_error
-    adjusted_seq_error <- est_seq_post(opostprob = umout$opostprob, ocounts = ocounts, osize = osize)
-    umout$adjusted_seq_error <- adjusted_seq_error
+    # adjusted_seq_error <- est_seq_post(opostprob = umout$opostprob, ocounts = ocounts, osize = osize)
+    # umout$adjusted_seq_error <- adjusted_seq_error
     return(umout)
   }
 
