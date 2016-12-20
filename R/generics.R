@@ -53,7 +53,7 @@ plot.updog <- function(x, gg = requireNamespace("ggplot2", quietly = TRUE), beta
     if (!is.null(x$out_mu) & !is.null(x$out_rho)) {
       plot_beta_dist(mu = x$out_mu, rho = x$out_rho)
     } else if (!is.null(x$alpha) & !is.null(x$beta)) {
-      plot_beta_dist(mu = x$alpha, rho = x$beta)
+      plot_beta_dist(alpha = x$alpha, beta = x$beta)
     } else {
       message("No outlier distribution to plot.")
     }
