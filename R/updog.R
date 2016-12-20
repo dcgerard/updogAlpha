@@ -202,8 +202,15 @@ updog <- function(ocounts, osize,  ploidy, p1counts = NULL,
 
   if (do_eb) {
     umout$seq_error <- seq_error
-    # adjusted_seq_error <- est_seq_post(opostprob = umout$opostprob, ocounts = ocounts, osize = osize)
-    # umout$adjusted_seq_error <- adjusted_seq_error
+    umout$input <- list()
+    umout$input$ocounts <- ocounts
+    umout$input$osize <- osize
+    umout$input$p1counts <- p1counts
+    umout$input$p1size <- p1size
+    umout$input$p2counts <- p2counts
+    umout$input$p2size <- p2size
+    umout$input$ploidy <- ploidy
+    class(umout) <- "updog"
     return(umout)
   }
 
@@ -591,7 +598,16 @@ get_transition_mat <- function(ploidy, eps) {
   return(bmat)
 }
 
-#' Make those awesome plots that Felipe showed me, but using ggplot2.
+#' Make a genotype plot.
+#'
+#' The x-axis will be the counts of the non-reference allele,
+#' and the y-axis will be the counts of the reference allele.
+#' Transparency is controlled by the \code{prob_ok} vector,
+#' size is controlled by the \code{maxpostprob} vector.
+#'
+#' If parental genotypes are provided (\code{p1geno} and \code{p2geno}) then
+#' the will be colored the same as the offspring. Since they are often hard to see,
+#' a small black dot will also indicate their position.
 #'
 #' @param ocounts A vector of non-negative integers. The number of
 #'     reference alleles observed in the offspring.
@@ -606,17 +622,20 @@ get_transition_mat <- function(ploidy, eps) {
 #' @param p2size A vector of positive integers. The total number of
 #'     reads in parent 2.
 #' @param ploidy A non-negative integer. The ploidy of the species.
-#' @param col The color labels.
+#' @param ogeno The child genotypes
 #' @param seq_error The average sequencing error rate.
 #' @param prob_ok A vector of posterior probabilities of not being a mistake.
 #' @param maxpostprob A vector of the posterior probabilities of begin at the modal probability.
+#' @param p1geno Parent 1's genotype.
+#' @param p2geno Parent 2's genotype.
 #'
 #' @export
 #'
 #' @author David Gerard
 #'
 plot_geno <- function(ocounts, osize, ploidy, p1counts = NULL, p1size = NULL, p2counts = NULL,
-                      p2size = NULL, col = NULL, seq_error = 0.01, prob_ok = NULL, maxpostprob = NULL) {
+                      p2size = NULL, ogeno = NULL, seq_error = 0.01, prob_ok = NULL, maxpostprob = NULL,
+                      p1geno = NULL, p2geno = NULL) {
   if (!requireNamespace("ggplot2", quietly = TRUE)) {
     stop("ggplot2 must be installed to use this function")
   }
@@ -632,9 +651,9 @@ plot_geno <- function(ocounts, osize, ploidy, p1counts = NULL, p1size = NULL, p2
 
   dfdat <- data.frame(A = ocounts, a = osize - ocounts)
   maxcount <- max(max(dfdat$A), max(dfdat$a))
-  if (!is.null(col)) {
-    assertthat::are_equal(length(col), length(ocounts))
-    dfdat$genotype <- factor(col, levels = 0:ploidy)
+  if (!is.null(ogeno)) {
+    assertthat::are_equal(length(ogeno), length(ocounts))
+    dfdat$genotype <- factor(ogeno, levels = 0:ploidy)
   }
 
   if (!is.null(prob_ok)) {
@@ -666,8 +685,9 @@ plot_geno <- function(ocounts, osize, ploidy, p1counts = NULL, p1size = NULL, p2
     pl <- ggplot2::ggplot(data = dfdat, mapping = ggplot2::aes_string(y = "A", x = "a", alpha = "prob_ok", size = "maxpostprob"))
   }
 
-  if (!is.null(col)) {
-    pl <- pl + ggplot2::geom_point(ggplot2::aes_string(colour = "genotype")) + ggplot2::scale_color_hue(drop = FALSE)
+  ## add offspring genotypes ------------------------------------------------
+  if (!is.null(ogeno)) {
+    pl <- pl + ggplot2::geom_point(ggplot2::aes_string(colour = "genotype"))
   } else {
     pl <- pl + ggplot2::geom_point()
   }
@@ -687,14 +707,33 @@ plot_geno <- function(ocounts, osize, ploidy, p1counts = NULL, p1size = NULL, p2
      assertthat::assert_that(all(p1counts >= 0))
      assertthat::assert_that(all(p1size >= p1counts))
      p1dat <- data.frame(A = p1counts, a = p1size - p1counts)
-     pl <- pl + ggplot2::geom_point(data = p1dat, size = 3, color = "black", pch = 3, alpha = 1)
+     if (!is.null(p1geno)) {
+       p1dat$genotype <- factor(p1geno, levels = 0:ploidy)
+       pl <- pl + ggplot2::geom_point(data = p1dat, mapping = ggplot2::aes_string(color = "genotype"),
+                                      size = 3, pch = 3, alpha = 1, show.legend = FALSE)
+       pl <- pl + ggplot2::geom_point(data = p1dat, size = 1, color = "black", pch = 16, alpha = 1)
+     } else {
+       pl <- pl + ggplot2::geom_point(data = p1dat, size = 3, color = "black", pch = 3, alpha = 1)
+     }
    }
    if (!is.null(p2size) & !is.null(p2counts)) {
      assertthat::assert_that(all(p2counts >= 0))
      assertthat::assert_that(all(p2size >= p2counts))
      p2dat <- data.frame(A = p2counts, a = p2size - p2counts)
-     pl <- pl + ggplot2::geom_point(data = p2dat, size = 3, color = "black", pch = 4, alpha = 1)
+     if (!is.null(p2geno)) {
+       p2dat$genotype <- factor(p2geno, levels = 0:ploidy)
+       pl <- pl + ggplot2::geom_point(data = p2dat, mapping = ggplot2::aes_string(color = "genotype"),
+                                      size = 3, pch = 4, alpha = 1, show.legend = FALSE)
+       pl <- pl + ggplot2::geom_point(data = p2dat, size = 1, color = "black", pch = 16, alpha = 1)
+     } else {
+       pl <- pl + ggplot2::geom_point(data = p2dat, size = 3, color = "black", pch = 4, alpha = 1)
+     }
    }
+
+  if (!is.null(ogeno) | !is.null(p1geno) | !is.null(p2geno)) {
+    pl <- pl + ggplot2::scale_color_hue(drop = FALSE)
+  }
+
    return(pl)
 }
 

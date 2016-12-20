@@ -126,7 +126,7 @@ test_that("up_fix increases the up_obj at every iteration", {
                    update_geno = TRUE, update_pi = TRUE, update_beta = TRUE)
 
     plot_geno(ocounts = ocounts, osize = osize, ploidy = ploidy, p1counts = p1counts,
-              p2counts = p2counts, p1size = p1size, p2size = p2size, col = maxout$ogeno, prob_ok = maxout$theta)
+              p2counts = p2counts, p1size = p1size, p2size = p2size, ogeno = maxout$ogeno, prob_ok = maxout$theta)
 
     plot(sort(apply(maxout$opostprob, 2, max)))
 

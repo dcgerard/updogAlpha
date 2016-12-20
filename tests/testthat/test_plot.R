@@ -14,9 +14,18 @@ test_that("plot works", {
   seq_error <- 0.01
 
   maxpostprob <- rbeta(n = 4, shape1 = 1, shape2 = 1)
+  prob_ok <- rbeta(n = 4, shape1 = 1, shape2 = 1)
+  ogeno <- rep(3, length = length(ocounts))
 
   plot_geno(ocounts = ocounts, osize = osize, ploidy = 6, p1counts = p1counts, p1size = p1size,
-            p2counts = p2counts, p2size = p2size, col = rep(3, length = length(ocounts)), maxpostprob = maxpostprob)
+            p2counts = p2counts, p2size = p2size, ogeno = ogeno,
+            maxpostprob = maxpostprob, prob_ok = prob_ok)
 
 }
 )
+
+test_that("plot.updog works", {
+  umout <- readRDS(file = "updog_class.RDS")
+  plot(umout, gg = TRUE)
+  plot(umout, gg = FALSE)
+})
