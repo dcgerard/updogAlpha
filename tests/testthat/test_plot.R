@@ -26,19 +26,19 @@ test_that("plot works", {
 
 test_that("plot.updog works", {
   umout <- readRDS(file = "updog_class.RDS")
-  plot(umout, gg = TRUE, beta_est = FALSE)
-  plot(umout, gg = FALSE, beta_est = FALSE)
+  plot(umout, gg = TRUE, plot_beta = FALSE)
+  plot(umout, gg = FALSE, plot_beta = FALSE)
 
   umout$prob_ok <- NULL
-  plot(umout, gg = TRUE, beta_est = FALSE)
-  plot(umout, gg = FALSE, beta_est = FALSE)
+  plot(umout, gg = TRUE, plot_beta = FALSE)
+  plot(umout, gg = FALSE, plot_beta = FALSE)
 
   umout$ogeno <- NULL
-  plot(umout, gg = TRUE, beta_est = FALSE)
-  plot(umout, gg = FALSE, beta_est = FALSE)
+  plot(umout, gg = TRUE, plot_beta = FALSE)
+  plot(umout, gg = FALSE, plot_beta = FALSE)
 
   umout$opostprob <- NULL
-  plot(umout, gg = TRUE, beta_est = FALSE)
-  plot(umout, gg = FALSE, beta_est = FALSE)
+  plot(umout, gg = TRUE, plot_beta = FALSE)
+  plot(umout, gg = FALSE, plot_beta = FALSE)
 })
 

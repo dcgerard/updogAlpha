@@ -10,7 +10,7 @@
 #' @param gg Should we use ggplot2 to plot the genotypes (\code{TRUE}), or not (\code{FALSE}).
 #'     If ggplot2 is present, then this defaults to \code{TRUE}. If it is not present, then it
 #'     defaults to \code{FALSE}.
-#' @param beta_est A logical. If true, then we'll also plot the estimated beta density of the outlier model.
+#' @param plot_beta A logical. If true, then we'll also plot the estimated beta density of the outlier model.
 #' @param ... Not used.
 #'
 #' @return A plot object.
@@ -19,8 +19,10 @@
 #'
 #' @export
 #'
-plot.updog <- function(x, gg = requireNamespace("ggplot2", quietly = TRUE), beta_est = TRUE, ...) {
+plot.updog <- function(x, gg = requireNamespace("ggplot2", quietly = TRUE), plot_beta = TRUE, ...) {
   assertthat::assert_that(is.updog(x))
+  assertthat::assert_that(is.logical(plot_beta))
+  assertthat::assert_that(is.logical(gg))
 
   if (!is.null(x$opostprob)) {
     maxpostprob <- apply(x$opostprob, 2, max)
@@ -47,7 +49,7 @@ plot.updog <- function(x, gg = requireNamespace("ggplot2", quietly = TRUE), beta
     stop("gg = TRUE but ggplot2 not installed")
   }
 
-  if (beta_est) {
+  if (plot_beta) {
     cat ("Press [enter] to continue")
     line <- readline()
     if (!is.null(x$out_mu) & !is.null(x$out_rho)) {
