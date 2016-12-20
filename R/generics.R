@@ -10,7 +10,8 @@
 #' @param gg Should we use ggplot2 to plot the genotypes (\code{TRUE}), or not (\code{FALSE}).
 #'     If ggplot2 is present, then this defaults to \code{TRUE}. If it is not present, then it
 #'     defaults to \code{FALSE}.
-#' @param ... Garbage.
+#' @param beta_est A logical. If true, then we'll also plot the estimated beta density of the outlier model.
+#' @param ... Not used.
 #'
 #' @return A plot object.
 #'
@@ -18,7 +19,7 @@
 #'
 #' @export
 #'
-plot.updog <- function(x, gg = requireNamespace("ggplot2", quietly = TRUE), ...) {
+plot.updog <- function(x, gg = requireNamespace("ggplot2", quietly = TRUE), beta_est = TRUE, ...) {
   assertthat::assert_that(is.updog(x))
 
   if (!is.null(x$opostprob)) {
@@ -28,12 +29,13 @@ plot.updog <- function(x, gg = requireNamespace("ggplot2", quietly = TRUE), ...)
   }
 
   if (requireNamespace("ggplot2", quietly = TRUE) & gg) {
-    plot_geno(ocounts = x$input$ocounts, osize = x$input$osize,
-              p1counts = x$input$p1counts, p1size = x$input$p1size,
-              p2counts = x$input$p2counts, p2size = x$input$p2size,
-              ploidy = x$input$ploidy, ogeno = x$ogeno, seq_error = x$seq_error,
-              prob_ok = x$prob_ok, maxpostprob = maxpostprob,
-              p1geno = x$p1geno, p2geno = x$p2geno)
+    pl <- plot_geno(ocounts = x$input$ocounts, osize = x$input$osize,
+                    p1counts = x$input$p1counts, p1size = x$input$p1size,
+                    p2counts = x$input$p2counts, p2size = x$input$p2size,
+                    ploidy = x$input$ploidy, ogeno = x$ogeno, seq_error = x$seq_error,
+                    prob_ok = x$prob_ok, maxpostprob = maxpostprob,
+                    p1geno = x$p1geno, p2geno = x$p2geno)
+    print(pl)
   } else if (!gg) {
     plot_geno_base(ocounts = x$input$ocounts, osize = x$input$osize,
                    p1counts = x$input$p1counts, p1size = x$input$p1size,
@@ -44,8 +46,124 @@ plot.updog <- function(x, gg = requireNamespace("ggplot2", quietly = TRUE), ...)
   } else {
     stop("gg = TRUE but ggplot2 not installed")
   }
+
+  if (beta_est) {
+    cat ("Press [enter] to continue")
+    line <- readline()
+    if (!is.null(x$out_mu) & !is.null(x$out_rho)) {
+      plot_beta_dist(mu = x$out_mu, rho = x$out_rho)
+    } else if (!is.null(x$alpha) & !is.null(x$beta)) {
+      plot_beta_dist(mu = x$alpha, rho = x$beta)
+    } else {
+      message("No outlier distribution to plot.")
+    }
+  }
+
 }
 
+#' Summary method for class "\code{updog}".
+#'
+#' @param object An \code{updog} object. Usually what has been returned from \code{\link{updog}}.
+#' @param ... Not used.
+#'
+#' @return A list with three elements:
+#'
+#'     \code{prop_ok}: The estimated proportion of observations that are outliers.
+#'
+#'     \code{genotypes}: Counts for how many of each estimated genotype are observed.
+#'
+#'     \code{summ_prob}: A data frame with summaries on two variables: The maximum posterior
+#'     probability of a genotype that each observation has (\code{maxpostprob}), and the posterior probability
+#'     of not being an outlier (\code{prob_ok})
+#'
+#' @author David Gerard
+#'
+#' @export
+#'
+summary.updog <- function(object, ...) {
+  genotypes <- table(c(object$ogeno, 0:object$input$ploidy)) - 1
+  maxpostprob_all <- apply(object$opostprob, 2, max)
+  maxpostprob <- summary(maxpostprob_all)
+  prob_ok <- summary(object$prob_ok)
+
+  summ_prob <- cbind(maxpostprob, prob_ok)
+
+  return_list <- list()
+  return_list$prop_ok <- object$pival
+  return_list$genotypes    <- genotypes
+  return_list$summ_prob    <- summ_prob
+  return(return_list)
+}
+
+#' Plot the beta distribution.
+#'
+#' This function will plot the beta distribution under two different
+#' parameterizations. The first one, with \code{alpha} and \code{beta},
+#' is the usual parameterization of the beta. The second one parameterizes
+#' the beta in terms of its mean and overdispersion. Thus,
+#' either both \code{alpha} and \code{beta} must be specified,
+#' or both \code{mu} and \code{rho} must be specified.
+#'
+#' We have the relationships
+#' \deqn{\mu = \alpha / (\alpha + \beta)}
+#' and
+#' \deqn{\rho = 1 / (1 + \alpha + \beta).}
+#' Thus, the inverse relationships are
+#' \deqn{\alpha = \mu(1 -\rho) / \rho}
+#' and
+#' \deqn{\beta = (1 - \mu)(1 - \rho) / \rho.}
+#'
+#' @param alpha The shape1 parameter.
+#' @param beta The shape2 parameter.
+#' @param mu The mean parameter.
+#' @param rho The overdispersion parameter.
+#' @param ... Anything else you want to pass to \code{\link[graphics]{plot.default}}.
+#'
+#' @author David Gerard
+#'
+#' @export
+#'
+plot_beta_dist <- function(alpha = NULL, beta = NULL, mu = NULL, rho = NULL, ...) {
+  if(!((!is.null(alpha) & !is.null(beta)) | (!is.null(mu) & !is.null(rho)))) {
+    stop("you need to specify either both alpha and beta or both mu and rho")
+  }
+  if(!is.null(alpha) & !is.null(beta) & !is.null(mu) & !is.null(rho)) {
+    stop("you can't specify all alpha and beta and mu and rho")
+  }
+
+  if (!is.null(mu) & !is.null(rho)) {
+    assertthat::assert_that(mu >= 0)
+    assertthat::assert_that(mu <= 1)
+    assertthat::assert_that(rho > 0)
+    assertthat::assert_that(rho < 1)
+
+    alpha <- mu * (1 - rho) / rho
+    beta  <- (1 - mu) * (1 - rho) / rho
+  } else {
+    assertthat::assert_that(alpha > 0)
+    assertthat::assert_that(beta > 0)
+    mu  <- alpha / (alpha + beta)
+    rho <- 1 / (1 + alpha + beta)
+  }
+
+  x <- seq(0, 1, length = 500)
+  y <- stats::dbeta(x = x, shape1 = alpha, shape2 = beta)
+
+  old_options <- graphics::par(no.readonly = TRUE) ## save current options
+  graphics::par(mar = c(3, 3, 0.5, 0.5), mfrow = c(1, 1), mgp = c(2, 1, 0))
+  graphics::plot(x, y, type = "l", xlab = "quantile", ylab = "density", lwd = 2, col = "gray25", ...)
+  if (mu <= 1/2 & (alpha >= 1 & beta >= 1)) {
+    graphics::legend("topright", bty = "n",
+                     legend = c(paste0("mu=", format(mu, digits = 2)), paste0("rho=", format(rho, digits = 2))))
+  } else if (mu > 1/2 & (alpha >= 1 & beta >= 1)) {
+    graphics::legend("topleft", bty = "n",
+                     legend = c(paste0("mu=", format(mu, digits = 2)), paste0("rho=", format(rho, digits = 2))))
+  } else {
+    graphics::legend("top", bty = "n",
+                     legend = c(paste0("mu=", format(mu, digits = 2)), paste0("rho=", format(rho, digits = 2))))
+  }
+  on.exit(graphics::par(old_options), add = TRUE)
+}
 
 #' The base R graphics version of \code{\link{plot_geno}}.
 #'

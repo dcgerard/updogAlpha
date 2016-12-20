@@ -4,7 +4,8 @@
 \alias{plot.updog}
 \title{Draw a genotype plot from the output of \code{\link{updog}}.}
 \usage{
-\method{plot}{updog}(x, gg = requireNamespace("ggplot2", quietly = TRUE), ...)
+\method{plot}{updog}(x, gg = requireNamespace("ggplot2", quietly = TRUE),
+  beta_est = TRUE, ...)
 }
 \arguments{
 \item{x}{The output from \code{\link{updog}}.}
@@ -13,7 +14,9 @@
 If ggplot2 is present, then this defaults to \code{TRUE}. If it is not present, then it
 defaults to \code{FALSE}.}
 
-\item{...}{Garbage.}
+\item{beta_est}{A logical. If true, then we'll also plot the estimated beta density of the outlier model.}
+
+\item{...}{Not used.}
 }
 \value{
 A plot object.
