@@ -21,24 +21,29 @@
 plot.updog <- function(x, gg = requireNamespace("ggplot2", quietly = TRUE), ...) {
   assertthat::assert_that(is.updog(x))
 
+  if (!is.null(x$opostprob)) {
+    maxpostprob <- apply(x$opostprob, 2, max)
+  } else {
+    maxpostprob <- NULL
+  }
+
   if (requireNamespace("ggplot2", quietly = TRUE) & gg) {
     plot_geno(ocounts = x$input$ocounts, osize = x$input$osize,
               p1counts = x$input$p1counts, p1size = x$input$p1size,
               p2counts = x$input$p2counts, p2size = x$input$p2size,
               ploidy = x$input$ploidy, ogeno = x$ogeno, seq_error = x$seq_error,
-              prob_ok = x$prob_ok, maxpostprob = apply(x$opostprob, 2, max),
+              prob_ok = x$prob_ok, maxpostprob = maxpostprob,
               p1geno = x$p1geno, p2geno = x$p2geno)
   } else if (!gg) {
     plot_geno_base(ocounts = x$input$ocounts, osize = x$input$osize,
                    p1counts = x$input$p1counts, p1size = x$input$p1size,
                    p2counts = x$input$p2counts, p2size = x$input$p2size,
                    ploidy = x$input$ploidy, ogeno = x$ogeno, seq_error = x$seq_error,
-                   prob_ok = x$prob_ok, maxpostprob = apply(x$opostprob, 2, max),
+                   prob_ok = x$prob_ok, maxpostprob = maxpostprob,
                    p1geno = x$p1geno, p2geno = x$p2geno)
   } else {
     stop("gg = TRUE but ggplot2 not installed")
   }
-
 }
 
 
@@ -94,11 +99,11 @@ plot_geno_base <- function(ocounts, osize, ploidy, p1counts = NULL, p1size = NUL
 
   col_vec <- rep(NA, length = length(ogeno))
   ## Deal with colors and transparancies
+  possible_colors <- grDevices::rainbow(ploidy + 1, alpha = 1)
   if (!is.null(ogeno)) {
-    possible_colors <- grDevices::rainbow(ploidy + 1, alpha = 1)
     col_vec <- possible_colors[ogeno + 1]
   } else {
-    col_vec <- rep("#000000FF", length = length(ogeno))
+    col_vec <- rep("#000000FF", length = length(ocounts))
   }
 
   if (!is.null(prob_ok)) {
@@ -154,7 +159,7 @@ plot_geno_base <- function(ocounts, osize, ploidy, p1counts = NULL, p1size = NUL
 
   ## Legends depending on what was provided.
   graphics::plot.new()
-  if (!is.null(ogeno)) {
+  if (!is.null(ogeno) | !is.null(p1geno) | !is.null(p2geno)) {
     graphics::legend("topright", pch = 16, col = possible_colors, legend = 0:ploidy, title = "Genotype",
                      bty = "n")
   }
