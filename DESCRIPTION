@@ -15,7 +15,8 @@ Suggests:
     testthat,
     covr,
     ggplot2,
-    VGAM
+    VGAM,
+    txtplot
 Imports:
     assertthat
 RoxygenNote: 5.0.1

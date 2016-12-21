@@ -122,6 +122,18 @@ summary.updog <- function(object, ...) {
   return_list$prop_ok <- object$pival
   return_list$genotypes    <- genotypes
   return_list$summ_prob    <- summ_prob
+
+  ## beta density if provided and txtplot installed --------------------------
+  if (!is.null(object$out_mu) & !is.null(object$out_rho) & requireNamespace("txtplot", quietly = TRUE)) {
+    alpha <- object$out_mu * (1 - object$out_rho) / object$out_rho
+    beta  <- (1 - object$out_mu) * (1 - object$out_rho) / object$out_rho
+    x <- seq(0.015, 0.985, length = 100)
+    y <- stats::dbeta(x = x, shape1 = alpha, shape2 = beta)
+    cat("Outlier Distribution:\n")
+    txtplot::txtplot(x = x, y = y)
+  }
+
+
   return(return_list)
 }
 
