@@ -58,9 +58,17 @@ plot.updog <- function(x, gg = requireNamespace("ggplot2", quietly = TRUE), plot
     cat ("Press [enter] to continue")
     line <- readline()
     if (!is.null(x$out_mu) & !is.null(x$out_rho)) {
-      plot_beta_dist(mu = x$out_mu, rho = x$out_rho)
+      if (gg) {
+        plot_beta_dist_gg(mu = x$out_mu, rho = x$out_rho)
+      } else {
+        plot_beta_dist(mu = x$out_mu, rho = x$out_rho)
+      }
     } else if (!is.null(x$alpha) & !is.null(x$beta)) {
-      plot_beta_dist(alpha = x$alpha, beta = x$beta)
+      if (gg) {
+        plot_beta_dist_gg(alpha = x$alpha, beta = x$beta)
+      } else {
+        plot_beta_dist(alpha = x$alpha, beta = x$beta)
+      }
     } else {
       message("No outlier distribution to plot.")
     }
@@ -70,7 +78,11 @@ plot.updog <- function(x, gg = requireNamespace("ggplot2", quietly = TRUE), plot
         line <- readline()
         pk <- seq(0, x$input$ploidy) / x$input$ploidy ## the possible probabilities
         pk <- (1 - x$seq_error) * pk + x$seq_error * (1 - pk)
-        plot_beta_dist(mu = pk, rho = rep(x$rho, x$input$ploidy + 1))
+        if (gg) {
+          plot_beta_dist_gg(mu = pk, rho = rep(x$rho, x$input$ploidy + 1))
+        } else {
+          plot_beta_dist(mu = pk, rho = rep(x$rho, x$input$ploidy + 1))
+        }
     } else {
         message("No overdispersion distribution to plot.")
     }
@@ -111,6 +123,73 @@ summary.updog <- function(object, ...) {
   return_list$genotypes    <- genotypes
   return_list$summ_prob    <- summ_prob
   return(return_list)
+}
+
+
+#' Plot the beta distribution using ggplot2.
+#'
+#' This is the same as \code{\link{plot_beta_dist}}, except we use \code{ggplot2} to do the plotting.
+#' See \code{\link{plot_beta_dist}} for details.
+#'
+#' @inheritParams plot_beta_dist
+#'
+#' @author David Gerard
+#'
+#' @export
+#'
+#' @seealso \code{\link{plot_beta_dist}} for the R Base graphics version of this function.
+#'
+plot_beta_dist_gg <- function(alpha = NULL, beta = NULL, mu = NULL, rho = NULL) {
+  if(!((!is.null(alpha) & !is.null(beta)) | (!is.null(mu) & !is.null(rho)))) {
+    stop("you need to specify either both alpha and beta or both mu and rho")
+  }
+  if(!is.null(alpha) & !is.null(beta) & !is.null(mu) & !is.null(rho)) {
+    stop("you can't specify all alpha and beta and mu and rho")
+  }
+
+  if (!is.null(mu) & !is.null(rho)) {
+    assertthat::assert_that(all(mu >= 0))
+    assertthat::assert_that(all(mu <= 1))
+    assertthat::assert_that(all(rho > 0))
+    assertthat::assert_that(all(rho < 1))
+    assertthat::are_equal(length(mu), length(rho))
+
+    alpha <- mu * (1 - rho) / rho
+    beta  <- (1 - mu) * (1 - rho) / rho
+  } else {
+    assertthat::assert_that(all(alpha > 0))
+    assertthat::assert_that(all(beta > 0))
+    assertthat::are_equal(length(alpha), length(beta))
+    mu  <- alpha / (alpha + beta)
+    rho <- 1 / (1 + alpha + beta)
+  }
+
+  ## Find x boundaries
+  xlower <- 0.015
+  xupper <- 0.985
+
+  for (index in 1:length(mu)) {
+    x <- seq(xlower, xupper, length = 500)
+    y <- stats::dbeta(x = x, shape1 = alpha[index], shape2 = beta[index])
+    dfdat_temp <- data.frame(quantile = x, density = y)
+    dfdat_temp$mu  <- mu[index]
+    dfdat_temp$rho <- rho[index]
+    if (index == 1) {
+      dfdat <- dfdat_temp
+    } else {
+      dfdat <- rbind(dfdat, dfdat_temp)
+    }
+  }
+
+  pl <- ggplot2::ggplot(data = dfdat, mapping = ggplot2::aes_string(x = "quantile", y = "density")) +
+    ggplot2::facet_wrap(~paste0("mu=", format(mu, digits = 2), ", rho=", format(rho, digits = 2))) +
+    ggplot2::geom_line() +
+    ggplot2::theme_bw() +
+    ggplot2::theme(strip.background = ggplot2::element_rect(fill = "white"),
+                   axis.text.x = ggplot2::element_text(angle = 90, vjust = 0.5)) +
+    ggplot2::geom_vline(mapping = ggplot2::aes_string(xintercept = "mu"), lty = 2, col = "gray50")
+  print(pl)
+
 }
 
 #' Plot the beta distribution.
@@ -167,8 +246,8 @@ plot_beta_dist <- function(alpha = NULL, beta = NULL, mu = NULL, rho = NULL, ...
   }
 
   ## Find x boundaries
-  xlower <- 0.01
-  xupper <- 0.99
+  xlower <- 0.015
+  xupper <- 0.985
 
   old_options <- graphics::par(no.readonly = TRUE) ## save current options
 
@@ -176,12 +255,19 @@ plot_beta_dist <- function(alpha = NULL, beta = NULL, mu = NULL, rho = NULL, ...
   nrow <- ceiling(length(mu) / ncol)
   graphics::par(mfrow = c(nrow, ncol))
 
+  ymax <- NA
+  for (index in 1:length(mu)) {
+    x <- seq(xlower, xupper, length = 500)
+    y <- stats::dbeta(x = x, shape1 = alpha[index], shape2 = beta[index])
+    ymax <- max(c(ymax, y), na.rm = TRUE)
+  }
+
   for (index in 1:length(mu)) {
       x <- seq(xlower, xupper, length = 500)
       y <- stats::dbeta(x = x, shape1 = alpha[index], shape2 = beta[index])
       graphics::par(mar = c(3, 3, 0.5, 0.5), mgp = c(2, 1, 0))
       graphics::plot(x, y, type = "l", xlab = "quantile", ylab = "density",
-                     lwd = 2, col = "gray25", ...)
+                     lwd = 2, col = "gray25", ylim = c(0, ymax), ...)
       graphics::abline(v = mu[index], col = "gray25", lty = 2)
       if (mu[index] <= 1/2 & (alpha[index] >= 1 & beta[index] >= 1)) {
           graphics::legend("topright", bty = "n",

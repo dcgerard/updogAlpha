@@ -26,8 +26,8 @@ test_that("plot works", {
 
 test_that("plot.updog works", {
   umout <- readRDS(file = "updog_class.RDS")
-  plot(umout, gg = TRUE, plot_beta = FALSE)
-  plot(umout, gg = FALSE, plot_beta = FALSE)
+  plot(umout, gg = TRUE, plot_beta = TRUE)
+  plot(umout, gg = FALSE, plot_beta = TRUE)
 
   umout$prob_ok <- NULL
   plot(umout, gg = TRUE, plot_beta = FALSE)
