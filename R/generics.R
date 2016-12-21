@@ -2,15 +2,19 @@
 
 #' Draw a genotype plot from the output of \code{\link{updog}}.
 #'
-#' Iff ggplot2 is installed, then this function will use it to make the genotype plot.
-#' Otherwise, "classic" R base graphics will be used. The ggplot2 version is made using the function
+#' Iff ggplot2 is installed, then this function will use it to make
+#' the genotype plot.  Otherwise, "classic" R base graphics will be
+#' used. The ggplot2 version is made using the function
 #' \code{\link{plot_geno}}.
 #'
 #' @param x The output from \code{\link{updog}}.
-#' @param gg Should we use ggplot2 to plot the genotypes (\code{TRUE}), or not (\code{FALSE}).
-#'     If ggplot2 is present, then this defaults to \code{TRUE}. If it is not present, then it
-#'     defaults to \code{FALSE}.
-#' @param plot_beta A logical. If true, then we'll also plot the estimated beta density of the outlier model.
+#' @param gg Should we use ggplot2 to plot the genotypes
+#' (\code{TRUE}), or not (\code{FALSE}).  If ggplot2 is present, then
+#' this defaults to \code{TRUE}. If it is not present, then it
+#' defaults to \code{FALSE}.
+#' @param plot_beta A logical. If true, then we'll also plot the
+#' estimated beta density of the outlier model, followed by the
+#' estimated beta distributions of the overdispersion models.
 #' @param ... Not used.
 #'
 #' @return A plot object.
@@ -20,6 +24,7 @@
 #' @export
 #'
 plot.updog <- function(x, gg = requireNamespace("ggplot2", quietly = TRUE), plot_beta = TRUE, ...) {
+  old_options <- graphics::par(no.readonly = TRUE) ## save current options
   assertthat::assert_that(is.updog(x))
   assertthat::assert_that(is.logical(plot_beta))
   assertthat::assert_that(is.logical(gg))
@@ -59,8 +64,19 @@ plot.updog <- function(x, gg = requireNamespace("ggplot2", quietly = TRUE), plot
     } else {
       message("No outlier distribution to plot.")
     }
+
+    if (!is.null(x$rho)) {
+        cat ("Press [enter] to continue")
+        line <- readline()
+        pk <- seq(0, x$input$ploidy) / x$input$ploidy ## the possible probabilities
+        pk <- (1 - x$seq_error) * pk + x$seq_error * (1 - pk)
+        plot_beta_dist(mu = pk, rho = rep(x$rho, x$input$ploidy + 1))
+    } else {
+        message("No overdispersion distribution to plot.")
+    }
   }
 
+  on.exit(graphics::par(old_options), add = TRUE)
 }
 
 #' Summary method for class "\code{updog}".
@@ -134,40 +150,55 @@ plot_beta_dist <- function(alpha = NULL, beta = NULL, mu = NULL, rho = NULL, ...
   }
 
   if (!is.null(mu) & !is.null(rho)) {
-    assertthat::assert_that(mu >= 0)
-    assertthat::assert_that(mu <= 1)
-    assertthat::assert_that(rho > 0)
-    assertthat::assert_that(rho < 1)
+    assertthat::assert_that(all(mu >= 0))
+    assertthat::assert_that(all(mu <= 1))
+    assertthat::assert_that(all(rho > 0))
+    assertthat::assert_that(all(rho < 1))
+    assertthat::are_equal(length(mu), length(rho))
 
     alpha <- mu * (1 - rho) / rho
     beta  <- (1 - mu) * (1 - rho) / rho
   } else {
-    assertthat::assert_that(alpha > 0)
-    assertthat::assert_that(beta > 0)
+    assertthat::assert_that(all(alpha > 0))
+    assertthat::assert_that(all(beta > 0))
+    assertthat::are_equal(length(alpha), length(beta))
     mu  <- alpha / (alpha + beta)
     rho <- 1 / (1 + alpha + beta)
   }
 
-  ## Find x boundaries that cover 98% of area
-  xlower <- stats::qbeta(0.01, shape1 = alpha, shape2 = beta)
-  xupper <- stats::qbeta(0.99, shape1 = alpha, shape2 = beta)
-
-  x <- seq(xlower, xupper, length = 500)
-  y <- stats::dbeta(x = x, shape1 = alpha, shape2 = beta)
+  ## Find x boundaries
+  xlower <- 0.01
+  xupper <- 0.99
 
   old_options <- graphics::par(no.readonly = TRUE) ## save current options
-  graphics::par(mar = c(3, 3, 0.5, 0.5), mfrow = c(1, 1), mgp = c(2, 1, 0))
-  graphics::plot(x, y, type = "l", xlab = "quantile", ylab = "density", lwd = 2, col = "gray25", ...)
-  if (mu <= 1/2 & (alpha >= 1 & beta >= 1)) {
-    graphics::legend("topright", bty = "n",
-                     legend = c(paste0("mu=", format(mu, digits = 2)), paste0("rho=", format(rho, digits = 2))))
-  } else if (mu > 1/2 & (alpha >= 1 & beta >= 1)) {
-    graphics::legend("topleft", bty = "n",
-                     legend = c(paste0("mu=", format(mu, digits = 2)), paste0("rho=", format(rho, digits = 2))))
-  } else {
-    graphics::legend("top", bty = "n",
-                     legend = c(paste0("mu=", format(mu, digits = 2)), paste0("rho=", format(rho, digits = 2))))
-  }
+
+  ncol <- round(sqrt(length(mu)))
+  nrow <- ceiling(length(mu) / ncol)
+  graphics::par(mfrow = c(nrow, ncol))
+
+  for (index in 1:length(mu)) {
+      x <- seq(xlower, xupper, length = 500)
+      y <- stats::dbeta(x = x, shape1 = alpha[index], shape2 = beta[index])
+      graphics::par(mar = c(3, 3, 0.5, 0.5), mgp = c(2, 1, 0))
+      graphics::plot(x, y, type = "l", xlab = "quantile", ylab = "density",
+                     lwd = 2, col = "gray25", ...)
+      graphics::abline(v = mu[index], col = "gray25", lty = 2)
+      if (mu[index] <= 1/2 & (alpha[index] >= 1 & beta[index] >= 1)) {
+          graphics::legend("topright", bty = "n",
+                           legend = c(paste0("mu=", format(mu[index], digits = 2)),
+                           paste0("rho=", format(rho[index], digits = 2))))
+      } else if (mu[index] > 1/2 & (alpha[index] >= 1 & beta[index] >= 1)) {
+          graphics::legend("topleft", bty = "n",
+                           legend = c(paste0("mu=", format(mu[index], digits = 2)),
+                           paste0("rho=", format(rho[index], digits = 2))))
+      } else {
+          graphics::legend("top", bty = "n",
+                           legend = c(paste0("mu=", format(mu[index], digits = 2)),
+                           paste0("rho=", format(rho[index], digits = 2))))
+      }
+    }
+
+
   on.exit(graphics::par(old_options), add = TRUE)
 }
 

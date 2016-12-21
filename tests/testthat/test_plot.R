@@ -41,4 +41,3 @@ test_that("plot.updog works", {
   plot(umout, gg = TRUE, plot_beta = FALSE)
   plot(umout, gg = FALSE, plot_beta = FALSE)
 })
-

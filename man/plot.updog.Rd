@@ -10,11 +10,14 @@
 \arguments{
 \item{x}{The output from \code{\link{updog}}.}
 
-\item{gg}{Should we use ggplot2 to plot the genotypes (\code{TRUE}), or not (\code{FALSE}).
-If ggplot2 is present, then this defaults to \code{TRUE}. If it is not present, then it
+\item{gg}{Should we use ggplot2 to plot the genotypes
+(\code{TRUE}), or not (\code{FALSE}).  If ggplot2 is present, then
+this defaults to \code{TRUE}. If it is not present, then it
 defaults to \code{FALSE}.}
 
-\item{plot_beta}{A logical. If true, then we'll also plot the estimated beta density of the outlier model.}
+\item{plot_beta}{A logical. If true, then we'll also plot the
+estimated beta density of the outlier model, followed by the
+estimated beta distributions of the overdispersion models.}
 
 \item{...}{Not used.}
 }
@@ -22,8 +25,9 @@ defaults to \code{FALSE}.}
 A plot object.
 }
 \description{
-Iff ggplot2 is installed, then this function will use it to make the genotype plot.
-Otherwise, "classic" R base graphics will be used. The ggplot2 version is made using the function
+Iff ggplot2 is installed, then this function will use it to make
+the genotype plot.  Otherwise, "classic" R base graphics will be
+used. The ggplot2 version is made using the function
 \code{\link{plot_geno}}.
 }
 \author{
