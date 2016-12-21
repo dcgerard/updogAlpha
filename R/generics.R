@@ -148,7 +148,11 @@ plot_beta_dist <- function(alpha = NULL, beta = NULL, mu = NULL, rho = NULL, ...
     rho <- 1 / (1 + alpha + beta)
   }
 
-  x <- seq(0, 1, length = 500)
+  ## Find x boundaries that cover 99% of area
+  xlower <- stats::qbeta(0.05, shape1 = alpha, shape2 = beta)
+  xupper <- stats::qbeta(0.995, shape1 = alpha, shape2 = beta)
+
+  x <- seq(xlower, xupper, length = 500)
   y <- stats::dbeta(x = x, shape1 = alpha, shape2 = beta)
 
   old_options <- graphics::par(no.readonly = TRUE) ## save current options
