@@ -640,17 +640,17 @@ plot_geno <- function(ocounts, osize, ploidy, p1counts = NULL, p1size = NULL, p2
     stop("ggplot2 must be installed to use this function")
   }
 
-  assertthat::assert_that(all(ocounts >= 0))
-  assertthat::assert_that(all(osize >= ocounts))
+  assertthat::assert_that(all(ocounts >= 0, na.rm = TRUE))
+  assertthat::assert_that(all(osize >= ocounts, na.rm = TRUE))
   assertthat::assert_that(ploidy >= 1)
-  assertthat::assert_that(seq_error>= 0)
+  assertthat::assert_that(seq_error >= 0)
 
   ## get probabilities
   pk <- seq(0, ploidy) / ploidy ## the possible probabilities
   pk <- (1 - seq_error) * pk + seq_error * (1 - pk)
 
   dfdat <- data.frame(A = ocounts, a = osize - ocounts)
-  maxcount <- max(max(dfdat$A), max(dfdat$a))
+  maxcount <- max(max(dfdat$A, na.rm = TRUE), max(dfdat$a, na.rm = TRUE))
   if (!is.null(ogeno)) {
     assertthat::are_equal(length(ogeno), length(ocounts))
     dfdat$genotype <- factor(ogeno, levels = 0:ploidy)
@@ -704,8 +704,8 @@ plot_geno <- function(ocounts, osize, ploidy, p1counts = NULL, p1size = NULL, p2
 
    ## add parents if we have them
    if (!is.null(p1size) & !is.null(p1counts)) {
-     assertthat::assert_that(all(p1counts >= 0))
-     assertthat::assert_that(all(p1size >= p1counts))
+     assertthat::assert_that(all(p1counts >= 0, na.rm = TRUE))
+     assertthat::assert_that(all(p1size >= p1counts, na.rm = TRUE))
      p1dat <- data.frame(A = p1counts, a = p1size - p1counts)
      if (!is.null(p1geno)) {
        p1dat$genotype <- factor(p1geno, levels = 0:ploidy)
@@ -717,8 +717,8 @@ plot_geno <- function(ocounts, osize, ploidy, p1counts = NULL, p1size = NULL, p2
      }
    }
    if (!is.null(p2size) & !is.null(p2counts)) {
-     assertthat::assert_that(all(p2counts >= 0))
-     assertthat::assert_that(all(p2size >= p2counts))
+     assertthat::assert_that(all(p2counts >= 0, na.rm = TRUE))
+     assertthat::assert_that(all(p2size >= p2counts, na.rm = TRUE))
      p2dat <- data.frame(A = p2counts, a = p2size - p2counts)
      if (!is.null(p2geno)) {
        p2dat$genotype <- factor(p2geno, levels = 0:ploidy)

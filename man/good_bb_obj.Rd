@@ -27,4 +27,3 @@ Objective function for non-outlier model
 \author{
 David Gerard
 }
-

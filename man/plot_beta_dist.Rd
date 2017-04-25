@@ -38,4 +38,3 @@ and
 \author{
 David Gerard
 }
-

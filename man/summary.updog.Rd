@@ -28,4 +28,3 @@ Summary method for class "\code{updog}".
 \author{
 David Gerard
 }
-

@@ -65,4 +65,3 @@ EM iteration for overdispersed binomial mixture model.
 \author{
 David Gerard
 }
-

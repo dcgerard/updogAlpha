@@ -24,4 +24,3 @@ Assuming that the reference allele is in great enough quantities so that there a
 \author{
 David Gerard
 }
-

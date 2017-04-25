@@ -18,4 +18,3 @@ Tests if its argument is an updog.
 \author{
 David Gerard
 }
-

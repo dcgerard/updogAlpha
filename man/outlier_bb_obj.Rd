@@ -24,4 +24,3 @@ Objective function for outlier model.
 \author{
 David Gerard
 }
-

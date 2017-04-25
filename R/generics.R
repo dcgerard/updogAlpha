@@ -24,7 +24,6 @@
 #' @export
 #'
 plot.updog <- function(x, gg = requireNamespace("ggplot2", quietly = TRUE), plot_beta = TRUE, ...) {
-  old_options <- graphics::par(no.readonly = TRUE) ## save current options
   assertthat::assert_that(is.updog(x))
   assertthat::assert_that(is.logical(plot_beta))
   assertthat::assert_that(is.logical(gg))
@@ -87,8 +86,6 @@ plot.updog <- function(x, gg = requireNamespace("ggplot2", quietly = TRUE), plot
         message("No overdispersion distribution to plot.")
     }
   }
-
-  on.exit(graphics::par(old_options), add = TRUE)
 }
 
 #' Summary method for class "\code{updog}".
@@ -193,8 +190,10 @@ plot_beta_dist_gg <- function(alpha = NULL, beta = NULL, mu = NULL, rho = NULL) 
     }
   }
 
+  dfdat$murho <- paste0("mu=", format(dfdat$mu, digits = 2), ", rho=", format(dfdat$rho, digits = 2))
+  
   pl <- ggplot2::ggplot(data = dfdat, mapping = ggplot2::aes_string(x = "quantile", y = "density")) +
-    ggplot2::facet_wrap(~paste0("mu=", format(mu, digits = 2), ", rho=", format(rho, digits = 2))) +
+    ggplot2::facet_wrap(~murho) +
     ggplot2::geom_line() +
     ggplot2::theme_bw() +
     ggplot2::theme(strip.background = ggplot2::element_rect(fill = "white"),

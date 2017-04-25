@@ -55,4 +55,3 @@ a small black dot will also indicate their position.
 \author{
 David Gerard
 }
-

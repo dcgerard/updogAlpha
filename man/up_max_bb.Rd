@@ -63,4 +63,3 @@ EM algorithm for over-dispersed mixture model.
 \author{
 David Gerard
 }
-

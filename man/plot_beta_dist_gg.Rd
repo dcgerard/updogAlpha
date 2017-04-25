@@ -19,10 +19,9 @@ plot_beta_dist_gg(alpha = NULL, beta = NULL, mu = NULL, rho = NULL)
 This is the same as \code{\link{plot_beta_dist}}, except we use \code{ggplot2} to do the plotting.
 See \code{\link{plot_beta_dist}} for details.
 }
-\author{
-David Gerard
-}
 \seealso{
 \code{\link{plot_beta_dist}} for the R Base graphics version of this function.
 }
-
+\author{
+David Gerard
+}

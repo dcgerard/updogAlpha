@@ -38,4 +38,3 @@ overdispersion parameter by maximum marginal likelihood.
 \author{
 David Gerard
 }
-

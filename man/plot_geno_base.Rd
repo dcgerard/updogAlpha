@@ -44,10 +44,9 @@ reads in parent 2.}
 \description{
 The base R graphics version of \code{\link{plot_geno}}.
 }
-\author{
-David Gerard
-}
 \seealso{
 \code{\link{plot_geno}}
 }
-
+\author{
+David Gerard
+}

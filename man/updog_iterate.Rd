@@ -36,4 +36,3 @@ Iterate between indiividual level estimates and joint averaging.
 \author{
 David Gerard
 }
-

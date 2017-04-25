@@ -22,4 +22,3 @@ Use posterior probabilities to update the estimated sequencing error.
 \author{
 David Gerard
 }
-

@@ -27,4 +27,3 @@ offspring genotypes.
 \author{
 David Gerard
 }
-

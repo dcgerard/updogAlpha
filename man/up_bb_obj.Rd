@@ -47,4 +47,3 @@ Objective function for overdispersed binomial mixture model
 \author{
 David Gerard
 }
-

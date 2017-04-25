@@ -58,4 +58,3 @@ Estimate parental genotypes using offspring genotypes.
 \author{
 David Gerard
 }
-

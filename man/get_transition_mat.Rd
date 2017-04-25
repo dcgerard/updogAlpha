@@ -19,4 +19,3 @@ another assuming a constant error rate.
 \author{
 David Gerard
 }
-

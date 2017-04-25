@@ -33,4 +33,3 @@ used. The ggplot2 version is made using the function
 \author{
 David Gerard
 }
-

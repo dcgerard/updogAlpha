@@ -22,4 +22,3 @@ Equivalent to \code{1 / (1 + alpha + beta)} in \code{\link{dbetabinom}}.}
 \description{
 beta-binomial density function in terms of mean and correlation.
 }
-

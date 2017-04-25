@@ -24,4 +24,3 @@ Beta-binomial density function.
 \author{
 David Gerard
 }
-

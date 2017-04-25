@@ -132,4 +132,3 @@ between the offspring by setting \code{update_geno} to \code{TRUE}.
 \author{
 David Gerard
 }
-

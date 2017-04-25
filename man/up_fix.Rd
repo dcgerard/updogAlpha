@@ -57,4 +57,3 @@ Fixed-point iteration for updog EM.
 \author{
 Davod Gerard
 }
-

@@ -39,13 +39,12 @@ A vector of probabilities. The ith element is the posterior
 The function assumes that all data come from independent samples on
 the same individual.
 }
-\author{
-David Gerard
-}
 \references{
 Li, Yun, Carlo Sidore, Hyun Min Kang, Michael Boehnke,
     and Gonçalo R. Abecasis.
     \href{https://www.ncbi.nlm.nih.gov/pubmed/21460063}{"Low-coverage sequencing: implications for design of complex trait association studies."}
     Genome research (2011).
 }
-
+\author{
+David Gerard
+}

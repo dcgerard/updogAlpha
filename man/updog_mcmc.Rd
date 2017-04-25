@@ -36,4 +36,3 @@ The updog Gibbs sampler to jointly estimate the parental and offspring genotypes
 \author{
 David Gerard
 }
-

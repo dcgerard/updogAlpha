@@ -48,4 +48,3 @@ The objective function
 \author{
 David Gerard
 }
-
