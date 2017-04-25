@@ -6,7 +6,7 @@
 \usage{
 updog(ocounts, osize, ploidy, p1counts = NULL, p1size = NULL,
   p2counts = NULL, p2size = NULL, seq_error = NULL, integrate = FALSE,
-  do_eb = TRUE, overdispersion = TRUE, update_geno = FALSE,
+  do_eb = TRUE, overdispersion = TRUE, update_geno = TRUE,
   update_pi = TRUE, update_outlier = TRUE, update_rho = TRUE)
 }
 \arguments{
