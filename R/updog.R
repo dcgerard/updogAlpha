@@ -127,9 +127,9 @@ updog <- function(ocounts, osize,  ploidy, p1counts = NULL,
     seq_error <- est_seq_error(ncounts = ocounts, ssize = osize, ploidy = ploidy)
   }
 
-  if (seq_error == 0 & overdispersion) {
-    stop("It is not allowed that both `overdisperion = TRUE` and `seq_error = 0`.\nThis is because the beta-binomial isn't defined with means 0 or 1.")
-  }
+  # if (seq_error == 0 & overdispersion) {
+  #   stop("It is not allowed that both `overdisperion = TRUE` and `seq_error = 0`.\nThis is because the beta-binomial isn't defined with means 0 or 1.")
+  # }
 
   ## get priors on parental genotypes ----------------------------------------
   rho1 <- NULL

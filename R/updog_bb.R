@@ -391,6 +391,10 @@ good_bb_obj <- function(rho, ocounts, osize, theta, avec, pk) {
 
 #' Beta-binomial density function.
 #'
+#' Note that it is possible here for \code{alpha = 0} or for \code{beta = 0} (but not both).
+#' In which case, this function becomes the indicator function for \code{x == 0}
+#' (when \code{alpha = 0}) or \code{x == size} (when \code{beta = 0}).
+#'
 #' @param x The observed counts.
 #' @param size The number of trials.
 #' @param alpha The alpha parameter of the underlying beta.
@@ -407,11 +411,20 @@ dbetabinom <- function(x, size, alpha, beta, log = FALSE) {
   ## check input
   assertthat::assert_that(all(x >= 0))
   assertthat::assert_that(all(size >= x))
-  assertthat::assert_that(alpha > 0)
-  assertthat::assert_that(beta > 0)
+  assertthat::assert_that(alpha >= 0)
+  assertthat::assert_that(beta >= 0)
   assertthat::assert_that(is.logical(log))
 
-  ldense <- lchoose(size, x) + lbeta(x + alpha, size - x + beta) - lbeta(alpha, beta)
+  if (alpha > 0 & beta > 0) {
+    ldense <- lchoose(size, x) + lbeta(x + alpha, size - x + beta) - lbeta(alpha, beta)
+  }
+  else if (alpha == 0 & beta > 0) {
+    ldense <- log(x == 0)
+  } else if (beta == 0 & alpha > 0) {
+    ldense <- log(x == size)
+  } else {
+    stop("alpha and beta cannot both be zero.")
+  }
 
   if (log) {
     return(ldense)

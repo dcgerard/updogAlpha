@@ -19,7 +19,9 @@ dbetabinom(x, size, alpha, beta, log = FALSE)
 (\code{TRUE}) or not (\code{FALSE})?}
 }
 \description{
-Beta-binomial density function.
+Note that it is possible here for \code{alpha = 0} or for \code{beta = 0} (but not both).
+In which case, this function becomes the indicator function for \code{x == 0}
+(when \code{alpha = 0}) or \code{x == size} (when \code{beta = 0}).
 }
 \author{
 David Gerard
