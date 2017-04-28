@@ -1,4 +1,6 @@
-
+#' @useDynLib updog
+#' @importFrom Rcpp sourceCpp
+NULL
 
 #' Using Parental Data for Offspring Genotyping.
 #'
