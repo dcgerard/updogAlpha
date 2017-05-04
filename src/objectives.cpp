@@ -34,6 +34,12 @@
 //'     Defaults to \code{1/3}, which corresponds to a uniform distribution
 //'     for the underlying beta when \code{out_mean = 0.5}.
 //'
+//' @author David Gerard
+//'
+//' @export
+//'
+//' @seealso \code{\link{up_bb_obj}}.
+//'
 // [[Rcpp::export]]
 double obj_offspring(Rcpp::IntegerVector ocounts, Rcpp::IntegerVector osize,
                      int ploidy, int p1geno, int p2geno,

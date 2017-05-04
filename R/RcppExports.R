@@ -31,6 +31,12 @@
 #'     Defaults to \code{1/3}, which corresponds to a uniform distribution
 #'     for the underlying beta when \code{out_mean = 0.5}.
 #'
+#' @author David Gerard
+#'
+#' @export
+#'
+#' @seealso \code{\link{up_bb_obj}}.
+#'
 obj_offspring <- function(ocounts, osize, ploidy, p1geno, p2geno, bias_val = 1, seq_error = 0, od_param = 0, outlier = FALSE, out_prop = 0.01, out_mean = 0.5, out_disp = 1.0 / 3.0) {
     .Call('updog_obj_offspring', PACKAGE = 'updog', ocounts, osize, ploidy, p1geno, p2geno, bias_val, seq_error, od_param, outlier, out_prop, out_mean, out_disp)
 }

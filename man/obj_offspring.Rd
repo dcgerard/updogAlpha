@@ -51,3 +51,9 @@ for the underlying beta when \code{out_mean = 0.5}.}
 \description{
 Objective function for the offspring.
 }
+\seealso{
+\code{\link{up_bb_obj}}.
+}
+\author{
+David Gerard
+}
