@@ -92,26 +92,40 @@ double obj_offspring(Rcpp::IntegerVector ocounts, Rcpp::IntegerVector osize,
 
   // Calculate probabilities for OK points --------------------------
   // only need last column is outlier = true.
-  Rcpp::NumericMatrix logprobs(ocounts.size(), ploidy + 2);
+
+  // count how many non-zero values in qarray(p1geno, p2geno, ) there are
+  int colnum = 0;
+  for (int i = 0; i < ploidy + 1; i++) {
+    if (qarray(p1geno, p2geno, i) > tol) {
+      colnum++;
+    }
+  }
+  // add one for outlier
+  if (outlier) {
+    colnum++;
+  }
+
+  Rcpp::NumericMatrix logprobs(ocounts.size(), colnum);
 
   // calcluate log mixture component probabilities -----------------
+  int colindex = 0;
   for (int i = 0; i < ploidy + 1; i++) {
-    if (qarray(i, p1geno, p2geno) > tol) {
-      Rcpp::NumericMatrix::Column zzcol = logprobs( Rcpp::_, i); // reference to ith column
+    if (qarray(p1geno, p2geno, i) > tol) {
+      Rcpp::NumericMatrix::Column zzcol = logprobs(Rcpp::_, colindex); // reference to colindexth column
       zzcol = dbetabinom_mu_rho_cpp((Rcpp::NumericVector)ocounts,
                                     (Rcpp::NumericVector)osize,
                                     prob(i), od_param, true) +
-                                      log(qarray(i, p1geno, p2geno));
+                                      log(qarray(p1geno, p2geno, i));
       if (outlier) {
         zzcol = zzcol + log(1 - out_prop);
       }
+      colindex++;
     }
   }
 
-
   // Another beta binomial if outlier = true ------------------------
   if (outlier & (out_prop > tol)) {
-    Rcpp::NumericMatrix::Column zzcol = logprobs( Rcpp::_, ploidy + 1);
+    Rcpp::NumericMatrix::Column zzcol = logprobs( Rcpp::_, logprobs.ncol() - 1);
     zzcol = dbetabinom_mu_rho_cpp((Rcpp::NumericVector)ocounts,
                                   (Rcpp::NumericVector)osize,
                                   out_mean, out_disp, true) +
