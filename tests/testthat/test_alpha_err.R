@@ -37,3 +37,24 @@ test_that("dbetabinom_cpp same as dbetabinom", {
                dbetabinom_mu_rho_cpp(round(a), round(a) + round(b), 0.1, 0.3, TRUE))
 }
 )
+
+test_that("dbetabinom_mu_rho_cpp same as dbinom when rho = 0", {
+  expect_equal(dbetabinom_mu_rho_cpp(x = 4, size = 10,
+                                     mu = 0.3, rho = 0),
+               dbinom(x = 4, size = 10, prob = 0.3))
+}
+)
+
+test_that("dhyper_rcpp works", {
+  expect_equal(dhyper_cpp(0:4, 4, 5, 4),
+               dhyper(0:4, 4, 5, 4))
+}
+)
+
+test_that("get_q_array_cpp works", {
+  expect_true(all(get_q_array(2) - get_q_array_cpp(2) < 10 ^ -6))
+  expect_true(all(get_q_array(4) - get_q_array_cpp(4) < 10 ^ -6))
+  expect_true(all(get_q_array(6) - get_q_array_cpp(6) < 10 ^ -6))
+  expect_true(all(get_q_array(8) - get_q_array_cpp(8) < 10 ^ -6))
+}
+)

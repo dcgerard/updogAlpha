@@ -13,7 +13,9 @@ the reference allele. This should take on
 one of the values 0/K, 1/K, ... , K/K, where K is the ploidy of the individual.}
 
 \item{bias}{The bias parameter. Should be greater than or equal to zero,
-though is typically less than 1.}
+though is typically less than 1. A 1 indicates no bias. A value less than one
+indicates a bias towards the reference allele. A value greater than 1 indicates
+a bias towards the non-reference allele.}
 
 \item{seq_error}{The sequencing error rate. This should be between 0 and 1.}
 }
