@@ -2,7 +2,7 @@
 % Please edit documentation in R/RcppExports.R
 \name{dbeta_dprop}
 \alias{dbeta_dprop}
-\title{Derivative of mean of beta density}
+\title{Derivative of mean of beta density.}
 \usage{
 dbeta_dprop(x, n, xi, tau)
 }
@@ -16,7 +16,7 @@ dbeta_dprop(x, n, xi, tau)
 \item{tau}{The overdispersion parameter.}
 }
 \description{
-Derivative of mean of beta density
+This calculates d/dxi BB(x|n, xi, tau).
 }
 \author{
 David Gerard

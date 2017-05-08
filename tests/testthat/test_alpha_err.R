@@ -22,7 +22,9 @@ test_that("input throws error", {
   expect_error(pbias( 1, -1, 1))
   expect_error(pbias( 1, 1, -1))
 
-  pbias(c(0.75, 0.5), 0.5, 0.01)
+  expect_equal(pbias(c(0.75, 0.5), 0.5, 0.01),
+               c(pbias_double(0.75, 0.5, 0.01),
+                 pbias_double(0.5, 0.5, 0.01)))
 }
 )
 

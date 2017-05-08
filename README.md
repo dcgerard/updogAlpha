@@ -3,7 +3,7 @@
 updog: Using Parental Data for Offspring Genotyping
 ===================================================
 
-[![Linux Build Status](https://travis-ci.org/dcgerard/updog.svg?branch=master)](https://travis-ci.org/dcgerard/updog) [![Windows Build Status](https://ci.appveyor.com/api/projects/status/github/dcgerard/updog?branch=master&svg=true)](https://ci.appveyor.com/project/dcgerard/updog) [![Coverage Status](https://img.shields.io/codecov/c/github/dcgerard/updog/master.svg)](https://codecov.io/github/dcgerard/updog?branch=master)
+[![Linux Build Status](https://travis-ci.org/dcgerard/updog.svg?branch=master)](https://travis-ci.org/dcgerard/updog) [![Windows Build Status](https://ci.appveyor.com/api/projects/status/github/dcgerard/updog?branch=master&svg=true)](https://ci.appveyor.com/project/dcgerard/updog) [![Coverage Status](https://img.shields.io/codecov/c/github/dcgerard/updog/master.svg)](https://codecov.io/github/dcgerard/updog?branch=master) [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0)
 
 Suppose you have sequencing data from possibly polyploid individuals that you want to genotype. If you know that these individuals are siblings, then you can borrow strength between the individuals to estimate each individual's genotype. This is the main idea behind `updog`. This package will allow you to
 

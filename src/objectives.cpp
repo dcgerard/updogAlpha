@@ -6,9 +6,9 @@
 
 //' Objective function for the offspring.
 //'
-//' @param ocounts A vector of integers. The observed counts of the refernce
+//' @param ocounts The observed counts of the refernce
 //'     allele for each individual.
-//' @param osize A vector of integers. The observed number of reads for each
+//' @param osize The observed number of reads for each
 //'     individuals.
 //' @param ploidy An integer. The ploidy of the species. This is assumed
 //'     to be the same for each individual.
@@ -41,7 +41,7 @@
 //' @seealso \code{\link{up_bb_obj}}.
 //'
 // [[Rcpp::export]]
-double obj_offspring(Rcpp::IntegerVector ocounts, Rcpp::IntegerVector osize,
+double obj_offspring(Rcpp::NumericVector ocounts, Rcpp::NumericVector osize,
                      int ploidy, int p1geno, int p2geno,
                      double bias_val = 1, double seq_error = 0,
                      double od_param = 0,
@@ -118,9 +118,7 @@ double obj_offspring(Rcpp::IntegerVector ocounts, Rcpp::IntegerVector osize,
   for (int i = 0; i < ploidy + 1; i++) {
     if (qarray(p1geno, p2geno, i) > tol) {
       Rcpp::NumericMatrix::Column zzcol = logprobs(Rcpp::_, colindex); // reference to colindexth column
-      zzcol = dbetabinom_mu_rho_cpp((Rcpp::NumericVector)ocounts,
-                                    (Rcpp::NumericVector)osize,
-                                    prob(i), od_param, true) +
+      zzcol = dbetabinom_mu_rho_cpp(ocounts, osize, prob(i), od_param, true) +
                                       log(qarray(p1geno, p2geno, i));
       if (outlier) {
         zzcol = zzcol + log(1 - out_prop);
@@ -132,9 +130,7 @@ double obj_offspring(Rcpp::IntegerVector ocounts, Rcpp::IntegerVector osize,
   // Another beta binomial if outlier = true ------------------------
   if (outlier & (out_prop > tol)) {
     Rcpp::NumericMatrix::Column zzcol = logprobs( Rcpp::_, logprobs.ncol() - 1);
-    zzcol = dbetabinom_mu_rho_cpp((Rcpp::NumericVector)ocounts,
-                                  (Rcpp::NumericVector)osize,
-                                  out_mean, out_disp, true) +
+    zzcol = dbetabinom_mu_rho_cpp(ocounts, osize, out_mean, out_disp, true) +
                                     log(out_prop);
   }
 

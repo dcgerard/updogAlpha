@@ -34,14 +34,142 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// dxi_df
+double dxi_df(double d, double f);
+RcppExport SEXP updog_dxi_df(SEXP dSEXP, SEXP fSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< double >::type d(dSEXP);
+    Rcpp::traits::input_parameter< double >::type f(fSEXP);
+    rcpp_result_gen = Rcpp::wrap(dxi_df(d, f));
+    return rcpp_result_gen;
+END_RCPP
+}
+// df_deps
+double df_deps(double eps, double p);
+RcppExport SEXP updog_df_deps(SEXP epsSEXP, SEXP pSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< double >::type eps(epsSEXP);
+    Rcpp::traits::input_parameter< double >::type p(pSEXP);
+    rcpp_result_gen = Rcpp::wrap(df_deps(eps, p));
+    return rcpp_result_gen;
+END_RCPP
+}
+// deps_dell
+double deps_dell(double ell);
+RcppExport SEXP updog_deps_dell(SEXP ellSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< double >::type ell(ellSEXP);
+    rcpp_result_gen = Rcpp::wrap(deps_dell(ell));
+    return rcpp_result_gen;
+END_RCPP
+}
+// expit
+double expit(double x);
+RcppExport SEXP updog_expit(SEXP xSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< double >::type x(xSEXP);
+    rcpp_result_gen = Rcpp::wrap(expit(x));
+    return rcpp_result_gen;
+END_RCPP
+}
+// dbeta_dl
+double dbeta_dl(double x, double n, double d, double ell, double p, double h);
+RcppExport SEXP updog_dbeta_dl(SEXP xSEXP, SEXP nSEXP, SEXP dSEXP, SEXP ellSEXP, SEXP pSEXP, SEXP hSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< double >::type x(xSEXP);
+    Rcpp::traits::input_parameter< double >::type n(nSEXP);
+    Rcpp::traits::input_parameter< double >::type d(dSEXP);
+    Rcpp::traits::input_parameter< double >::type ell(ellSEXP);
+    Rcpp::traits::input_parameter< double >::type p(pSEXP);
+    Rcpp::traits::input_parameter< double >::type h(hSEXP);
+    rcpp_result_gen = Rcpp::wrap(dbeta_dl(x, n, d, ell, p, h));
+    return rcpp_result_gen;
+END_RCPP
+}
+// dxi_dd
+double dxi_dd(double d, double f);
+RcppExport SEXP updog_dxi_dd(SEXP dSEXP, SEXP fSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< double >::type d(dSEXP);
+    Rcpp::traits::input_parameter< double >::type f(fSEXP);
+    rcpp_result_gen = Rcpp::wrap(dxi_dd(d, f));
+    return rcpp_result_gen;
+END_RCPP
+}
+// dbeta_dd
+double dbeta_dd(double x, double n, double d, double ell, double p, double h);
+RcppExport SEXP updog_dbeta_dd(SEXP xSEXP, SEXP nSEXP, SEXP dSEXP, SEXP ellSEXP, SEXP pSEXP, SEXP hSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< double >::type x(xSEXP);
+    Rcpp::traits::input_parameter< double >::type n(nSEXP);
+    Rcpp::traits::input_parameter< double >::type d(dSEXP);
+    Rcpp::traits::input_parameter< double >::type ell(ellSEXP);
+    Rcpp::traits::input_parameter< double >::type p(pSEXP);
+    Rcpp::traits::input_parameter< double >::type h(hSEXP);
+    rcpp_result_gen = Rcpp::wrap(dbeta_dd(x, n, d, ell, p, h));
+    return rcpp_result_gen;
+END_RCPP
+}
+// dbeta_dh_ell
+double dbeta_dh_ell(double x, double n, double d, double ell, double p, double h);
+RcppExport SEXP updog_dbeta_dh_ell(SEXP xSEXP, SEXP nSEXP, SEXP dSEXP, SEXP ellSEXP, SEXP pSEXP, SEXP hSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< double >::type x(xSEXP);
+    Rcpp::traits::input_parameter< double >::type n(nSEXP);
+    Rcpp::traits::input_parameter< double >::type d(dSEXP);
+    Rcpp::traits::input_parameter< double >::type ell(ellSEXP);
+    Rcpp::traits::input_parameter< double >::type p(pSEXP);
+    Rcpp::traits::input_parameter< double >::type h(hSEXP);
+    rcpp_result_gen = Rcpp::wrap(dbeta_dh_ell(x, n, d, ell, p, h));
+    return rcpp_result_gen;
+END_RCPP
+}
+// grad_offspring
+Rcpp::NumericVector grad_offspring(Rcpp::NumericVector ocounts, Rcpp::NumericVector osize, int ploidy, int p1geno, int p2geno, double bias_val, double seq_error, double od_param, bool outlier, double out_prop, double out_mean, double out_disp);
+RcppExport SEXP updog_grad_offspring(SEXP ocountsSEXP, SEXP osizeSEXP, SEXP ploidySEXP, SEXP p1genoSEXP, SEXP p2genoSEXP, SEXP bias_valSEXP, SEXP seq_errorSEXP, SEXP od_paramSEXP, SEXP outlierSEXP, SEXP out_propSEXP, SEXP out_meanSEXP, SEXP out_dispSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type ocounts(ocountsSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type osize(osizeSEXP);
+    Rcpp::traits::input_parameter< int >::type ploidy(ploidySEXP);
+    Rcpp::traits::input_parameter< int >::type p1geno(p1genoSEXP);
+    Rcpp::traits::input_parameter< int >::type p2geno(p2genoSEXP);
+    Rcpp::traits::input_parameter< double >::type bias_val(bias_valSEXP);
+    Rcpp::traits::input_parameter< double >::type seq_error(seq_errorSEXP);
+    Rcpp::traits::input_parameter< double >::type od_param(od_paramSEXP);
+    Rcpp::traits::input_parameter< bool >::type outlier(outlierSEXP);
+    Rcpp::traits::input_parameter< double >::type out_prop(out_propSEXP);
+    Rcpp::traits::input_parameter< double >::type out_mean(out_meanSEXP);
+    Rcpp::traits::input_parameter< double >::type out_disp(out_dispSEXP);
+    rcpp_result_gen = Rcpp::wrap(grad_offspring(ocounts, osize, ploidy, p1geno, p2geno, bias_val, seq_error, od_param, outlier, out_prop, out_mean, out_disp));
+    return rcpp_result_gen;
+END_RCPP
+}
 // obj_offspring
-double obj_offspring(Rcpp::IntegerVector ocounts, Rcpp::IntegerVector osize, int ploidy, int p1geno, int p2geno, double bias_val, double seq_error, double od_param, bool outlier, double out_prop, double out_mean, double out_disp);
+double obj_offspring(Rcpp::NumericVector ocounts, Rcpp::NumericVector osize, int ploidy, int p1geno, int p2geno, double bias_val, double seq_error, double od_param, bool outlier, double out_prop, double out_mean, double out_disp);
 RcppExport SEXP updog_obj_offspring(SEXP ocountsSEXP, SEXP osizeSEXP, SEXP ploidySEXP, SEXP p1genoSEXP, SEXP p2genoSEXP, SEXP bias_valSEXP, SEXP seq_errorSEXP, SEXP od_paramSEXP, SEXP outlierSEXP, SEXP out_propSEXP, SEXP out_meanSEXP, SEXP out_dispSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type ocounts(ocountsSEXP);
-    Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type osize(osizeSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type ocounts(ocountsSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type osize(osizeSEXP);
     Rcpp::traits::input_parameter< int >::type ploidy(ploidySEXP);
     Rcpp::traits::input_parameter< int >::type p1geno(p1genoSEXP);
     Rcpp::traits::input_parameter< int >::type p2geno(p2genoSEXP);
@@ -66,6 +194,19 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type bias(biasSEXP);
     Rcpp::traits::input_parameter< double >::type seq_error(seq_errorSEXP);
     rcpp_result_gen = Rcpp::wrap(pbias(prob, bias, seq_error));
+    return rcpp_result_gen;
+END_RCPP
+}
+// pbias_double
+double pbias_double(double prob, double bias, double seq_error);
+RcppExport SEXP updog_pbias_double(SEXP probSEXP, SEXP biasSEXP, SEXP seq_errorSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< double >::type prob(probSEXP);
+    Rcpp::traits::input_parameter< double >::type bias(biasSEXP);
+    Rcpp::traits::input_parameter< double >::type seq_error(seq_errorSEXP);
+    rcpp_result_gen = Rcpp::wrap(pbias_double(prob, bias, seq_error));
     return rcpp_result_gen;
 END_RCPP
 }

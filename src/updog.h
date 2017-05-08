@@ -6,6 +6,8 @@ Rcpp::NumericVector pbias(Rcpp::NumericVector prob,
                           double bias,
                           double seq_error);
 
+double pbias_double(double prob, double bias, double seq_error);
+
 Rcpp::NumericVector dbetabinom_cpp(Rcpp::NumericVector x,
                                    Rcpp::NumericVector size,
                                    double alpha_shape,

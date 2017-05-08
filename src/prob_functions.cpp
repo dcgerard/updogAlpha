@@ -20,24 +20,36 @@
 //'
 // [[Rcpp::export]]
 Rcpp::NumericVector pbias(Rcpp::NumericVector prob, double bias, double seq_error) {
-  // check input ------------------------------------------
-
+  // Iterate through pbias_double
+  Rcpp::NumericVector xivec(prob.size());
   for (int i = 0; i < prob.size(); i++){
-    if (prob[i] < 0 || prob[i] > 1) {
-      Rcpp::Rcout << "prob[" << i << "] = " << prob[i] << std::endl;
-      Rcpp::stop("prob must be between 0 and 1.");
-    }
+      xivec(i) = pbias_double(prob(i), bias, seq_error);
+  }
+  return xivec;
+}
+
+//' A double version of \code{\link{pbias}}.
+//'
+//' @inheritParams pbias
+//'
+//' @seealso \code{\link{pbias}}.
+//'
+//' @author David Gerard
+// [[Rcpp::export]]
+double pbias_double(double prob, double bias, double seq_error) {
+  // check input -------------------------------------------
+  if ((prob < 0) || (prob > 1)) {
+    Rcpp::stop("prob must be between 0 and 1.");
   }
   if (bias < 0) {
     Rcpp::stop("bias must be greater than 0.");
   }
-  if (seq_error < 0 || seq_error > 1) {
+  if ((seq_error < 0) || (seq_error > 1)) {
     Rcpp::stop("prob must be between 0 and 1.");
   }
 
-  // Calculate the biased probability ---------------------
-  Rcpp::NumericVector qvec = prob * (1 - seq_error) + (1 - prob) * seq_error;
-  Rcpp::NumericVector xivec = qvec / (bias * (1 - qvec) + qvec);
+  double qvec = prob * (1.0 - seq_error) + (1.0 - prob) * seq_error;
+  double xivec = qvec / (bias * (1.0 - qvec) + qvec);
   return xivec;
 }
 

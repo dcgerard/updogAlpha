@@ -17,5 +17,8 @@ dbeta_dh(x, n, xi, h)
 This is just constrained to be greater than 0.}
 }
 \description{
-h = (1 - tau) / tau, so tau = 1 / (h + 1).
+This calculates d/dh of BB(x|n, xi, h), where h = (1 - tau) / tau, so tau = 1 / (h + 1).
+}
+\author{
+David Gerard
 }
