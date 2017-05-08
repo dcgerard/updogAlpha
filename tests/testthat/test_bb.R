@@ -79,3 +79,15 @@ test_that("bb_post works", {
 
 }
 )
+
+
+test_that("dbetabinom_mu_rho_cpp_double works", {
+  x <- 4
+  n <- 6
+  mu <- 0.5
+  rho <- 1/3
+
+  expect_equal(dbetabinom_mu_rho_cpp(x, n, mu, rho, FALSE),
+               dbetabinom_mu_rho_cpp_double(x, n, mu, rho, FALSE))
+}
+)

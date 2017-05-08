@@ -58,3 +58,17 @@ test_that("get_q_array_cpp works", {
   expect_true(all(get_q_array(8) - get_q_array_cpp(8) < 10 ^ -6))
 }
 )
+
+
+test_that("dbetabinom_mu_rho_cpp_double returns indicators", {
+  expect_equal(dbetabinom_mu_rho_cpp_double(0, 2, 0, 1/2, TRUE), 0)
+  expect_equal(dbetabinom_mu_rho_cpp_double(1, 2, 0, 1/2, TRUE), -Inf)
+  expect_equal(dbetabinom_mu_rho_cpp_double(0, 2, 0, 1/2, FALSE), 1)
+  expect_equal(dbetabinom_mu_rho_cpp_double(1, 2, 0, 1/2, FALSE), 0)
+
+  expect_equal(dbetabinom_mu_rho_cpp_double(2, 2, 1, 1/2, TRUE), 0)
+  expect_equal(dbetabinom_mu_rho_cpp_double(1, 2, 1, 1/2, TRUE), -Inf)
+  expect_equal(dbetabinom_mu_rho_cpp_double(2, 2, 1, 1/2, FALSE), 1)
+  expect_equal(dbetabinom_mu_rho_cpp_double(1, 2, 1, 1/2, FALSE), 0)
+}
+)

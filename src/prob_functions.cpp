@@ -76,30 +76,11 @@ Rcpp::NumericVector dbetabinom_cpp(Rcpp::NumericVector x,
     Rcpp::stop("x and size must have the same length.");
   }
 
-  // Get ldense -------------------------------------------------
-  Rcpp::NumericVector ldense(x.size());
+  // call dbetabinom_mu_rho_cpp
+  double mu = alpha_shape / (alpha_shape + beta_shape);
+  double rho = 1.0 / (alpha_shape + beta_shape + 1.0);
 
-  // RCpp::lbeta is for Rcpp::NumericVectors, R::lbeta is for doubles.
-  if ((std::abs(alpha_shape) > tol) & (std::abs(beta_shape) > tol)) {
-    ldense = Rcpp::lchoose(size, x) + Rcpp::lbeta(x + alpha_shape, size - x + beta_shape) -
-      R::lbeta(alpha_shape, beta_shape);
-  } else if (std::abs(alpha_shape) <= tol) {
-    for (int i = 0; i < ldense.size(); i++) {
-      if (std::abs(x(i)) <= tol) {
-        ldense(i) = 0;
-      } else {
-        ldense(i) = R_NegInf;
-      }
-    }
-  } else if (std::abs(beta_shape) <= tol) {
-    for (int i = 0; i < ldense.size(); i++) {
-      if (std::abs(x(i) - size(i)) <= tol) {
-        ldense(i) = 0;
-      } else {
-        ldense(i) = R_NegInf;
-      }
-    }
-  }
+  Rcpp::NumericVector ldense = dbetabinom_mu_rho_cpp(x, size, mu, rho, true);
 
   if (return_log) {
     return ldense;
@@ -123,29 +104,97 @@ Rcpp::NumericVector dbetabinom_mu_rho_cpp(Rcpp::NumericVector x,
   double tol = 2 * DBL_EPSILON; // tolerance from 0.
 
   // Check input -------------------------------------------------------------
-  if ((mu < 0) || (mu > 1)) {
-    Rcpp::stop("mu must be between 0 and 1 (inclusive).");
-  }
-  if ((rho < -tol) || (rho > 1 - tol)) {
-    Rcpp::stop("rho must be in [0, 1).");
+  if (x.size() != size.size()) {
+    Rcpp::stop("x and size must have the same length.");
   }
 
-  // return binomial density if rho = 0 -----------------------
-  if (rho < tol) {
-    Rcpp::NumericVector dvec(x.size());
-    for (int index = 0; index < x.size(); index++) {
-      dvec(index) = R::dbinom(x(index), size(index),
-           mu, (int)return_log);
-    }
-    return dvec;
+  // iterate through dbetabinom_mu_rho_cpp_double
+  Rcpp::NumericVector ldense_vec(x.size());
+  for (int i = 0; i < x.size(); i++) {
+    ldense_vec(i) = dbetabinom_mu_rho_cpp_double(x(i), size(i), mu, rho, true);
   }
 
   // convert to shape parameters and call dbetabinom_cpp ---------------------
-  double alpha_shape = mu * (1.0 - rho) / rho;
-  double beta_shape  = (1.0 - mu) * (1.0 - rho) / rho;
-  return dbetabinom_cpp(x, size, alpha_shape, beta_shape, return_log);
+  if (return_log) {
+    return ldense_vec;
+  } else {
+    return Rcpp::exp(ldense_vec);
+  }
 }
 
+//' double version of betabinomial density.
+//'
+//' @param x The number of successes
+//' @param size The number of draws
+//' @param mu The mean proportion.
+//' @param rho The overdispersion parameter.
+//' @param return_log A logical. Should we return the log density
+//'     (\code{TRUE}) or not (\code{FALSE})?
+//'
+//' @author David Gerard
+//'
+// [[Rcpp::export]]
+double dbetabinom_mu_rho_cpp_double(double x, double size, double mu,
+                                    double rho, bool return_log) {
+  double tol = 2 * DBL_EPSILON; // tolerance from 0.
+
+  // Check input -------------------------------------------------------------
+  if ((mu < 0) || (mu > 1)) {
+    Rcpp::stop("mu must be between 0 and 1 (inclusive).");
+  }
+  if ((rho < 0) || (rho > 1 - tol)) {
+    Rcpp::stop("rho must be in [0, 1).");
+  }
+  if ((x < 0) || (x > size)) {
+    Rcpp::stop("x must be between 0 and size");
+  }
+
+  // return binomial density if rho is zero
+  if (rho < tol) {
+    return R::dbinom(x, size, mu, (int)return_log);
+  }
+
+  // return indicator function if mu is zero or 1
+  if (mu < tol) {
+    if ((x < tol) && return_log) {
+      return 0.0;
+    } else if ((x < tol) && !return_log) {
+      return 1.0;
+    } else if ((x > tol) && return_log) {
+      return R_NegInf;
+    } else {
+      return 0.0;
+    }
+  }
+  if (mu > (1 - tol)) {
+    if ((std::abs(x - size) < tol) && return_log) {
+      return 0.0;
+    } else if ((std::abs(x - size) < tol) && !return_log) {
+      return 1.0;
+    } else if ((std::abs(x - size) > tol) && return_log) {
+      return R_NegInf;
+    } else {
+      return 0.0;
+    }
+  }
+
+  double alpha_shape = mu * (1.0 - rho) / rho;
+  double beta_shape  = (1.0 - mu) * (1.0 - rho) / rho;
+
+  double ldense = R::lchoose(size, x) +
+    R::lgammafn(x + alpha_shape) +
+    R::lgammafn(size - x + beta_shape) +
+    R::lgammafn(alpha_shape + beta_shape) -
+    R::lgammafn(size + alpha_shape + beta_shape) -
+    R::lgammafn(alpha_shape) -
+    R::lgammafn(beta_shape);
+
+  if (return_log) {
+    return ldense;
+  } else {
+    return exp(ldense);
+  }
+}
 
 //' Vectorized version of \code{\link[stats]{dhyper}} for C++ implementation.
 //'
@@ -165,6 +214,10 @@ Rcpp::NumericVector dhyper_cpp(Rcpp::NumericVector x,
   }
   return dense_vec;
 }
+
+
+
+
 
 
 //' Rcpp implementation of \code{\link{get_q_array}}.

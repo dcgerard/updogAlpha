@@ -21,6 +21,9 @@ Rcpp::NumericVector dhyper_cpp(Rcpp::NumericVector x,
 
 arma::Cube<double> get_q_array_cpp(int ploidy);
 
+double dbetabinom_mu_rho_cpp_double(double x, double size, double mu,
+                                    double rho, bool return_log);
+
 // Functions from objectives.cpp --------------------------
 
 // Functions from utility.cpp ----------------------------

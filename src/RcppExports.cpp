@@ -6,6 +6,34 @@
 
 using namespace Rcpp;
 
+// dbeta_dprop
+double dbeta_dprop(double x, double n, double xi, double tau);
+RcppExport SEXP updog_dbeta_dprop(SEXP xSEXP, SEXP nSEXP, SEXP xiSEXP, SEXP tauSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< double >::type x(xSEXP);
+    Rcpp::traits::input_parameter< double >::type n(nSEXP);
+    Rcpp::traits::input_parameter< double >::type xi(xiSEXP);
+    Rcpp::traits::input_parameter< double >::type tau(tauSEXP);
+    rcpp_result_gen = Rcpp::wrap(dbeta_dprop(x, n, xi, tau));
+    return rcpp_result_gen;
+END_RCPP
+}
+// dbeta_dh
+double dbeta_dh(double x, double n, double xi, double h);
+RcppExport SEXP updog_dbeta_dh(SEXP xSEXP, SEXP nSEXP, SEXP xiSEXP, SEXP hSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< double >::type x(xSEXP);
+    Rcpp::traits::input_parameter< double >::type n(nSEXP);
+    Rcpp::traits::input_parameter< double >::type xi(xiSEXP);
+    Rcpp::traits::input_parameter< double >::type h(hSEXP);
+    rcpp_result_gen = Rcpp::wrap(dbeta_dh(x, n, xi, h));
+    return rcpp_result_gen;
+END_RCPP
+}
 // obj_offspring
 double obj_offspring(Rcpp::IntegerVector ocounts, Rcpp::IntegerVector osize, int ploidy, int p1geno, int p2geno, double bias_val, double seq_error, double od_param, bool outlier, double out_prop, double out_mean, double out_disp);
 RcppExport SEXP updog_obj_offspring(SEXP ocountsSEXP, SEXP osizeSEXP, SEXP ploidySEXP, SEXP p1genoSEXP, SEXP p2genoSEXP, SEXP bias_valSEXP, SEXP seq_errorSEXP, SEXP od_paramSEXP, SEXP outlierSEXP, SEXP out_propSEXP, SEXP out_meanSEXP, SEXP out_dispSEXP) {
@@ -68,6 +96,21 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type rho(rhoSEXP);
     Rcpp::traits::input_parameter< bool >::type return_log(return_logSEXP);
     rcpp_result_gen = Rcpp::wrap(dbetabinom_mu_rho_cpp(x, size, mu, rho, return_log));
+    return rcpp_result_gen;
+END_RCPP
+}
+// dbetabinom_mu_rho_cpp_double
+double dbetabinom_mu_rho_cpp_double(double x, double size, double mu, double rho, bool return_log);
+RcppExport SEXP updog_dbetabinom_mu_rho_cpp_double(SEXP xSEXP, SEXP sizeSEXP, SEXP muSEXP, SEXP rhoSEXP, SEXP return_logSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< double >::type x(xSEXP);
+    Rcpp::traits::input_parameter< double >::type size(sizeSEXP);
+    Rcpp::traits::input_parameter< double >::type mu(muSEXP);
+    Rcpp::traits::input_parameter< double >::type rho(rhoSEXP);
+    Rcpp::traits::input_parameter< bool >::type return_log(return_logSEXP);
+    rcpp_result_gen = Rcpp::wrap(dbetabinom_mu_rho_cpp_double(x, size, mu, rho, return_log));
     return rcpp_result_gen;
 END_RCPP
 }
