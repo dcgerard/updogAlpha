@@ -65,3 +65,28 @@ test_that("up_bb_obj and up_obj and obj_offspring can be reconciled", {
 
 }
 )
+
+test_that("obj_offspring_weights works ok." {
+  ocounts <- rbinom(n = 2, size = 20, prob = 1/2)
+  osize    <- rep(20, 2)
+  rho <- 1/3
+  ploidy <- 4
+  r1vec <- rep(1/(ploidy + 1), ploidy + 1)
+  r2vec <- r1vec
+  pk <- (0:ploidy) / ploidy
+  p1geno <- 1
+  p2geno <- 2
+  bias_val <- 0.9
+  seq_error <- 0.01
+  weight_vec <- rep(1, 2)
+
+  cppout <- obj_offspring(ocounts = ocounts, osize = osize, ploidy = ploidy, p1geno = p1geno,
+                          p2geno = p2geno, bias_val = bias_val, seq_error = seq_error, od_param = rho,
+                          outlier = FALSE)
+  cppout2 <- obj_offspring_weights(ocounts = ocounts, osize = osize, ploidy = ploidy, p1geno = p1geno,
+                           p2geno = p2geno, bias_val = bias_val, seq_error = seq_error, od_param = rho,
+                           outlier = FALSE, weight_vec = weight_vec)
+
+  expect_equal(cppout, cppout2)
+}
+)

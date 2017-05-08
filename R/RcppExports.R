@@ -139,7 +139,7 @@ grad_offspring <- function(ocounts, osize, ploidy, p1geno, p2geno, bias_val, seq
     .Call('updog_grad_offspring', PACKAGE = 'updog', ocounts, osize, ploidy, p1geno, p2geno, bias_val, seq_error, od_param, outlier, out_prop, out_mean, out_disp)
 }
 
-#' Objective function for the offspring.
+#' Vector of objective functions for offspring.
 #'
 #' @param ocounts The observed counts of the refernce
 #'     allele for each individual.
@@ -171,12 +171,38 @@ grad_offspring <- function(ocounts, osize, ploidy, p1geno, p2geno, bias_val, seq
 #'
 #' @author David Gerard
 #'
-#' @export
 #'
 #' @seealso \code{\link{up_bb_obj}}.
 #'
+obj_offspring_vec <- function(ocounts, osize, ploidy, p1geno, p2geno, bias_val = 1, seq_error = 0, od_param = 0, outlier = FALSE, out_prop = 0.01, out_mean = 0.5, out_disp = 1.0 / 3.0) {
+    .Call('updog_obj_offspring_vec', PACKAGE = 'updog', ocounts, osize, ploidy, p1geno, p2geno, bias_val, seq_error, od_param, outlier, out_prop, out_mean, out_disp)
+}
+
+#' Objective function for the offspring.
+#'
+#' @inheritParams obj_offspring_vec
+#'
+#' @author David Gerard
+#'
+#' @export
+#'
 obj_offspring <- function(ocounts, osize, ploidy, p1geno, p2geno, bias_val = 1, seq_error = 0, od_param = 0, outlier = FALSE, out_prop = 0.01, out_mean = 0.5, out_disp = 1.0 / 3.0) {
     .Call('updog_obj_offspring', PACKAGE = 'updog', ocounts, osize, ploidy, p1geno, p2geno, bias_val, seq_error, od_param, outlier, out_prop, out_mean, out_disp)
+}
+
+#' Same thing as \code{\link{obj_offspring}}, but each sample's log-density has a weight.
+#'
+#' This is mostly used in the EM algorithm.
+#'
+#' @inheritParams obj_offspring_vec
+#' @param weight_vec A vector of numerics between 0 and 1. They don't have to sum to 1.
+#'
+#' @author David Gerard
+#'
+#' @export
+#'
+obj_offspring_weights <- function(ocounts, osize, weight_vec, ploidy, p1geno, p2geno, bias_val = 1, seq_error = 0, od_param = 0, outlier = FALSE, out_prop = 0.01, out_mean = 0.5, out_disp = 1.0 / 3.0) {
+    .Call('updog_obj_offspring_weights', PACKAGE = 'updog', ocounts, osize, weight_vec, ploidy, p1geno, p2geno, bias_val, seq_error, od_param, outlier, out_prop, out_mean, out_disp)
 }
 
 #' Returns the probability of seeing the reference allele after including

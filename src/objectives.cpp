@@ -4,7 +4,7 @@
 
 #include "updog.h"
 
-//' Objective function for the offspring.
+//' Vector of objective functions for offspring.
 //'
 //' @param ocounts The observed counts of the refernce
 //'     allele for each individual.
@@ -36,17 +36,16 @@
 //'
 //' @author David Gerard
 //'
-//' @export
 //'
 //' @seealso \code{\link{up_bb_obj}}.
 //'
 // [[Rcpp::export]]
-double obj_offspring(Rcpp::NumericVector ocounts, Rcpp::NumericVector osize,
-                     int ploidy, int p1geno, int p2geno,
-                     double bias_val = 1, double seq_error = 0,
-                     double od_param = 0,
-                     bool outlier = false, double out_prop = 0.01,
-                     double out_mean = 0.5, double out_disp = 1.0 / 3.0) {
+Rcpp::NumericVector obj_offspring_vec(Rcpp::NumericVector ocounts, Rcpp::NumericVector osize,
+                                      int ploidy, int p1geno, int p2geno,
+                                      double bias_val = 1, double seq_error = 0,
+                                      double od_param = 0,
+                                      bool outlier = false, double out_prop = 0.01,
+                                      double out_mean = 0.5, double out_disp = 1.0 / 3.0) {
   double tol = 2 * DBL_EPSILON;
 
   // check input ---------------------------------------------------
@@ -97,7 +96,7 @@ double obj_offspring(Rcpp::NumericVector ocounts, Rcpp::NumericVector osize,
   arma::Cube<double> qarray = get_q_array_cpp(ploidy);
 
   // Calculate probabilities for OK points --------------------------
-  // only need last column is outlier = true.
+  // only need last column if outlier = true ------------------------
 
   // count how many non-zero values in qarray(p1geno, p2geno, ) there are
   int colnum = 0;
@@ -135,9 +134,71 @@ double obj_offspring(Rcpp::NumericVector ocounts, Rcpp::NumericVector osize,
   }
 
   // Log sum exponential trick of rows
-  double ldense = Rcpp::sum(logsumexp(logprobs));
+  Rcpp::NumericVector ldensevec = logsumexp(logprobs);
 
-  return ldense;
+  return ldensevec;
+}
+
+//' Objective function for the offspring.
+//'
+//' @inheritParams obj_offspring_vec
+//'
+//' @author David Gerard
+//'
+//' @export
+//'
+// [[Rcpp::export]]
+double obj_offspring(Rcpp::NumericVector ocounts, Rcpp::NumericVector osize,
+                     int ploidy, int p1geno, int p2geno,
+                     double bias_val = 1, double seq_error = 0,
+                     double od_param = 0,
+                     bool outlier = false, double out_prop = 0.01,
+                     double out_mean = 0.5, double out_disp = 1.0 / 3.0) {
+  Rcpp::NumericVector ldensevec = obj_offspring_vec(ocounts, osize, ploidy, p1geno, p2geno,
+                                                    bias_val, seq_error, od_param,
+                                                    outlier, out_prop, out_mean, out_disp);
+  return Rcpp::sum(ldensevec);
+}
+
+//' Same thing as \code{\link{obj_offspring}}, but each sample's log-density has a weight.
+//'
+//' This is mostly used in the EM algorithm.
+//'
+//' @inheritParams obj_offspring_vec
+//' @param weight_vec A vector of numerics between 0 and 1. They don't have to sum to 1.
+//'
+//' @author David Gerard
+//'
+//' @export
+//'
+// [[Rcpp::export]]
+double obj_offspring_weights(Rcpp::NumericVector ocounts, Rcpp::NumericVector osize,
+                             Rcpp::NumericVector weight_vec,
+                             int ploidy, int p1geno, int p2geno,
+                             double bias_val = 1, double seq_error = 0,
+                             double od_param = 0,
+                             bool outlier = false, double out_prop = 0.01,
+                             double out_mean = 0.5, double out_disp = 1.0 / 3.0) {
+  // Check input --------------------------------------------------------------
+  if (weight_vec.size() != ocounts.size()) {
+    Rcpp::stop("weight_vec and ocounts should have the same size.");
+  }
+  for (int i = 0; i < weight_vec.size(); i++){
+    if ((weight_vec(i) < 0) || (weight_vec(i) > 1)) {
+      Rcpp::stop("weight_vec should all be between 0 and 1 (inclusive).");
+    }
+  }
+
+  if (outlier) {
+    Rcpp::warning("outlier = true in obj_offspring_weights.\nThis doesn't make much sense since you can't be using it for the EM.\nAt least not correctly.");
+  }
+
+  // Calculate log of densities for each observations -------------------------
+  Rcpp::NumericVector ldensevec = obj_offspring_vec(ocounts, osize, ploidy, p1geno, p2geno,
+                                                    bias_val, seq_error, od_param,
+                                                    outlier, out_prop, out_mean, out_disp);
+  // return weighted sum of log-densities --------------------------------------
+  return Rcpp::sum(ldensevec * weight_vec);
 }
 
 
