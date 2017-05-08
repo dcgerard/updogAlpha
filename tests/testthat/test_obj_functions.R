@@ -66,7 +66,7 @@ test_that("up_bb_obj and up_obj and obj_offspring can be reconciled", {
 }
 )
 
-test_that("obj_offspring_weights works ok." {
+test_that("obj_offspring_weights works ok.", {
   ocounts <- rbinom(n = 2, size = 20, prob = 1/2)
   osize    <- rep(20, 2)
   rho <- 1/3
