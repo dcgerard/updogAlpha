@@ -19,3 +19,22 @@ Rcpp::NumericVector logsumexp(Rcpp::NumericMatrix xx) {
   }
   return lse_vec;
 }
+
+//' Gets all possible binomial probabilities for a given ploidy, bias term, and sequencing
+//' error rate.
+//'
+//' @param ploidy The ploidy of the species.
+//' @param bias_val The bias parameter. Should be greater than 0. A value of 1 means no bias.
+//' @param seq_error The sequencing error rate.
+//'
+//' @author David Gerard
+//'
+// [[Rcpp::export]]
+Rcpp::NumericVector get_pvec(int ploidy, double bias_val, double seq_error) {
+  Rcpp::NumericVector prob(ploidy + 1);
+  for (int i = 0; i < ploidy + 1; i++) {
+    prob(i) = (double)i / ploidy;
+  }
+  prob = pbias(prob, bias_val, seq_error);
+  return prob;
+}

@@ -85,11 +85,7 @@ Rcpp::NumericVector obj_offspring_vec(Rcpp::NumericVector ocounts, Rcpp::Numeric
 
   // calculate the possible means proportions based on 0:ploidy / ploidy,
   // seq_error, and bias_val.
-  Rcpp::NumericVector prob(ploidy + 1);
-  for (int i = 0; i < ploidy + 1; i++) {
-    prob(i) = (double)i / ploidy;
-  }
-  prob = pbias(prob, bias_val, seq_error);
+  Rcpp::NumericVector prob = get_pvec(ploidy, bias_val, seq_error);
 
   // calculate segregation probabilities
   // might be faster to compute this just once and pass it.

@@ -336,3 +336,16 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// get_pvec
+Rcpp::NumericVector get_pvec(int ploidy, double bias_val, double seq_error);
+RcppExport SEXP updog_get_pvec(SEXP ploidySEXP, SEXP bias_valSEXP, SEXP seq_errorSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< int >::type ploidy(ploidySEXP);
+    Rcpp::traits::input_parameter< double >::type bias_val(bias_valSEXP);
+    Rcpp::traits::input_parameter< double >::type seq_error(seq_errorSEXP);
+    rcpp_result_gen = Rcpp::wrap(get_pvec(ploidy, bias_val, seq_error));
+    return rcpp_result_gen;
+END_RCPP
+}

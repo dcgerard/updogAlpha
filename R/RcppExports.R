@@ -317,3 +317,16 @@ logsumexp <- function(xx) {
     .Call('updog_logsumexp', PACKAGE = 'updog', xx)
 }
 
+#' Gets all possible binomial probabilities for a given ploidy, bias term, and sequencing
+#' error rate.
+#'
+#' @param ploidy The ploidy of the species.
+#' @param bias_val The bias parameter. Should be greater than 0. A value of 1 means no bias.
+#' @param seq_error The sequencing error rate.
+#'
+#' @author David Gerard
+#'
+get_pvec <- function(ploidy, bias_val, seq_error) {
+    .Call('updog_get_pvec', PACKAGE = 'updog', ploidy, bias_val, seq_error)
+}
+

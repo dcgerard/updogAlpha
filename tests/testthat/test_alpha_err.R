@@ -74,3 +74,15 @@ test_that("dbetabinom_mu_rho_cpp_double returns indicators", {
   expect_equal(dbetabinom_mu_rho_cpp_double(1, 2, 1, 1/2, FALSE), 0)
 }
 )
+
+test_that("get_pvec works", {
+  ploidy <- 4
+  d <- 1.2
+  seq_error <- 0.01
+
+  p <- 0:ploidy / ploidy
+  q <- p * (1 - seq_error) + (1 - p) * seq_error
+  xi <- q / (d * (1 - q) + q)
+  expect_equal(xi, get_pvec(ploidy = ploidy, bias_val = d, seq_error = seq_error))
+}
+)

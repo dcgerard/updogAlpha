@@ -27,6 +27,13 @@ double dbetabinom_mu_rho_cpp_double(double x, double size, double mu,
                                     double rho, bool return_log);
 
 // Functions from objectives.cpp --------------------------
+Rcpp::NumericVector obj_offspring_vec(Rcpp::NumericVector ocounts, Rcpp::NumericVector osize,
+                                      int ploidy, int p1geno, int p2geno,
+                                      double bias_val, double seq_error,
+                                      double od_param,
+                                      bool outlier, double out_prop,
+                                      double out_mean, double out_disp);
 
 // Functions from utility.cpp ----------------------------
 Rcpp::NumericVector logsumexp(Rcpp::NumericMatrix xx);
+Rcpp::NumericVector get_pvec(int ploidy, double bias_val, double seq_error);

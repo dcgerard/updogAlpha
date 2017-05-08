@@ -248,7 +248,20 @@ Rcpp::NumericVector grad_offspring(Rcpp::NumericVector ocounts, Rcpp::NumericVec
                                    double od_param,
                                    bool outlier, double out_prop,
                                    double out_mean, double out_disp) {
+
+  // Get the log of the denominator for each individual ----------------------------
+  Rcpp::NumericVector ldenom_vec = obj_offspring_vec(ocounts, osize,
+                                                     ploidy, p1geno, p2geno,
+                                                     bias_val, seq_error,
+                                                     od_param,
+                                                     outlier, out_prop,
+                                                     out_mean, out_disp);
+
+
+
   Rcpp::NumericVector temp(1);
   return temp;
 }
+
+
 
