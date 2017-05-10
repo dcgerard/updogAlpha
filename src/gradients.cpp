@@ -281,7 +281,7 @@ Rcpp::NumericMatrix grad_offspring_mat(Rcpp::NumericVector ocounts, Rcpp::Numeri
   return grad_ind;
 }
 
-//' Gradient of \code{\link{obj_offspring}}.
+//' Gradient of \code{\link{obj_offspring_reparam}}.
 //'
 //' @inheritParams obj_offspring
 //' @inheritParams grad_offspring_mat
@@ -301,5 +301,35 @@ Rcpp::NumericVector grad_offspring(Rcpp::NumericVector ocounts, Rcpp::NumericVec
   return(grad);
 }
 
+//' Gradient of \code{\link{obj_offspring_weights_reparam}}
+//'
+//' @inheritParams grad_offspring
+//'
+// [[Rcpp::export]]
+Rcpp::NumericVector grad_offspring_weights(Rcpp::NumericVector ocounts, Rcpp::NumericVector osize,
+                                           Rcpp::NumericVector weight_vec,
+                                           int ploidy, int p1geno, int p2geno,
+                                           double d, double ell,
+                                           double h) {
+  // Check input --------------------------------------------------------------
+  if (weight_vec.size() != ocounts.size()) {
+    Rcpp::stop("weight_vec and ocounts should have the same size.");
+  }
+  for (int i = 0; i < weight_vec.size(); i++){
+    if ((weight_vec(i) < 0) || (weight_vec(i) > 1)) {
+      Rcpp::stop("weight_vec should all be between 0 and 1 (inclusive).");
+    }
+  }
+  Rcpp::NumericMatrix gb_mat = grad_offspring_mat(ocounts, osize, ploidy, p1geno, p2geno,
+                                                  d, ell, h);
+  Rcpp::NumericVector grad(3);
+  Rcpp::NumericMatrix::Column zzcol = gb_mat(Rcpp::_, 0);
+  grad(0) = Rcpp::sum(zzcol * weight_vec);
+  zzcol = gb_mat(Rcpp::_, 1);
+  grad(1) = Rcpp::sum(zzcol * weight_vec);
+  zzcol = gb_mat(Rcpp::_, 2);
+  grad(2) = Rcpp::sum(zzcol * weight_vec);
+  return(grad);
+}
 
 

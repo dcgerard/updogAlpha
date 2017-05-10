@@ -216,4 +216,25 @@ double obj_offspring_weights(Rcpp::NumericVector ocounts, Rcpp::NumericVector os
   return Rcpp::sum(ldensevec * weight_vec);
 }
 
+//' Reparameterization of \code{\link{obj_offspring_weights}}.
+//'
+//' @inheritParams obj_offspring_weights
+//' @inheritParams obj_offspring_reparam
+//'
+//' @author David Gerard
+//'
+// [[Rcpp::export]]
+double obj_offspring_weights_reparam(Rcpp::NumericVector ocounts,
+                                     Rcpp::NumericVector osize,
+                                     Rcpp::NumericVector weight_vec,
+                                     int ploidy, int p1geno, int p2geno,
+                                     double d, double ell,
+                                     double h) {
+  double eps = expit(ell);
+  double tau = 1.0 / (h + 1.0);
+  return obj_offspring_weights(ocounts, osize, weight_vec,
+                               ploidy, p1geno, p2geno, d, eps,
+                               tau, false, 0.01, 0.5, 1.0 / 3.0);
+}
+
 

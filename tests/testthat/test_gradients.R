@@ -307,9 +307,45 @@ test_that("the grad_offspring works", {
 
   expect_equal(c(attr(nout, "gradient")), c(cderiv), tol = 10 ^ -6)
   expect_equal(grad_vec, cderiv)
-
 }
 )
 
+test_that("the grad_offspring_weights works", {
+  set.seed(9)
+  nsamp <- 4
+  osize   <- stats::rbinom(n = nsamp, size = 70, prob = 0.4)
+  ocounts <- stats::rbinom(n = nsamp, size = osize, prob = 0.4)
+  ploidy <- 4
+  p1geno <- 2
+  p2geno <- 1
+  d <- 2
+  eps <- 0.01
+  ell <- log(eps / (1 - eps))
+  tau <- 0.1
+  h <- (1 - tau) / (tau)
+  weight_vec <- stats::runif(nsamp)
 
+  ## Numerical implementation ---------------------------------------
+  tempfunc <- function(d, ell, h) {
+    obj_offspring_weights_reparam(ocounts = ocounts, osize = osize,
+                                  weight_vec = weight_vec,
+                                  ploidy = ploidy, p1geno = p1geno,
+                                  p2geno = p2geno, d = d, ell = ell, h = h)
+  }
+
+  myenv <- new.env()
+  assign("d", d, envir = myenv)
+  assign("ell", ell, envir = myenv)
+  assign("h", h, envir = myenv)
+  nout <- stats::numericDeriv(quote(tempfunc(d, ell, h)), c("d", "ell", "h"), myenv)
+
+  ## Rcpp version ---------------------------------------------------
+  cderiv <- grad_offspring_weights(ocounts = ocounts, osize = osize,
+                                   weight_vec = weight_vec,
+                                   ploidy = ploidy, p1geno = p1geno,
+                                   p2geno = p2geno, d = d, ell = ell, h = h)
+
+  expect_equal(c(attr(nout, "gradient")), c(cderiv), tol = 10 ^ -6)
+}
+)
 

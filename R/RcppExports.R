@@ -133,7 +133,7 @@ grad_offspring_mat <- function(ocounts, osize, ploidy, p1geno, p2geno, d, ell, h
     .Call('updog_grad_offspring_mat', PACKAGE = 'updog', ocounts, osize, ploidy, p1geno, p2geno, d, ell, h)
 }
 
-#' Gradient of \code{\link{obj_offspring}}.
+#' Gradient of \code{\link{obj_offspring_reparam}}.
 #'
 #' @inheritParams obj_offspring
 #' @inheritParams grad_offspring_mat
@@ -144,6 +144,14 @@ grad_offspring_mat <- function(ocounts, osize, ploidy, p1geno, p2geno, d, ell, h
 #'
 grad_offspring <- function(ocounts, osize, ploidy, p1geno, p2geno, d, ell, h) {
     .Call('updog_grad_offspring', PACKAGE = 'updog', ocounts, osize, ploidy, p1geno, p2geno, d, ell, h)
+}
+
+#' Gradient of \code{\link{obj_offspring_weights_reparam}}
+#'
+#' @inheritParams grad_offspring
+#'
+grad_offspring_weights <- function(ocounts, osize, weight_vec, ploidy, p1geno, p2geno, d, ell, h) {
+    .Call('updog_grad_offspring_weights', PACKAGE = 'updog', ocounts, osize, weight_vec, ploidy, p1geno, p2geno, d, ell, h)
 }
 
 #' Vector of objective functions for offspring.
@@ -223,6 +231,17 @@ obj_offspring_reparam <- function(ocounts, osize, ploidy, p1geno, p2geno, d, ell
 #'
 obj_offspring_weights <- function(ocounts, osize, weight_vec, ploidy, p1geno, p2geno, bias_val = 1, seq_error = 0, od_param = 0, outlier = FALSE, out_prop = 0.01, out_mean = 0.5, out_disp = 1.0 / 3.0) {
     .Call('updog_obj_offspring_weights', PACKAGE = 'updog', ocounts, osize, weight_vec, ploidy, p1geno, p2geno, bias_val, seq_error, od_param, outlier, out_prop, out_mean, out_disp)
+}
+
+#' Reparameterization of \code{\link{obj_offspring_weights}}.
+#'
+#' @inheritParams obj_offspring_weights
+#' @inheritParams obj_offspring_reparam
+#'
+#' @author David Gerard
+#'
+obj_offspring_weights_reparam <- function(ocounts, osize, weight_vec, ploidy, p1geno, p2geno, d, ell, h) {
+    .Call('updog_obj_offspring_weights_reparam', PACKAGE = 'updog', ocounts, osize, weight_vec, ploidy, p1geno, p2geno, d, ell, h)
 }
 
 #' Returns the probability of seeing the reference allele after including
