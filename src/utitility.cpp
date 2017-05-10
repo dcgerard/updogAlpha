@@ -38,3 +38,33 @@ Rcpp::NumericVector get_pvec(int ploidy, double bias_val, double seq_error) {
   prob = pbias(prob, bias_val, seq_error);
   return prob;
 }
+
+
+//' Stupid implementation of colSums because I guess not implemented in Rcpp sugar.
+//'
+//' @param x A NumericMatrix.
+//'
+//' @author David Gerard
+//'
+//'
+// [[Rcpp::export]]
+Rcpp::NumericVector colSums_cpp(Rcpp::NumericMatrix x) {
+  Rcpp::NumericVector sumvec(x.ncol());
+  for (int i = 0; i < x.nrow(); i++) {
+    for (int j = 0; j < x.ncol(); j++) {
+      sumvec(j) = sumvec(j) + x(i, j);
+    }
+  }
+  return(sumvec);
+}
+
+//' The expit function.
+//'
+//' @param x A double.
+//'
+//' @author David Gerard
+//'
+// [[Rcpp::export]]
+double expit(double x) {
+  return std::exp(x) / (1 + std::exp(x));
+}

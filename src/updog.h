@@ -37,3 +37,5 @@ Rcpp::NumericVector obj_offspring_vec(Rcpp::NumericVector ocounts, Rcpp::Numeric
 // Functions from utility.cpp ----------------------------
 Rcpp::NumericVector logsumexp(Rcpp::NumericMatrix xx);
 Rcpp::NumericVector get_pvec(int ploidy, double bias_val, double seq_error);
+Rcpp::NumericVector colSums_cpp(Rcpp::NumericMatrix x);
+double expit(double x);

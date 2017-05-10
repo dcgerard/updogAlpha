@@ -156,6 +156,25 @@ double obj_offspring(Rcpp::NumericVector ocounts, Rcpp::NumericVector osize,
   return Rcpp::sum(ldensevec);
 }
 
+//' Just a reparameterization of \code{\link{obj_offspring}}.
+//'
+//' @inheritParams obj_offspring_vec
+//' @param d Same as \code{bias_val} in \code{\link{obj_offspring}}.
+//' @param ell We have \code{seq_error = expit(ell)} from \code{\link{obj_offspring}}.
+//' @param h Same as \code{(1.0 - od_param) / od_param} from \code{\link{obj_offspring}}.
+//'
+//' @author David Gerard
+//'
+// [[Rcpp::export]]
+double obj_offspring_reparam(Rcpp::NumericVector ocounts, Rcpp::NumericVector osize,
+                             int ploidy, int p1geno, int p2geno,
+                             double d, double ell,
+                             double h) {
+  double eps = expit(ell);
+  double tau = 1.0 / (h + 1.0);
+  return obj_offspring(ocounts, osize, ploidy, p1geno, p2geno, d, eps, tau, false, 0.01, 0.5, 1.0 / 3.0);
+}
+
 //' Same thing as \code{\link{obj_offspring}}, but each sample's log-density has a weight.
 //'
 //' This is mostly used in the EM algorithm.

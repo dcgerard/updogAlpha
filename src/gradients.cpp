@@ -135,16 +135,7 @@ double deps_dell(double ell) {
   return(deriv);
 }
 
-//' The expit function.
-//'
-//' @param x A double.
-//'
-//' @author David Gerard
-//'
-// [[Rcpp::export]]
-double expit(double x) {
-  return std::exp(x) / (1 + std::exp(x));
-}
+
 
 //' Derivative of beta density w.r.t. unconstrained parameterization of sequencing error.
 //'
@@ -235,32 +226,79 @@ double dbeta_dh_ell(double x, double n, double d, double ell, double p, double h
 }
 
 
-//' Gradient of \code{\link{obj_offspring}}.
+//' Gradient of \code{\link{obj_offspring}} for each individual.
 //'
 //' @inheritParams obj_offspring
+//' @param d The bias term
+//' @param ell The logit of the sequencing error rate
+//' @param h We have h = (1 - tau) / tau
+//'
 //'
 //' @author David Gerard
 //'
 // [[Rcpp::export]]
-Rcpp::NumericVector grad_offspring(Rcpp::NumericVector ocounts, Rcpp::NumericVector osize,
-                                   int ploidy, int p1geno, int p2geno,
-                                   double bias_val, double seq_error,
-                                   double od_param,
-                                   bool outlier, double out_prop,
-                                   double out_mean, double out_disp) {
+Rcpp::NumericMatrix grad_offspring_mat(Rcpp::NumericVector ocounts, Rcpp::NumericVector osize,
+                                       int ploidy, int p1geno, int p2geno,
+                                       double d, double ell,
+                                       double h) {
+  double tol = 2.0 * DBL_EPSILON;
+
+  // Get ancillary parameters ------------------------------------------------------
+  double tau = 1.0 / (h + 1.0); // the overdispersion parameter between 0 and 1
+  double eps = expit(ell); // the sequencing error rate
 
   // Get the log of the denominator for each individual ----------------------------
   Rcpp::NumericVector ldenom_vec = obj_offspring_vec(ocounts, osize,
                                                      ploidy, p1geno, p2geno,
-                                                     bias_val, seq_error,
-                                                     od_param,
-                                                     outlier, out_prop,
-                                                     out_mean, out_disp);
+                                                     d, eps, tau, false, 0, 1.0 / 2.0, 1.0 / 3.0);
 
+  // Get possible probabilities ----------------------------------------------------
+  Rcpp::NumericVector probs(ploidy + 1);
+  for (int i = 0; i < ploidy + 1; i++) {
+    probs(i) = (double)i / ploidy;
+  }
 
+  // Get segregation probabilities --- probably faster to have this as argument ----
+  arma::Cube<double> qarray = get_q_array_cpp(ploidy);
 
-  Rcpp::NumericVector temp(1);
-  return temp;
+  Rcpp::NumericMatrix grad_ind(ocounts.size(), 3); // goes d, ell, h
+  for (int i = 0; i < ocounts.size(); i++) {
+    for (int j = 0; j < ploidy + 1; j++) {
+      if (qarray(p1geno, p2geno, j) > tol) {
+        grad_ind(i, 0) = grad_ind(i, 0) + dbeta_dd(ocounts(i), osize(i), d, ell, probs(j), h) *
+          qarray(p1geno, p2geno, j);
+        grad_ind(i, 1) = grad_ind(i, 1) + dbeta_dl(ocounts(i), osize(i), d, ell, probs(j), h) *
+          qarray(p1geno, p2geno, j);
+        grad_ind(i, 2) = grad_ind(i, 2) + dbeta_dh_ell(ocounts(i), osize(i), d, ell, probs(j), h) *
+          qarray(p1geno, p2geno, j);
+      }
+    }
+    grad_ind(i, 0) = grad_ind(i, 0) * std::exp(-1.0 * ldenom_vec(i));
+    grad_ind(i, 1) = grad_ind(i, 1) * std::exp(-1.0 * ldenom_vec(i));
+    grad_ind(i, 2) = grad_ind(i, 2) * std::exp(-1.0 * ldenom_vec(i));
+  }
+
+  return grad_ind;
+}
+
+//' Gradient of \code{\link{obj_offspring}}.
+//'
+//' @inheritParams obj_offspring
+//' @inheritParams grad_offspring_mat
+//'
+//' @author David Gerard
+//'
+//' @export
+//'
+// [[Rcpp::export]]
+Rcpp::NumericVector grad_offspring(Rcpp::NumericVector ocounts, Rcpp::NumericVector osize,
+                                   int ploidy, int p1geno, int p2geno,
+                                   double d, double ell,
+                                   double h) {
+  Rcpp::NumericMatrix gb_mat = grad_offspring_mat(ocounts, osize, ploidy, p1geno, p2geno,
+                                                  d, ell, h);
+  Rcpp::NumericVector grad = colSums_cpp(gb_mat);
+  return(grad);
 }
 
 

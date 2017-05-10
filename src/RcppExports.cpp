@@ -69,17 +69,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// expit
-double expit(double x);
-RcppExport SEXP updog_expit(SEXP xSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< double >::type x(xSEXP);
-    rcpp_result_gen = Rcpp::wrap(expit(x));
-    return rcpp_result_gen;
-END_RCPP
-}
 // dbeta_dl
 double dbeta_dl(double x, double n, double d, double ell, double p, double h);
 RcppExport SEXP updog_dbeta_dl(SEXP xSEXP, SEXP nSEXP, SEXP dSEXP, SEXP ellSEXP, SEXP pSEXP, SEXP hSEXP) {
@@ -140,9 +129,9 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// grad_offspring
-Rcpp::NumericVector grad_offspring(Rcpp::NumericVector ocounts, Rcpp::NumericVector osize, int ploidy, int p1geno, int p2geno, double bias_val, double seq_error, double od_param, bool outlier, double out_prop, double out_mean, double out_disp);
-RcppExport SEXP updog_grad_offspring(SEXP ocountsSEXP, SEXP osizeSEXP, SEXP ploidySEXP, SEXP p1genoSEXP, SEXP p2genoSEXP, SEXP bias_valSEXP, SEXP seq_errorSEXP, SEXP od_paramSEXP, SEXP outlierSEXP, SEXP out_propSEXP, SEXP out_meanSEXP, SEXP out_dispSEXP) {
+// grad_offspring_mat
+Rcpp::NumericMatrix grad_offspring_mat(Rcpp::NumericVector ocounts, Rcpp::NumericVector osize, int ploidy, int p1geno, int p2geno, double d, double ell, double h);
+RcppExport SEXP updog_grad_offspring_mat(SEXP ocountsSEXP, SEXP osizeSEXP, SEXP ploidySEXP, SEXP p1genoSEXP, SEXP p2genoSEXP, SEXP dSEXP, SEXP ellSEXP, SEXP hSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -151,14 +140,28 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type ploidy(ploidySEXP);
     Rcpp::traits::input_parameter< int >::type p1geno(p1genoSEXP);
     Rcpp::traits::input_parameter< int >::type p2geno(p2genoSEXP);
-    Rcpp::traits::input_parameter< double >::type bias_val(bias_valSEXP);
-    Rcpp::traits::input_parameter< double >::type seq_error(seq_errorSEXP);
-    Rcpp::traits::input_parameter< double >::type od_param(od_paramSEXP);
-    Rcpp::traits::input_parameter< bool >::type outlier(outlierSEXP);
-    Rcpp::traits::input_parameter< double >::type out_prop(out_propSEXP);
-    Rcpp::traits::input_parameter< double >::type out_mean(out_meanSEXP);
-    Rcpp::traits::input_parameter< double >::type out_disp(out_dispSEXP);
-    rcpp_result_gen = Rcpp::wrap(grad_offspring(ocounts, osize, ploidy, p1geno, p2geno, bias_val, seq_error, od_param, outlier, out_prop, out_mean, out_disp));
+    Rcpp::traits::input_parameter< double >::type d(dSEXP);
+    Rcpp::traits::input_parameter< double >::type ell(ellSEXP);
+    Rcpp::traits::input_parameter< double >::type h(hSEXP);
+    rcpp_result_gen = Rcpp::wrap(grad_offspring_mat(ocounts, osize, ploidy, p1geno, p2geno, d, ell, h));
+    return rcpp_result_gen;
+END_RCPP
+}
+// grad_offspring
+Rcpp::NumericVector grad_offspring(Rcpp::NumericVector ocounts, Rcpp::NumericVector osize, int ploidy, int p1geno, int p2geno, double d, double ell, double h);
+RcppExport SEXP updog_grad_offspring(SEXP ocountsSEXP, SEXP osizeSEXP, SEXP ploidySEXP, SEXP p1genoSEXP, SEXP p2genoSEXP, SEXP dSEXP, SEXP ellSEXP, SEXP hSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type ocounts(ocountsSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type osize(osizeSEXP);
+    Rcpp::traits::input_parameter< int >::type ploidy(ploidySEXP);
+    Rcpp::traits::input_parameter< int >::type p1geno(p1genoSEXP);
+    Rcpp::traits::input_parameter< int >::type p2geno(p2genoSEXP);
+    Rcpp::traits::input_parameter< double >::type d(dSEXP);
+    Rcpp::traits::input_parameter< double >::type ell(ellSEXP);
+    Rcpp::traits::input_parameter< double >::type h(hSEXP);
+    rcpp_result_gen = Rcpp::wrap(grad_offspring(ocounts, osize, ploidy, p1geno, p2geno, d, ell, h));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -203,6 +206,24 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type out_mean(out_meanSEXP);
     Rcpp::traits::input_parameter< double >::type out_disp(out_dispSEXP);
     rcpp_result_gen = Rcpp::wrap(obj_offspring(ocounts, osize, ploidy, p1geno, p2geno, bias_val, seq_error, od_param, outlier, out_prop, out_mean, out_disp));
+    return rcpp_result_gen;
+END_RCPP
+}
+// obj_offspring_reparam
+double obj_offspring_reparam(Rcpp::NumericVector ocounts, Rcpp::NumericVector osize, int ploidy, int p1geno, int p2geno, double d, double ell, double h);
+RcppExport SEXP updog_obj_offspring_reparam(SEXP ocountsSEXP, SEXP osizeSEXP, SEXP ploidySEXP, SEXP p1genoSEXP, SEXP p2genoSEXP, SEXP dSEXP, SEXP ellSEXP, SEXP hSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type ocounts(ocountsSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type osize(osizeSEXP);
+    Rcpp::traits::input_parameter< int >::type ploidy(ploidySEXP);
+    Rcpp::traits::input_parameter< int >::type p1geno(p1genoSEXP);
+    Rcpp::traits::input_parameter< int >::type p2geno(p2genoSEXP);
+    Rcpp::traits::input_parameter< double >::type d(dSEXP);
+    Rcpp::traits::input_parameter< double >::type ell(ellSEXP);
+    Rcpp::traits::input_parameter< double >::type h(hSEXP);
+    rcpp_result_gen = Rcpp::wrap(obj_offspring_reparam(ocounts, osize, ploidy, p1geno, p2geno, d, ell, h));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -346,6 +367,28 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type bias_val(bias_valSEXP);
     Rcpp::traits::input_parameter< double >::type seq_error(seq_errorSEXP);
     rcpp_result_gen = Rcpp::wrap(get_pvec(ploidy, bias_val, seq_error));
+    return rcpp_result_gen;
+END_RCPP
+}
+// colSums_cpp
+Rcpp::NumericVector colSums_cpp(Rcpp::NumericMatrix x);
+RcppExport SEXP updog_colSums_cpp(SEXP xSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type x(xSEXP);
+    rcpp_result_gen = Rcpp::wrap(colSums_cpp(x));
+    return rcpp_result_gen;
+END_RCPP
+}
+// expit
+double expit(double x);
+RcppExport SEXP updog_expit(SEXP xSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< double >::type x(xSEXP);
+    rcpp_result_gen = Rcpp::wrap(expit(x));
     return rcpp_result_gen;
 END_RCPP
 }

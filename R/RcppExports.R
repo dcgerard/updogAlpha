@@ -66,16 +66,6 @@ deps_dell <- function(ell) {
     .Call('updog_deps_dell', PACKAGE = 'updog', ell)
 }
 
-#' The expit function.
-#'
-#' @param x A double.
-#'
-#' @author David Gerard
-#'
-expit <- function(x) {
-    .Call('updog_expit', PACKAGE = 'updog', x)
-}
-
 #' Derivative of beta density w.r.t. unconstrained parameterization of sequencing error.
 #'
 #' I use the chain rule here. \code{\link{dbeta_dprop}} * \code{\link{dxi_df}} *
@@ -129,14 +119,31 @@ dbeta_dh_ell <- function(x, n, d, ell, p, h) {
     .Call('updog_dbeta_dh_ell', PACKAGE = 'updog', x, n, d, ell, p, h)
 }
 
-#' Gradient of \code{\link{obj_offspring}}.
+#' Gradient of \code{\link{obj_offspring}} for each individual.
 #'
 #' @inheritParams obj_offspring
+#' @param d The bias term
+#' @param ell The logit of the sequencing error rate
+#' @param h We have h = (1 - tau) / tau
+#'
 #'
 #' @author David Gerard
 #'
-grad_offspring <- function(ocounts, osize, ploidy, p1geno, p2geno, bias_val, seq_error, od_param, outlier, out_prop, out_mean, out_disp) {
-    .Call('updog_grad_offspring', PACKAGE = 'updog', ocounts, osize, ploidy, p1geno, p2geno, bias_val, seq_error, od_param, outlier, out_prop, out_mean, out_disp)
+grad_offspring_mat <- function(ocounts, osize, ploidy, p1geno, p2geno, d, ell, h) {
+    .Call('updog_grad_offspring_mat', PACKAGE = 'updog', ocounts, osize, ploidy, p1geno, p2geno, d, ell, h)
+}
+
+#' Gradient of \code{\link{obj_offspring}}.
+#'
+#' @inheritParams obj_offspring
+#' @inheritParams grad_offspring_mat
+#'
+#' @author David Gerard
+#'
+#' @export
+#'
+grad_offspring <- function(ocounts, osize, ploidy, p1geno, p2geno, d, ell, h) {
+    .Call('updog_grad_offspring', PACKAGE = 'updog', ocounts, osize, ploidy, p1geno, p2geno, d, ell, h)
 }
 
 #' Vector of objective functions for offspring.
@@ -188,6 +195,19 @@ obj_offspring_vec <- function(ocounts, osize, ploidy, p1geno, p2geno, bias_val =
 #'
 obj_offspring <- function(ocounts, osize, ploidy, p1geno, p2geno, bias_val = 1, seq_error = 0, od_param = 0, outlier = FALSE, out_prop = 0.01, out_mean = 0.5, out_disp = 1.0 / 3.0) {
     .Call('updog_obj_offspring', PACKAGE = 'updog', ocounts, osize, ploidy, p1geno, p2geno, bias_val, seq_error, od_param, outlier, out_prop, out_mean, out_disp)
+}
+
+#' Just a reparameterization of \code{\link{obj_offspring}}.
+#'
+#' @inheritParams obj_offspring_vec
+#' @param d Same as \code{bias_val} in \code{\link{obj_offspring}}.
+#' @param ell We have \code{seq_error = expit(ell)} from \code{\link{obj_offspring}}.
+#' @param h Same as \code{(1.0 - od_param) / od_param} from \code{\link{obj_offspring}}.
+#'
+#' @author David Gerard
+#'
+obj_offspring_reparam <- function(ocounts, osize, ploidy, p1geno, p2geno, d, ell, h) {
+    .Call('updog_obj_offspring_reparam', PACKAGE = 'updog', ocounts, osize, ploidy, p1geno, p2geno, d, ell, h)
 }
 
 #' Same thing as \code{\link{obj_offspring}}, but each sample's log-density has a weight.
@@ -328,5 +348,26 @@ logsumexp <- function(xx) {
 #'
 get_pvec <- function(ploidy, bias_val, seq_error) {
     .Call('updog_get_pvec', PACKAGE = 'updog', ploidy, bias_val, seq_error)
+}
+
+#' Stupid implementation of colSums because I guess not implemented in Rcpp sugar.
+#'
+#' @param x A NumericMatrix.
+#'
+#' @author David Gerard
+#'
+#'
+colSums_cpp <- function(x) {
+    .Call('updog_colSums_cpp', PACKAGE = 'updog', x)
+}
+
+#' The expit function.
+#'
+#' @param x A double.
+#'
+#' @author David Gerard
+#'
+expit <- function(x) {
+    .Call('updog_expit', PACKAGE = 'updog', x)
 }
 

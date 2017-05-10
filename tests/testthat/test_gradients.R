@@ -71,7 +71,7 @@ test_that("dbeta_dh works", {
 
   db_wrapper <- function(x, n, xi, h) {
     tau <- 1 / (h + 1)
-    updog:::dbetabinom_mu_rho_cpp(x, n, xi, tau, return_log = FALSE)
+    dbetabinom_mu_rho_cpp(x, n, xi, tau, return_log = FALSE)
   }
 
   myenv <- new.env()
@@ -215,5 +215,101 @@ test_that("dbeta_dd works ok", {
   expect_equal(attr(nout, "gradient")[1, 1], cderiv)
 }
 )
+
+test_that("the grad_offspring_mat works", {
+  set.seed(9)
+  osize   <- stats::rbinom(n = 2, size = 70, prob = 0.4)
+  ocounts <- stats::rbinom(n = 2, size = osize, prob = 0.4)
+  ploidy <- 6
+  p1geno <- 2
+  p2geno <- 2
+  d <- 2
+  eps <- 0.01
+  ell <- log(eps / (1 - eps))
+  tau <- 0.1
+  h <- (1 - tau) / (tau)
+
+  gdmat <- grad_offspring_mat(ocounts = ocounts, osize = osize, ploidy = ploidy, p1geno = p1geno,
+                              p2geno = p2geno, d = d, ell = ell, h = h)
+
+  pvec <- 0:ploidy / ploidy
+  qout <- get_q_array(ploidy)
+  tempsum <- 0
+  for (index in 1:length(pvec)) {
+    tempsum <- tempsum + dbeta_dd(x = ocounts[1], n = osize[1], d = d, ell = ell, p = pvec[index], h = h) *
+      qout[p1geno + 1, p2geno + 1,index]
+  }
+
+  ldenom_vec = obj_offspring_vec(ocounts, osize,
+                                 ploidy, p1geno, p2geno,
+                                 d, eps, tau, FALSE, 0, 1.0 / 2.0, 1.0 / 3.0)
+
+  expect_equal(tempsum * exp(-1 * ldenom_vec[1]), gdmat[1,1])
+}
+)
+
+
+test_that("the grad_offspring works", {
+  set.seed(9)
+  osize   <- stats::rbinom(n = 1, size = 70, prob = 0.4)
+  ocounts <- stats::rbinom(n = 1, size = osize, prob = 0.4)
+  ploidy <- 4
+  p1geno <- 2
+  p2geno <- 1
+  d <- 2
+  eps <- 0.01
+  ell <- log(eps / (1 - eps))
+  tau <- 0.1
+  h <- (1 - tau) / (tau)
+
+
+  ## R version ---------------------------------------------------------
+  pvec <- get_pvec(ploidy = ploidy, bias_val = d, seq_error = eps)
+  poriginal <- 0:ploidy / ploidy
+  qarray <- get_q_array_cpp(ploidy = ploidy)
+
+  grad_vec <- rep(0, 3)
+  denom_val <- 0
+  for (index in 1:(ploidy + 1)) {
+    grad_vec[1] <- dbeta_dd(x = ocounts, n = osize, d = d, ell = ell, p = poriginal[index], h = h) *
+      qarray[p1geno + 1, p2geno + 1, index] + grad_vec[1]
+    grad_vec[2] <- dbeta_dl(x = ocounts, n = osize, d = d, ell = ell, p = poriginal[index], h = h) *
+      qarray[p1geno + 1, p2geno + 1, index] + grad_vec[2]
+    grad_vec[3] <- dbeta_dh_ell(x = ocounts, n = osize, d = d, ell = ell, p = poriginal[index], h = h) *
+      qarray[p1geno + 1, p2geno + 1, index] + grad_vec[3]
+
+    temp <- dbetabinom_mu_rho(x = ocounts, size = osize, mu = pvec[index], rho = tau, log = FALSE) *
+      qarray[p1geno + 1, p2geno + 1, index]
+    denom_val <-  temp + denom_val
+  }
+  grad_vec <- grad_vec / denom_val
+
+  objout <- obj_offspring(ocounts = ocounts, osize = osize, ploidy = ploidy,
+                p1geno = p1geno, p2geno = p2geno, bias_val = d,
+                seq_error = eps, od_param = tau, outlier = FALSE)
+  expect_equal(log(denom_val), objout)
+
+  ## Numerical implementation ---------------------------------------
+  tempfunc <- function(d, ell, h) {
+    obj_offspring_reparam(ocounts = ocounts, osize = osize, ploidy = ploidy, p1geno = p1geno,
+                          p2geno = p2geno, d = d, ell = ell, h = h)
+  }
+
+  myenv <- new.env()
+  assign("d", d, envir = myenv)
+  assign("ell", ell, envir = myenv)
+  assign("h", h, envir = myenv)
+  nout <- stats::numericDeriv(quote(tempfunc(d, ell, h)), c("d", "ell", "h"), myenv)
+
+  ## Rcpp version ---------------------------------------------------
+  cderiv <- grad_offspring(ocounts = ocounts, osize = osize, ploidy = ploidy, p1geno = p1geno,
+                           p2geno = p2geno, d = d, ell = ell, h = h)
+
+  expect_equal(c(attr(nout, "gradient")), c(cderiv), tol = 10 ^ -6)
+  expect_equal(grad_vec, cderiv)
+
+}
+)
+
 
 

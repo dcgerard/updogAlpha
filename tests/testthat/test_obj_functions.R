@@ -86,7 +86,14 @@ test_that("obj_offspring_weights works ok.", {
   cppout2 <- obj_offspring_weights(ocounts = ocounts, osize = osize, ploidy = ploidy, p1geno = p1geno,
                            p2geno = p2geno, bias_val = bias_val, seq_error = seq_error, od_param = rho,
                            outlier = FALSE, weight_vec = weight_vec)
-
   expect_equal(cppout, cppout2)
+
+  ## now test obj_offspring_reparam
+  h <- (1 - rho) / rho
+  ell <- log(seq_error / (1 - seq_error))
+  cppout3 <- obj_offspring_reparam(ocounts = ocounts, osize = osize, ploidy = ploidy, p1geno = p1geno,
+                                   p2geno = p2geno, d = bias_val, ell = ell, h = h)
+  expect_equal(cppout, cppout3)
+
 }
 )

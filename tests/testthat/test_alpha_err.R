@@ -86,3 +86,11 @@ test_that("get_pvec works", {
   expect_equal(xi, get_pvec(ploidy = ploidy, bias_val = d, seq_error = seq_error))
 }
 )
+
+test_that("colSums_cpp works", {
+  set.seed(61)
+  X <- matrix(stats::rnorm(110), ncol = 11)
+
+  expect_equal(colSums(X), colSums_cpp(X))
+}
+)
