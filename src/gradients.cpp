@@ -304,6 +304,7 @@ Rcpp::NumericVector grad_offspring(Rcpp::NumericVector ocounts, Rcpp::NumericVec
 //' Gradient of \code{\link{obj_offspring_weights_reparam}}
 //'
 //' @inheritParams grad_offspring
+//' @param weight_vec A vector of weights between 0 and 1 (do not need to add up to 1).
 //'
 // [[Rcpp::export]]
 Rcpp::NumericVector grad_offspring_weights(Rcpp::NumericVector ocounts, Rcpp::NumericVector osize,

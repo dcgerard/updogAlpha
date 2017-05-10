@@ -14,6 +14,8 @@ allele for each individual.}
 \item{osize}{The observed number of reads for each
 individuals.}
 
+\item{weight_vec}{A vector of weights between 0 and 1 (do not need to add up to 1).}
+
 \item{ploidy}{An integer. The ploidy of the species. This is assumed
 to be the same for each individual.}
 

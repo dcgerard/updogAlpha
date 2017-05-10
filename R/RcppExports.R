@@ -149,6 +149,7 @@ grad_offspring <- function(ocounts, osize, ploidy, p1geno, p2geno, d, ell, h) {
 #' Gradient of \code{\link{obj_offspring_weights_reparam}}
 #'
 #' @inheritParams grad_offspring
+#' @param weight_vec A vector of weights between 0 and 1 (do not need to add up to 1).
 #'
 grad_offspring_weights <- function(ocounts, osize, weight_vec, ploidy, p1geno, p2geno, d, ell, h) {
     .Call('updog_grad_offspring_weights', PACKAGE = 'updog', ocounts, osize, weight_vec, ploidy, p1geno, p2geno, d, ell, h)
