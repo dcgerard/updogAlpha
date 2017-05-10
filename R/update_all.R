@@ -49,10 +49,10 @@ updog_update_all <- function(ocounts, osize, ploidy, seq_error) {
   best_llike <- -Inf
   for (p1geno in 0:ploidy) {
     for (p2geno in 0:p1geno) {
-      oout <- optim(par = parvec, fn = obj_wrapp_all, gr = grad_wrapp_all,
-                  ocounts = ocounts, osize = osize, ploidy = ploidy,
-                  p1geno = p1geno, p2geno = p2geno, method = "BFGS",
-                  control = list(fnscale = -1, maxit = 1000))
+      oout <- stats::optim(par = parvec, fn = obj_wrapp_all, gr = grad_wrapp_all,
+                           ocounts = ocounts, osize = osize, ploidy = ploidy,
+                           p1geno = p1geno, p2geno = p2geno, method = "BFGS",
+                           control = list(fnscale = -1, maxit = 1000))
       cat(oout$value, "\n")
       cat(oout$par, "\n\n")
       if (best_llike < oout$value) {
