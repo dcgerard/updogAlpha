@@ -5,7 +5,7 @@
 \title{This is a vanilla version of updog that will optimize everything, assuming a uniform prior on the parental
 genotypes and not assuming that we have parental sequence data, and then return the posterior summaries.}
 \usage{
-updog_vanilla(ocounts, osize, ploidy)
+updog_vanilla(ocounts, osize, ploidy, print_val)
 }
 \arguments{
 \item{ocounts}{A vector of non-negative integers. The ith element
@@ -16,6 +16,8 @@ total number of reads for the ith child.}
 
 \item{ploidy}{A positive integer. The number of copies of the
 genome in the species.}
+
+\item{print_val}{Should we print the updates?}
 }
 \description{
 This is a vanilla version of updog that will optimize everything, assuming a uniform prior on the parental

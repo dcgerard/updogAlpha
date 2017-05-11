@@ -4,7 +4,7 @@
 \alias{updog_update_all}
 \title{This function just updates everything. No options allowed!}
 \usage{
-updog_update_all(ocounts, osize, ploidy)
+updog_update_all(ocounts, osize, ploidy, print_val = TRUE)
 }
 \arguments{
 \item{ocounts}{A vector of non-negative integers. The ith element
@@ -15,6 +15,8 @@ total number of reads for the ith child.}
 
 \item{ploidy}{A positive integer. The number of copies of the
 genome in the species.}
+
+\item{print_val}{A logical. Should we print the updates?}
 }
 \description{
 This is the same as assuming a uniform prior on the parental genotypes,

@@ -401,6 +401,8 @@ logsumexp <- function(xx) {
 #'
 #' @author David Gerard
 #'
+#' @export
+#'
 get_pvec <- function(ploidy, bias_val, seq_error) {
     .Call('updog_get_pvec', PACKAGE = 'updog', ploidy, bias_val, seq_error)
 }

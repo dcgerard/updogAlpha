@@ -29,6 +29,8 @@ Rcpp::NumericVector logsumexp(Rcpp::NumericMatrix xx) {
 //'
 //' @author David Gerard
 //'
+//' @export
+//'
 // [[Rcpp::export]]
 Rcpp::NumericVector get_pvec(int ploidy, double bias_val, double seq_error) {
   Rcpp::NumericVector prob(ploidy + 1);
