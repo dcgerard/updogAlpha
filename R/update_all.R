@@ -62,9 +62,11 @@ updog_update_all <- function(ocounts, osize, ploidy, seq_error) {
     }
   }
 
-  best_bias <- exp(best_par[1])
-  best_seq  <- expit(best_par[2])
-  best_od   <- 1 / (1 + exp(best_par[3]))
+  return_list           <- list()
+  return_list$bias      <- exp(best_par[1])
+  return_list$seq_error <- expit(best_par[2])
+  return_list$od        <- 1 / (1 + exp(best_par[3]))
+  return(return_list)
 }
 
 
