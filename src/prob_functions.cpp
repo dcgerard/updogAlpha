@@ -151,6 +151,9 @@ double dbetabinom_mu_rho_cpp_double(double x, double size, double mu,
   double tol = 2 * DBL_EPSILON; // tolerance from 0.
 
   // Check input -------------------------------------------------------------
+  if (rho > (1.0 - tol)) {
+    rho = 1.0 - 2 * tol;
+  }
   if ((mu < 0) || (mu > 1)) {
     Rcpp::stop("mu must be between 0 and 1 (inclusive).");
   }

@@ -196,6 +196,7 @@ test_that("deps_dell works ok", {
 
 
 test_that("dbeta_dl works ok", {
+  set.seed(114)
   x <- 4
   n <- 6
   d <- 3/2
@@ -224,6 +225,7 @@ test_that("dbeta_dl works ok", {
 )
 
 test_that("dbeta_ds works ok", {
+  set.seed(534)
   x <- 4
   n <- 6
   d <- 3/2

@@ -4,7 +4,7 @@
 \alias{updog_update_all}
 \title{This function just updates everything. No options allowed!}
 \usage{
-updog_update_all(ocounts, osize, ploidy, seq_error)
+updog_update_all(ocounts, osize, ploidy)
 }
 \arguments{
 \item{ocounts}{A vector of non-negative integers. The ith element
@@ -15,10 +15,6 @@ total number of reads for the ith child.}
 
 \item{ploidy}{A positive integer. The number of copies of the
 genome in the species.}
-
-\item{seq_error}{A non-negative numeric. This is the known
-sequencing error rate. The default is to estimate this
-using data that are all approximately the reference allele.}
 }
 \description{
 This is the same as assuming a uniform prior on the parental genotypes,

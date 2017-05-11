@@ -32,6 +32,11 @@ double dbeta_dprop(double x, double n, double xi, double tau) {
     Rcpp::stop("tau must be between 0 and 1");
   }
 
+  double tol = 2 * DBL_EPSILON;
+  if (tau > (1.0 - tol)) {
+    tau = 1.0 - 2 * tol;
+  }
+
   double ldense = dbetabinom_mu_rho_cpp_double(x, n, xi, tau, true);
 
   // Compute all needed gamma and digamma functions ------------
@@ -57,7 +62,7 @@ double dbeta_dprop(double x, double n, double xi, double tau) {
 //'
 // [[Rcpp::export]]
 double dbeta_dh(double x, double n, double xi, double h) {
-
+  double tol = 2 * DBL_EPSILON;
   // Check input
   if (h < 0) {
     Rcpp::stop("h must be greater than 0");
@@ -65,6 +70,10 @@ double dbeta_dh(double x, double n, double xi, double h) {
 
   // get density ------------------------------------------
   double rho = 1.0 / (h + 1.0);
+
+  if (rho > (1.0 - tol)) {
+    rho = 1.0 - 2 * tol;
+  }
   double ldense = dbetabinom_mu_rho_cpp_double(x, n, xi, rho, true);
 
   // get six components -----------------------------------
