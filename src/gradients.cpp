@@ -79,6 +79,46 @@ double dbeta_dh(double x, double n, double xi, double h) {
   return deriv;
 }
 
+//' Just a wrapper for \code{std::exp}.
+//'
+//' @author David Gerard
+//'
+//' @param r A double.
+//'
+//'
+// [[Rcpp::export]]
+double dh_dr(double r) {
+  return std::exp(r);
+}
+
+//' Just a wrapper for \code{std::exp}.
+//'
+//' @author David Gerard
+//'
+//' @param s A double.
+//'
+//'
+// [[Rcpp::export]]
+double dd_ds(double s) {
+  return std::exp(s);
+}
+
+//' Derivative of beta(x|n, xi, r), where r = log(h) from \code{\link{dbeta_dh}}.
+//'
+//' @inheritParams dbeta_dh
+//' @param r We have \code{r = log(h)} from double dbeta_dr().
+//'
+//' @author David Gerard
+//'
+// [[Rcpp::export]]
+double dbeta_dr(double x, double n, double xi, double r){
+  double h = std::exp(r);
+  double dbdh = dbeta_dh(x, n, xi, h);
+  double dhdr = dh_dr(r);
+  double deriv = dbdh * dhdr;
+  return deriv;
+}
+
 
 //' Returns derivative to f / (d * (1 - f) + f)
 //'
@@ -185,53 +225,58 @@ double dxi_dd(double d, double f) {
 
 //' Derivative of betabinomial density w.r.t. bias parameter.
 //'
-//' Uses chain rule with \code{\link{dbeta_dprop}} * \code{\link{dxi_dd}}.
+//' Uses chain rule with \code{\link{dbeta_dprop}} * \code{\link{dxi_dd}} * \code{\link{dd_ds}}.
 //'
 //' @inheritParams dbeta_dl
+//' @param s We have \code{s = exp(d)}, where \code{d} is the bias parameter.
 //'
 //' @author David Gerard
 //'
 // [[Rcpp::export]]
-double dbeta_dd(double x, double n, double d, double ell, double p, double h) {
+double dbeta_ds(double x, double n, double s, double ell, double p, double h) {
 
   // intermediate parameters --------------------------------------------------
+  double d   = std::exp(s);
   double tau = 1.0 / (h + 1.0);
   double eps = expit(ell); // sequencing error
-  double xi = pbias_double(p, d, eps); // adjusted prob of A
-  double f = (1.0 - p) * eps + p * (1.0 - eps);
+  double xi  = pbias_double(p, d, eps); // adjusted prob of A
+  double f   = (1.0 - p) * eps + p * (1.0 - eps);
 
   // derivatives --------------------------------------------------------------
   double dbdxi = dbeta_dprop(x, n, xi, tau);
   double dxidd = dxi_dd(d, f);
-  double deriv = dbdxi * dxidd;
+  double ddds  = dd_ds(s);
+  double deriv = dbdxi * dxidd * ddds;
   return deriv;
 }
 
-//' Same as \code{\link{dbeta_dh}}, but with same inputs as \code{\link{dbeta_dd}}
+//' Same as \code{\link{dbeta_dh}}, but with same inputs as \code{\link{dbeta_ds}}
 //' and \code{\link{dbeta_dl}}.
 //'
 //' @inheritParams dbeta_dl
+//' @param r We have \code{tau = 1 / (1 + exp(r))}
 //'
 //' @author David Gerard
 //'
 // [[Rcpp::export]]
-double dbeta_dh_ell(double x, double n, double d, double ell, double p, double h) {
+double dbeta_dr_ell(double x, double n, double d, double ell, double p, double r) {
   // intermediate parameters ---------------------------------------------------
   double eps = expit(ell);
   double xi = pbias_double(p, d, eps);
 
   // derivative ----------------------------------------------------------------
-  double deriv = dbeta_dh(x, n, xi, h);
+  double deriv = dbeta_dr(x, n, xi, r);
   return deriv;
 }
+
 
 
 //' Gradient of \code{\link{obj_offspring}} for each individual.
 //'
 //' @inheritParams obj_offspring
-//' @param d The bias term
+//' @param s We have \code{s = exp(d)}, where \code{exp(d)} is the bias term.
 //' @param ell The logit of the sequencing error rate
-//' @param h We have h = (1 - tau) / tau
+//' @param r We have \code{r = log((1 - tau) / tau)}
 //'
 //'
 //' @author David Gerard
@@ -239,13 +284,15 @@ double dbeta_dh_ell(double x, double n, double d, double ell, double p, double h
 // [[Rcpp::export]]
 Rcpp::NumericMatrix grad_offspring_mat(Rcpp::NumericVector ocounts, Rcpp::NumericVector osize,
                                        int ploidy, int p1geno, int p2geno,
-                                       double d, double ell,
-                                       double h) {
+                                       double s, double ell,
+                                       double r) {
   double tol = 2.0 * DBL_EPSILON;
 
   // Get ancillary parameters ------------------------------------------------------
+  double h   = std::exp(r);
   double tau = 1.0 / (h + 1.0); // the overdispersion parameter between 0 and 1
   double eps = expit(ell); // the sequencing error rate
+  double d   = std::exp(s); // the bias parameter
 
   // Get the log of the denominator for each individual ----------------------------
   Rcpp::NumericVector ldenom_vec = obj_offspring_vec(ocounts, osize,
@@ -265,11 +312,11 @@ Rcpp::NumericMatrix grad_offspring_mat(Rcpp::NumericVector ocounts, Rcpp::Numeri
   for (int i = 0; i < ocounts.size(); i++) {
     for (int j = 0; j < ploidy + 1; j++) {
       if (qarray(p1geno, p2geno, j) > tol) {
-        grad_ind(i, 0) = grad_ind(i, 0) + dbeta_dd(ocounts(i), osize(i), d, ell, probs(j), h) *
+        grad_ind(i, 0) = grad_ind(i, 0) + dbeta_ds(ocounts(i), osize(i), s, ell, probs(j), h) *
           qarray(p1geno, p2geno, j);
         grad_ind(i, 1) = grad_ind(i, 1) + dbeta_dl(ocounts(i), osize(i), d, ell, probs(j), h) *
           qarray(p1geno, p2geno, j);
-        grad_ind(i, 2) = grad_ind(i, 2) + dbeta_dh_ell(ocounts(i), osize(i), d, ell, probs(j), h) *
+        grad_ind(i, 2) = grad_ind(i, 2) + dbeta_dr_ell(ocounts(i), osize(i), d, ell, probs(j), r) *
           qarray(p1geno, p2geno, j);
       }
     }
@@ -293,10 +340,10 @@ Rcpp::NumericMatrix grad_offspring_mat(Rcpp::NumericVector ocounts, Rcpp::Numeri
 // [[Rcpp::export]]
 Rcpp::NumericVector grad_offspring(Rcpp::NumericVector ocounts, Rcpp::NumericVector osize,
                                    int ploidy, int p1geno, int p2geno,
-                                   double d, double ell,
-                                   double h) {
+                                   double s, double ell,
+                                   double r) {
   Rcpp::NumericMatrix gb_mat = grad_offspring_mat(ocounts, osize, ploidy, p1geno, p2geno,
-                                                  d, ell, h);
+                                                  s, ell, r);
   Rcpp::NumericVector grad = colSums_cpp(gb_mat);
   return(grad);
 }
@@ -310,8 +357,8 @@ Rcpp::NumericVector grad_offspring(Rcpp::NumericVector ocounts, Rcpp::NumericVec
 Rcpp::NumericVector grad_offspring_weights(Rcpp::NumericVector ocounts, Rcpp::NumericVector osize,
                                            Rcpp::NumericVector weight_vec,
                                            int ploidy, int p1geno, int p2geno,
-                                           double d, double ell,
-                                           double h) {
+                                           double s, double ell,
+                                           double r) {
   // Check input --------------------------------------------------------------
   if (weight_vec.size() != ocounts.size()) {
     Rcpp::stop("weight_vec and ocounts should have the same size.");
@@ -322,7 +369,7 @@ Rcpp::NumericVector grad_offspring_weights(Rcpp::NumericVector ocounts, Rcpp::Nu
     }
   }
   Rcpp::NumericMatrix gb_mat = grad_offspring_mat(ocounts, osize, ploidy, p1geno, p2geno,
-                                                  d, ell, h);
+                                                  s, ell, r);
   Rcpp::NumericVector grad(3);
   Rcpp::NumericMatrix::Column zzcol = gb_mat(Rcpp::_, 0);
   grad(0) = Rcpp::sum(zzcol * weight_vec);

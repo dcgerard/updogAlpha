@@ -4,8 +4,8 @@
 \alias{grad_offspring_weights}
 \title{Gradient of \code{\link{obj_offspring_weights_reparam}}}
 \usage{
-grad_offspring_weights(ocounts, osize, weight_vec, ploidy, p1geno, p2geno, d,
-  ell, h)
+grad_offspring_weights(ocounts, osize, weight_vec, ploidy, p1geno, p2geno, s,
+  ell, r)
 }
 \arguments{
 \item{ocounts}{The observed counts of the refernce
@@ -25,11 +25,11 @@ reference allele the first parent has.}
 \item{p2geno}{The second parental genotype. The number of copies of the
 reference allele the second parent has.}
 
-\item{d}{The bias term}
+\item{s}{We have \code{s = exp(d)}, where \code{exp(d)} is the bias term.}
 
 \item{ell}{The logit of the sequencing error rate}
 
-\item{h}{We have h = (1 - tau) / tau}
+\item{r}{We have \code{r = log((1 - tau) / tau)}}
 }
 \description{
 Gradient of \code{\link{obj_offspring_weights_reparam}}

@@ -39,6 +39,9 @@ test_that("dbeta_dprop works", {
 )
 
 
+
+
+
 test_that("dbeta_dh works", {
   x  <- 4
   n  <- 6
@@ -63,9 +66,7 @@ test_that("dbeta_dh works", {
   rderiv <- (comp1 + comp2 + comp3 - comp4 - comp5 - comp6) * dense
   cderiv <- dbeta_dh(x, n, xi, h)
 
-  cderiv2 <- dbeta_dh_ell(x = x, n = n, d = d, ell = ell, p = p, h = h)
   expect_equal(cderiv, rderiv)
-  expect_equal(cderiv, cderiv2)
 
   ## Numerical version ---------------------------------------
 
@@ -81,6 +82,40 @@ test_that("dbeta_dh works", {
   assign("xi", xi, envir = myenv)
   nout <- stats::numericDeriv(quote(db_wrapper(x, n, xi, h)), "h", myenv)
   expect_equal(cderiv, attr(nout, "gradient")[1, 1])
+}
+)
+
+
+test_that("dbeta_dr works", {
+  x   <- 4
+  n   <- 6
+  h   <- 2
+  r   <- log(h)
+  p   <- 0.5
+  d   <- 0.9
+  eps <- 0.2
+  xi  <- pbias_double(p, d, eps)
+  ell <- log(eps / (1 - eps))
+
+  ## Numerical version ---------------------------------------
+
+  db_wrapper <- function(x, n, xi, r) {
+    tau <- 1 / (exp(r) + 1)
+    dbetabinom_mu_rho_cpp(x, n, xi, tau, return_log = FALSE)
+  }
+
+  myenv <- new.env()
+  assign("r", r, envir = myenv)
+  assign("x", x, envir = myenv)
+  assign("n", n, envir = myenv)
+  assign("xi", xi, envir = myenv)
+  nout <- stats::numericDeriv(quote(db_wrapper(x, n, xi, r)), "r", myenv)
+  cderiv <- dbeta_dr(x, n, xi, r)
+  expect_equal(cderiv, attr(nout, "gradient")[1, 1])
+
+  cderiv2 <- dbeta_dr_ell(x = x, n = n, d = d, ell = ell, p = p, r = r)
+  expect_equal(cderiv2, cderiv)
+
 }
 )
 
@@ -188,17 +223,19 @@ test_that("dbeta_dl works ok", {
 }
 )
 
-test_that("dbeta_dd works ok", {
+test_that("dbeta_ds works ok", {
   x <- 4
   n <- 6
   d <- 3/2
+  s <- log(d)
   ell <- 1
   p <- 1/3
   tau <- 1 / 3
   h <- (1 - tau) / tau
 
-  beta_wrap <- function(x, n, d, ell, p, tau) {
+  beta_wrap <- function(x, n, s, ell, p, tau) {
     eps <- exp(ell) / (1 + exp(ell))
+    d = exp(s)
     xi <- pbias_double(prob = p, bias = d, seq_error = eps)
     dbetabinom_mu_rho_cpp(x = x, size = n, mu = xi, rho = tau, return_log = FALSE)
   }
@@ -206,12 +243,12 @@ test_that("dbeta_dd works ok", {
   myenv <- new.env()
   assign("x", x, envir = myenv)
   assign("n", n, envir = myenv)
-  assign("d", d, envir = myenv)
+  assign("s", s, envir = myenv)
   assign("ell", ell, envir = myenv)
   assign("p", p, envir = myenv)
   assign("tau", tau, envir = myenv)
-  nout <- stats::numericDeriv(quote(beta_wrap(x, n, d, ell, p, tau)), "d", myenv)
-  cderiv <- dbeta_dd(x, n, d, ell, p, h)
+  nout <- stats::numericDeriv(quote(beta_wrap(x, n, s, ell, p, tau)), "s", myenv)
+  cderiv <- dbeta_ds(x, n, s, ell, p, h)
   expect_equal(attr(nout, "gradient")[1, 1], cderiv)
 }
 )
@@ -224,19 +261,21 @@ test_that("the grad_offspring_mat works", {
   p1geno <- 2
   p2geno <- 2
   d <- 2
+  s <- log(d)
   eps <- 0.01
   ell <- log(eps / (1 - eps))
   tau <- 0.1
   h <- (1 - tau) / (tau)
+  r = log(h)
 
   gdmat <- grad_offspring_mat(ocounts = ocounts, osize = osize, ploidy = ploidy, p1geno = p1geno,
-                              p2geno = p2geno, d = d, ell = ell, h = h)
+                              p2geno = p2geno, s = s, ell = ell, r = r)
 
   pvec <- 0:ploidy / ploidy
   qout <- get_q_array(ploidy)
   tempsum <- 0
   for (index in 1:length(pvec)) {
-    tempsum <- tempsum + dbeta_dd(x = ocounts[1], n = osize[1], d = d, ell = ell, p = pvec[index], h = h) *
+    tempsum <- tempsum + dbeta_ds(x = ocounts[1], n = osize[1], s = s, ell = ell, p = pvec[index], h = h) *
       qout[p1geno + 1, p2geno + 1,index]
   }
 
@@ -257,56 +296,30 @@ test_that("the grad_offspring works", {
   p1geno <- 2
   p2geno <- 1
   d <- 2
+  s <- log(d)
   eps <- 0.01
   ell <- log(eps / (1 - eps))
   tau <- 0.1
   h <- (1 - tau) / (tau)
-
-
-  ## R version ---------------------------------------------------------
-  pvec <- get_pvec(ploidy = ploidy, bias_val = d, seq_error = eps)
-  poriginal <- 0:ploidy / ploidy
-  qarray <- get_q_array_cpp(ploidy = ploidy)
-
-  grad_vec <- rep(0, 3)
-  denom_val <- 0
-  for (index in 1:(ploidy + 1)) {
-    grad_vec[1] <- dbeta_dd(x = ocounts, n = osize, d = d, ell = ell, p = poriginal[index], h = h) *
-      qarray[p1geno + 1, p2geno + 1, index] + grad_vec[1]
-    grad_vec[2] <- dbeta_dl(x = ocounts, n = osize, d = d, ell = ell, p = poriginal[index], h = h) *
-      qarray[p1geno + 1, p2geno + 1, index] + grad_vec[2]
-    grad_vec[3] <- dbeta_dh_ell(x = ocounts, n = osize, d = d, ell = ell, p = poriginal[index], h = h) *
-      qarray[p1geno + 1, p2geno + 1, index] + grad_vec[3]
-
-    temp <- dbetabinom_mu_rho(x = ocounts, size = osize, mu = pvec[index], rho = tau, log = FALSE) *
-      qarray[p1geno + 1, p2geno + 1, index]
-    denom_val <-  temp + denom_val
-  }
-  grad_vec <- grad_vec / denom_val
-
-  objout <- obj_offspring(ocounts = ocounts, osize = osize, ploidy = ploidy,
-                p1geno = p1geno, p2geno = p2geno, bias_val = d,
-                seq_error = eps, od_param = tau, outlier = FALSE)
-  expect_equal(log(denom_val), objout)
+  r <- log(h)
 
   ## Numerical implementation ---------------------------------------
-  tempfunc <- function(d, ell, h) {
+  tempfunc <- function(s, ell, r) {
     obj_offspring_reparam(ocounts = ocounts, osize = osize, ploidy = ploidy, p1geno = p1geno,
-                          p2geno = p2geno, d = d, ell = ell, h = h)
+                          p2geno = p2geno, s = s, ell = ell, r = r)
   }
 
   myenv <- new.env()
-  assign("d", d, envir = myenv)
+  assign("s", s, envir = myenv)
   assign("ell", ell, envir = myenv)
-  assign("h", h, envir = myenv)
-  nout <- stats::numericDeriv(quote(tempfunc(d, ell, h)), c("d", "ell", "h"), myenv)
+  assign("r", r, envir = myenv)
+  nout <- stats::numericDeriv(quote(tempfunc(s, ell, r)), c("s", "ell", "r"), myenv)
 
   ## Rcpp version ---------------------------------------------------
   cderiv <- grad_offspring(ocounts = ocounts, osize = osize, ploidy = ploidy, p1geno = p1geno,
-                           p2geno = p2geno, d = d, ell = ell, h = h)
+                           p2geno = p2geno, s = s, ell = ell, r = r)
 
-  expect_equal(c(attr(nout, "gradient")), c(cderiv), tol = 10 ^ -6)
-  expect_equal(grad_vec, cderiv)
+  expect_equal(c(attr(nout, "gradient")), c(cderiv), tol = 10 ^ -5)
 }
 )
 
@@ -319,31 +332,33 @@ test_that("the grad_offspring_weights works", {
   p1geno <- 2
   p2geno <- 1
   d <- 2
+  s <- log(d)
   eps <- 0.01
   ell <- log(eps / (1 - eps))
   tau <- 0.1
   h <- (1 - tau) / (tau)
+  r <- log(h)
   weight_vec <- stats::runif(nsamp)
 
   ## Numerical implementation ---------------------------------------
-  tempfunc <- function(d, ell, h) {
+  tempfunc <- function(s, ell, r) {
     obj_offspring_weights_reparam(ocounts = ocounts, osize = osize,
                                   weight_vec = weight_vec,
                                   ploidy = ploidy, p1geno = p1geno,
-                                  p2geno = p2geno, d = d, ell = ell, h = h)
+                                  p2geno = p2geno, s = s, ell = ell, r = r)
   }
 
   myenv <- new.env()
-  assign("d", d, envir = myenv)
+  assign("s", s, envir = myenv)
   assign("ell", ell, envir = myenv)
-  assign("h", h, envir = myenv)
-  nout <- stats::numericDeriv(quote(tempfunc(d, ell, h)), c("d", "ell", "h"), myenv)
+  assign("r", r, envir = myenv)
+  nout <- stats::numericDeriv(quote(tempfunc(s, ell, r)), c("s", "ell", "r"), myenv)
 
   ## Rcpp version ---------------------------------------------------
   cderiv <- grad_offspring_weights(ocounts = ocounts, osize = osize,
                                    weight_vec = weight_vec,
                                    ploidy = ploidy, p1geno = p1geno,
-                                   p2geno = p2geno, d = d, ell = ell, h = h)
+                                   p2geno = p2geno, s = s, ell = ell, r = r)
 
   expect_equal(c(attr(nout, "gradient")), c(cderiv), tol = 10 ^ -6)
 }

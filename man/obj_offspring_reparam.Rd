@@ -4,7 +4,7 @@
 \alias{obj_offspring_reparam}
 \title{Just a reparameterization of \code{\link{obj_offspring}}.}
 \usage{
-obj_offspring_reparam(ocounts, osize, ploidy, p1geno, p2geno, d, ell, h)
+obj_offspring_reparam(ocounts, osize, ploidy, p1geno, p2geno, s, ell, r)
 }
 \arguments{
 \item{ocounts}{The observed counts of the refernce
@@ -22,11 +22,11 @@ reference allele the first parent has.}
 \item{p2geno}{The second parental genotype. The number of copies of the
 reference allele the second parent has.}
 
-\item{d}{Same as \code{bias_val} in \code{\link{obj_offspring}}.}
+\item{s}{Same as \code{exp(bias_val)} in \code{\link{obj_offspring}}.}
 
 \item{ell}{We have \code{seq_error = expit(ell)} from \code{\link{obj_offspring}}.}
 
-\item{h}{Same as \code{(1.0 - od_param) / od_param} from \code{\link{obj_offspring}}.}
+\item{r}{Same as \code{log((1.0 - od_param) / od_param)} from \code{\link{obj_offspring}}.}
 }
 \description{
 Just a reparameterization of \code{\link{obj_offspring}}.

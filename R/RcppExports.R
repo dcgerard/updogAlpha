@@ -30,6 +30,39 @@ dbeta_dh <- function(x, n, xi, h) {
     .Call('updog_dbeta_dh', PACKAGE = 'updog', x, n, xi, h)
 }
 
+#' Just a wrapper for \code{std::exp}.
+#'
+#' @author David Gerard
+#'
+#' @param r A double.
+#'
+#'
+dh_dr <- function(r) {
+    .Call('updog_dh_dr', PACKAGE = 'updog', r)
+}
+
+#' Just a wrapper for \code{std::exp}.
+#'
+#' @author David Gerard
+#'
+#' @param s A double.
+#'
+#'
+dd_ds <- function(s) {
+    .Call('updog_dd_ds', PACKAGE = 'updog', s)
+}
+
+#' Derivative of beta(x|n, xi, r), where r = log(h) from \code{\link{dbeta_dh}}.
+#'
+#' @inheritParams dbeta_dh
+#' @param r We have \code{r = log(h)} from double dbeta_dr().
+#'
+#' @author David Gerard
+#'
+dbeta_dr <- function(x, n, xi, r) {
+    .Call('updog_dbeta_dr', PACKAGE = 'updog', x, n, xi, r)
+}
+
 #' Returns derivative to f / (d * (1 - f) + f)
 #'
 #' @param f The sequencing-error adjusted probability of the refernence allele.
@@ -98,39 +131,41 @@ dxi_dd <- function(d, f) {
 
 #' Derivative of betabinomial density w.r.t. bias parameter.
 #'
-#' Uses chain rule with \code{\link{dbeta_dprop}} * \code{\link{dxi_dd}}.
+#' Uses chain rule with \code{\link{dbeta_dprop}} * \code{\link{dxi_dd}} * \code{\link{dd_ds}}.
 #'
 #' @inheritParams dbeta_dl
+#' @param s We have \code{s = exp(d)}, where \code{d} is the bias parameter.
 #'
 #' @author David Gerard
 #'
-dbeta_dd <- function(x, n, d, ell, p, h) {
-    .Call('updog_dbeta_dd', PACKAGE = 'updog', x, n, d, ell, p, h)
+dbeta_ds <- function(x, n, s, ell, p, h) {
+    .Call('updog_dbeta_ds', PACKAGE = 'updog', x, n, s, ell, p, h)
 }
 
-#' Same as \code{\link{dbeta_dh}}, but with same inputs as \code{\link{dbeta_dd}}
+#' Same as \code{\link{dbeta_dh}}, but with same inputs as \code{\link{dbeta_ds}}
 #' and \code{\link{dbeta_dl}}.
 #'
 #' @inheritParams dbeta_dl
+#' @param r We have \code{tau = 1 / (1 + exp(r))}
 #'
 #' @author David Gerard
 #'
-dbeta_dh_ell <- function(x, n, d, ell, p, h) {
-    .Call('updog_dbeta_dh_ell', PACKAGE = 'updog', x, n, d, ell, p, h)
+dbeta_dr_ell <- function(x, n, d, ell, p, r) {
+    .Call('updog_dbeta_dr_ell', PACKAGE = 'updog', x, n, d, ell, p, r)
 }
 
 #' Gradient of \code{\link{obj_offspring}} for each individual.
 #'
 #' @inheritParams obj_offspring
-#' @param d The bias term
+#' @param s We have \code{s = exp(d)}, where \code{exp(d)} is the bias term.
 #' @param ell The logit of the sequencing error rate
-#' @param h We have h = (1 - tau) / tau
+#' @param r We have \code{r = log((1 - tau) / tau)}
 #'
 #'
 #' @author David Gerard
 #'
-grad_offspring_mat <- function(ocounts, osize, ploidy, p1geno, p2geno, d, ell, h) {
-    .Call('updog_grad_offspring_mat', PACKAGE = 'updog', ocounts, osize, ploidy, p1geno, p2geno, d, ell, h)
+grad_offspring_mat <- function(ocounts, osize, ploidy, p1geno, p2geno, s, ell, r) {
+    .Call('updog_grad_offspring_mat', PACKAGE = 'updog', ocounts, osize, ploidy, p1geno, p2geno, s, ell, r)
 }
 
 #' Gradient of \code{\link{obj_offspring_reparam}}.
@@ -142,8 +177,8 @@ grad_offspring_mat <- function(ocounts, osize, ploidy, p1geno, p2geno, d, ell, h
 #'
 #' @export
 #'
-grad_offspring <- function(ocounts, osize, ploidy, p1geno, p2geno, d, ell, h) {
-    .Call('updog_grad_offspring', PACKAGE = 'updog', ocounts, osize, ploidy, p1geno, p2geno, d, ell, h)
+grad_offspring <- function(ocounts, osize, ploidy, p1geno, p2geno, s, ell, r) {
+    .Call('updog_grad_offspring', PACKAGE = 'updog', ocounts, osize, ploidy, p1geno, p2geno, s, ell, r)
 }
 
 #' Gradient of \code{\link{obj_offspring_weights_reparam}}
@@ -151,8 +186,8 @@ grad_offspring <- function(ocounts, osize, ploidy, p1geno, p2geno, d, ell, h) {
 #' @inheritParams grad_offspring
 #' @param weight_vec A vector of weights between 0 and 1 (do not need to add up to 1).
 #'
-grad_offspring_weights <- function(ocounts, osize, weight_vec, ploidy, p1geno, p2geno, d, ell, h) {
-    .Call('updog_grad_offspring_weights', PACKAGE = 'updog', ocounts, osize, weight_vec, ploidy, p1geno, p2geno, d, ell, h)
+grad_offspring_weights <- function(ocounts, osize, weight_vec, ploidy, p1geno, p2geno, s, ell, r) {
+    .Call('updog_grad_offspring_weights', PACKAGE = 'updog', ocounts, osize, weight_vec, ploidy, p1geno, p2geno, s, ell, r)
 }
 
 #' Vector of objective functions for offspring.
@@ -209,14 +244,14 @@ obj_offspring <- function(ocounts, osize, ploidy, p1geno, p2geno, bias_val = 1, 
 #' Just a reparameterization of \code{\link{obj_offspring}}.
 #'
 #' @inheritParams obj_offspring_vec
-#' @param d Same as \code{bias_val} in \code{\link{obj_offspring}}.
+#' @param s Same as \code{exp(bias_val)} in \code{\link{obj_offspring}}.
 #' @param ell We have \code{seq_error = expit(ell)} from \code{\link{obj_offspring}}.
-#' @param h Same as \code{(1.0 - od_param) / od_param} from \code{\link{obj_offspring}}.
+#' @param r Same as \code{log((1.0 - od_param) / od_param)} from \code{\link{obj_offspring}}.
 #'
 #' @author David Gerard
 #'
-obj_offspring_reparam <- function(ocounts, osize, ploidy, p1geno, p2geno, d, ell, h) {
-    .Call('updog_obj_offspring_reparam', PACKAGE = 'updog', ocounts, osize, ploidy, p1geno, p2geno, d, ell, h)
+obj_offspring_reparam <- function(ocounts, osize, ploidy, p1geno, p2geno, s, ell, r) {
+    .Call('updog_obj_offspring_reparam', PACKAGE = 'updog', ocounts, osize, ploidy, p1geno, p2geno, s, ell, r)
 }
 
 #' Same thing as \code{\link{obj_offspring}}, but each sample's log-density has a weight.
@@ -241,8 +276,8 @@ obj_offspring_weights <- function(ocounts, osize, weight_vec, ploidy, p1geno, p2
 #'
 #' @author David Gerard
 #'
-obj_offspring_weights_reparam <- function(ocounts, osize, weight_vec, ploidy, p1geno, p2geno, d, ell, h) {
-    .Call('updog_obj_offspring_weights_reparam', PACKAGE = 'updog', ocounts, osize, weight_vec, ploidy, p1geno, p2geno, d, ell, h)
+obj_offspring_weights_reparam <- function(ocounts, osize, weight_vec, ploidy, p1geno, p2geno, s, ell, r) {
+    .Call('updog_obj_offspring_weights_reparam', PACKAGE = 'updog', ocounts, osize, weight_vec, ploidy, p1geno, p2geno, s, ell, r)
 }
 
 #' Returns the probability of seeing the reference allele after including
