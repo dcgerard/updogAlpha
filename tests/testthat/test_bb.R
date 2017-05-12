@@ -91,3 +91,37 @@ test_that("dbetabinom_mu_rho_cpp_double works", {
                dbetabinom_mu_rho_cpp_double(x, n, mu, rho, FALSE))
 }
 )
+
+
+test_that("bbpost_double and bb_simple_post give same results", {
+  x <- 4
+  n <- 6
+  ploidy <- 6
+  p1geno <- 2
+  p2geno <- 1
+  seq_error <- 0.01
+  bias_val <- 0.9
+  od_param <- 0.01
+
+  bbout <- bbpost_double(x = x, n = n, ploidy = ploidy, p1geno = p1geno, p2geno = p2geno,
+                         seq_error = seq_error, bias_val = bias_val, od_param = od_param,
+                         outlier = FALSE)
+  bbout_r <- bb_simple_post(ncounts = x, ssize = n, ploidy = ploidy, p1geno = p1geno, p2geno = p2geno,
+                            seq_error = seq_error, bias_val = bias_val, od_param = od_param)
+
+  bbvec <- bbpost_tot(c(x, x), c(n, n), ploidy = ploidy, p1geno = p1geno, p2geno = p2geno,
+                      seq_error = seq_error, bias_val = bias_val, od_param = od_param,
+                      outlier = FALSE)
+
+  expect_equal(bbout, bbout_r)
+  expect_equal(bbout, bbvec[1, , drop = TRUE])
+  expect_equal(bbout, bbvec[2, , drop = TRUE])
+
+  ## Test outlier prob
+  temp <- get_out_prop(ocounts = c(x, x), osize = c(n, n), ploidy = ploidy, p1geno = p1geno,
+                       p2geno = p2geno, d = bias_val, eps = seq_error, tau = od_param,
+                       out_prop = 0.1, out_mean = 0.5,
+                       out_disp = 1/3)
+  expect_equal(temp[1], temp[2])
+}
+)

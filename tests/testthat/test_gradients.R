@@ -515,6 +515,27 @@ test_that("the grad_offspring_weights_original works", {
 )
 
 
+test_that("outlier_grad matches outlier_obj", {
 
+  ocounts <- c(12, 14, 16)
+  osize   <- c(20, 30, 40)
+  weight_vec <- c(0.1, 0.2, 0.3)
+  out_mean <- 0.4
+  out_disp <- 0.1
+
+  tempfunc <- function(out_mean, out_disp) {
+    outlier_obj(ocounts = ocounts, osize = osize, weight_vec = weight_vec,
+                out_mean = out_mean, out_disp = out_disp)
+  }
+
+  myenv <- new.env()
+  assign("out_mean", out_mean, envir = myenv)
+  assign("out_disp", out_disp, envir = myenv)
+  nout <- stats::numericDeriv(quote(tempfunc(out_mean, out_disp)), c("out_mean", "out_disp"), myenv)
+  cderiv <- outlier_grad(ocounts = ocounts, osize = osize, weight_vec = weight_vec,
+                         out_mean = out_mean, out_disp = out_disp)
+  expect_equal(c(attr(nout, "gradient")), cderiv, tol = 10 ^ -6)
+}
+)
 
 

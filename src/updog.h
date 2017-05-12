@@ -39,3 +39,8 @@ Rcpp::NumericVector logsumexp(Rcpp::NumericMatrix xx);
 Rcpp::NumericVector get_pvec(int ploidy, double bias_val, double seq_error);
 Rcpp::NumericVector colSums_cpp(Rcpp::NumericMatrix x);
 double expit(double x);
+
+// Functions from gradients.cpp --------------------------
+double dbeta_dprop(double x, double n, double xi, double tau);
+double dbeta_dh(double x, double n, double xi, double h);
+double dh_dtau(double tau);
