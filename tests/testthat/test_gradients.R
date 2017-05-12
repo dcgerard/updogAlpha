@@ -251,7 +251,7 @@ test_that("dbeta_ds works ok", {
   assign("tau", tau, envir = myenv)
   nout <- stats::numericDeriv(quote(beta_wrap(x, n, s, ell, p, tau)), "s", myenv)
   cderiv <- dbeta_ds(x, n, s, ell, p, h)
-  expect_equal(attr(nout, "gradient")[1, 1], cderiv)
+  expect_equal(attr(nout, "gradient")[1, 1], cderiv, tol = 10 ^ -5)
 }
 )
 
