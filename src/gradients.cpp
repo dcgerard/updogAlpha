@@ -280,7 +280,7 @@ double dbeta_dr_ell(double x, double n, double d, double ell, double p, double r
 
 
 
-//' Gradient of \code{\link{obj_offspring}} for each individual.
+//' Gradient of \code{\link{obj_offspring_reparam}} for each individual.
 //'
 //' @inheritParams obj_offspring
 //' @param s We have \code{s = exp(d)}, where \code{exp(d)} is the bias term.
@@ -379,6 +379,206 @@ Rcpp::NumericVector grad_offspring_weights(Rcpp::NumericVector ocounts, Rcpp::Nu
   }
   Rcpp::NumericMatrix gb_mat = grad_offspring_mat(ocounts, osize, ploidy, p1geno, p2geno,
                                                   s, ell, r);
+  Rcpp::NumericVector grad(3);
+  Rcpp::NumericMatrix::Column zzcol = gb_mat(Rcpp::_, 0);
+  grad(0) = Rcpp::sum(zzcol * weight_vec);
+  zzcol = gb_mat(Rcpp::_, 1);
+  grad(1) = Rcpp::sum(zzcol * weight_vec);
+  zzcol = gb_mat(Rcpp::_, 2);
+  grad(2) = Rcpp::sum(zzcol * weight_vec);
+  return(grad);
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////
+// Gradient of objective function in original parameterization
+////////////////////////////////////////////////////////////////////////////
+
+//' Derivative of beta density w.r.t. sequencing error rate.
+//'
+//' I use the chain rule here. \code{\link{dbeta_dprop}} * \code{\link{dxi_df}} *
+//' \code{\link{df_deps}}.
+//'
+//' @param x The number of counts of reference allele.
+//' @param n The number of counts of reads.
+//' @param d The sequencing bias parameter.
+//' @param eps The sequencing error rate
+//' @param p The proportion of genome that is the reference allele.
+//' @param tau The overdisperion parameter.
+//'
+//'
+//' @author David Gerard
+//'
+// [[Rcpp::export]]
+double dbeta_deps(double x, double n, double d, double eps, double p, double tau) {
+
+  // intermediate parameters --------------------------------------------------
+  double xi = pbias_double(p, d, eps);
+  double f = (1.0 - p) * eps + p * (1.0 - eps);
+
+  // Derivatives --------------------------------------------------------------
+  double dbdxi  = dbeta_dprop(x, n, xi, tau);
+  double dxidf  = dxi_df(d, f);
+  double dfdeps = df_deps(eps, p);
+  double deriv = dbdxi * dxidf * dfdeps;
+  return deriv;
+}
+
+
+//' Derivative of betabinomial density w.r.t. original bias parameter.
+//'
+//' Uses chain rule with \code{\link{dbeta_dprop}} * \code{\link{dxi_dd}}.
+//'
+//' @inheritParams dbeta_deps
+//'
+//' @author David Gerard
+//'
+// [[Rcpp::export]]
+double dbeta_dd(double x, double n, double d, double eps, double p, double tau) {
+
+  // intermediate parameters --------------------------------------------------
+  double xi  = pbias_double(p, d, eps); // adjusted prob of A
+  double f   = (1.0 - p) * eps + p * (1.0 - eps);
+
+  // derivatives --------------------------------------------------------------
+  double dbdxi = dbeta_dprop(x, n, xi, tau);
+  double dxidd = dxi_dd(d, f);
+  double deriv = dbdxi * dxidd;
+  return deriv;
+}
+
+
+//' Derivative of h(tau) = (1 - tau) / tau.
+//'
+//' Just returns -1 / tau^2
+//'
+//' @param tau A double. The overdispersion parameter
+//'
+//' @author David Gerard
+//'
+// [[Rcpp::export]]
+double dh_dtau(double tau) {
+  return -1.0 / std::pow(tau, 2.0);
+}
+
+
+//' Derivative of beta(x|n, xi, tau).
+//'
+//' @inheritParams dbeta_deps
+//'
+//' @author David Gerard
+//'
+// [[Rcpp::export]]
+double dbeta_dtau(double x, double n, double d, double eps, double p, double tau){
+  double xi  = pbias_double(p, d, eps); // adjusted prob of A
+  double h = (1.0 - tau) / tau;
+  double dbdh = dbeta_dh(x, n, xi, h);
+  double dhdtau = dh_dtau(tau);
+  double deriv = dbdh * dhdtau;
+  return deriv;
+}
+
+
+
+//' Gradient of \code{\link{obj_offspring}} for each individual. This is in the
+//' original parameterization.
+//'
+//' @inheritParams obj_offspring
+//' @inheritParams dbeta_deps
+//'
+//'
+//' @author David Gerard
+//'
+// [[Rcpp::export]]
+Rcpp::NumericMatrix grad_offspring_mat_original(Rcpp::NumericVector ocounts,
+                                                Rcpp::NumericVector osize,
+                                                int ploidy, int p1geno, int p2geno,
+                                                double d, double eps,
+                                                double tau) {
+  double tol = 2.0 * DBL_EPSILON;
+
+  // Get the log of the denominator for each individual ----------------------------
+  Rcpp::NumericVector ldenom_vec = obj_offspring_vec(ocounts, osize,
+                                                     ploidy, p1geno, p2geno,
+                                                     d, eps, tau, false, 0, 1.0 / 2.0, 1.0 / 3.0);
+
+  // Get possible probabilities ----------------------------------------------------
+  Rcpp::NumericVector probs(ploidy + 1);
+  for (int i = 0; i < ploidy + 1; i++) {
+    probs(i) = (double)i / ploidy;
+  }
+
+  // Get segregation probabilities --- probably faster to have this as argument ----
+  arma::Cube<double> qarray = get_q_array_cpp(ploidy);
+
+  Rcpp::NumericMatrix grad_ind(ocounts.size(), 3); // goes d, ell, h
+  for (int i = 0; i < ocounts.size(); i++) {
+    for (int j = 0; j < ploidy + 1; j++) {
+      if (qarray(p1geno, p2geno, j) > tol) {
+        grad_ind(i, 0) = grad_ind(i, 0) + dbeta_dd(ocounts(i), osize(i), d, eps, probs(j), tau) *
+          qarray(p1geno, p2geno, j);
+        grad_ind(i, 1) = grad_ind(i, 1) + dbeta_deps(ocounts(i), osize(i), d, eps, probs(j), tau) *
+          qarray(p1geno, p2geno, j);
+        grad_ind(i, 2) = grad_ind(i, 2) + dbeta_dtau(ocounts(i), osize(i), d, eps, probs(j), tau) *
+          qarray(p1geno, p2geno, j);
+      }
+    }
+    grad_ind(i, 0) = grad_ind(i, 0) * std::exp(-1.0 * ldenom_vec(i));
+    grad_ind(i, 1) = grad_ind(i, 1) * std::exp(-1.0 * ldenom_vec(i));
+    grad_ind(i, 2) = grad_ind(i, 2) * std::exp(-1.0 * ldenom_vec(i));
+  }
+
+  return grad_ind;
+}
+
+//' Gradient of \code{\link{obj_offspring}} using the original parameterization.
+//'
+//' @inheritParams obj_offspring
+//' @inheritParams dbeta_deps
+//'
+//' @author David Gerard
+//'
+//' @export
+//'
+// [[Rcpp::export]]
+Rcpp::NumericVector grad_offspring_original(Rcpp::NumericVector ocounts,
+                                            Rcpp::NumericVector osize,
+                                            int ploidy, int p1geno, int p2geno,
+                                            double d, double eps,
+                                            double tau) {
+  Rcpp::NumericMatrix gb_mat = grad_offspring_mat_original(ocounts, osize, ploidy, p1geno, p2geno,
+                                                           d, eps, tau);
+  Rcpp::NumericVector grad = colSums_cpp(gb_mat);
+  return(grad);
+}
+
+
+
+//' Gradient of \code{\link{obj_offspring_weights}} using original parameterization
+//'
+//' @inheritParams obj_offspring
+//' @inheritParams dbeta_deps
+//' @param weight_vec A vector of weights between 0 and 1 (do not need to add up to 1).
+//'
+// [[Rcpp::export]]
+Rcpp::NumericVector grad_offspring_weights_original(Rcpp::NumericVector ocounts,
+                                                    Rcpp::NumericVector osize,
+                                                    Rcpp::NumericVector weight_vec,
+                                                    int ploidy, int p1geno, int p2geno,
+                                                    double d, double eps,
+                                                    double tau) {
+  // Check input --------------------------------------------------------------
+  if (weight_vec.size() != ocounts.size()) {
+    Rcpp::stop("weight_vec and ocounts should have the same size.");
+  }
+  for (int i = 0; i < weight_vec.size(); i++){
+    if ((weight_vec(i) < 0) || (weight_vec(i) > 1)) {
+      Rcpp::stop("weight_vec should all be between 0 and 1 (inclusive).");
+    }
+  }
+  Rcpp::NumericMatrix gb_mat = grad_offspring_mat_original(ocounts, osize, ploidy, p1geno, p2geno,
+                                                           d, eps, tau);
   Rcpp::NumericVector grad(3);
   Rcpp::NumericMatrix::Column zzcol = gb_mat(Rcpp::_, 0);
   grad(0) = Rcpp::sum(zzcol * weight_vec);

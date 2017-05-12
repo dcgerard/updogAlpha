@@ -154,7 +154,7 @@ dbeta_dr_ell <- function(x, n, d, ell, p, r) {
     .Call('updog_dbeta_dr_ell', PACKAGE = 'updog', x, n, d, ell, p, r)
 }
 
-#' Gradient of \code{\link{obj_offspring}} for each individual.
+#' Gradient of \code{\link{obj_offspring_reparam}} for each individual.
 #'
 #' @inheritParams obj_offspring
 #' @param s We have \code{s = exp(d)}, where \code{exp(d)} is the bias term.
@@ -188,6 +188,95 @@ grad_offspring <- function(ocounts, osize, ploidy, p1geno, p2geno, s, ell, r) {
 #'
 grad_offspring_weights <- function(ocounts, osize, weight_vec, ploidy, p1geno, p2geno, s, ell, r) {
     .Call('updog_grad_offspring_weights', PACKAGE = 'updog', ocounts, osize, weight_vec, ploidy, p1geno, p2geno, s, ell, r)
+}
+
+#' Derivative of beta density w.r.t. sequencing error rate.
+#'
+#' I use the chain rule here. \code{\link{dbeta_dprop}} * \code{\link{dxi_df}} *
+#' \code{\link{df_deps}}.
+#'
+#' @param x The number of counts of reference allele.
+#' @param n The number of counts of reads.
+#' @param d The sequencing bias parameter.
+#' @param eps The sequencing error rate
+#' @param p The proportion of genome that is the reference allele.
+#' @param tau The overdisperion parameter.
+#'
+#'
+#' @author David Gerard
+#'
+dbeta_deps <- function(x, n, d, eps, p, tau) {
+    .Call('updog_dbeta_deps', PACKAGE = 'updog', x, n, d, eps, p, tau)
+}
+
+#' Derivative of betabinomial density w.r.t. original bias parameter.
+#'
+#' Uses chain rule with \code{\link{dbeta_dprop}} * \code{\link{dxi_dd}}.
+#'
+#' @inheritParams dbeta_deps
+#'
+#' @author David Gerard
+#'
+dbeta_dd <- function(x, n, d, eps, p, tau) {
+    .Call('updog_dbeta_dd', PACKAGE = 'updog', x, n, d, eps, p, tau)
+}
+
+#' Derivative of h(tau) = (1 - tau) / tau.
+#'
+#' Just returns -1 / tau^2
+#'
+#' @param tau A double. The overdispersion parameter
+#'
+#' @author David Gerard
+#'
+dh_dtau <- function(tau) {
+    .Call('updog_dh_dtau', PACKAGE = 'updog', tau)
+}
+
+#' Derivative of beta(x|n, xi, tau).
+#'
+#' @inheritParams dbeta_deps
+#'
+#' @author David Gerard
+#'
+dbeta_dtau <- function(x, n, d, eps, p, tau) {
+    .Call('updog_dbeta_dtau', PACKAGE = 'updog', x, n, d, eps, p, tau)
+}
+
+#' Gradient of \code{\link{obj_offspring}} for each individual. This is in the
+#' original parameterization.
+#'
+#' @inheritParams obj_offspring
+#' @inheritParams dbeta_deps
+#'
+#'
+#' @author David Gerard
+#'
+grad_offspring_mat_original <- function(ocounts, osize, ploidy, p1geno, p2geno, d, eps, tau) {
+    .Call('updog_grad_offspring_mat_original', PACKAGE = 'updog', ocounts, osize, ploidy, p1geno, p2geno, d, eps, tau)
+}
+
+#' Gradient of \code{\link{obj_offspring}} using the original parameterization.
+#'
+#' @inheritParams obj_offspring
+#' @inheritParams dbeta_deps
+#'
+#' @author David Gerard
+#'
+#' @export
+#'
+grad_offspring_original <- function(ocounts, osize, ploidy, p1geno, p2geno, d, eps, tau) {
+    .Call('updog_grad_offspring_original', PACKAGE = 'updog', ocounts, osize, ploidy, p1geno, p2geno, d, eps, tau)
+}
+
+#' Gradient of \code{\link{obj_offspring_weights}} using original parameterization
+#'
+#' @inheritParams obj_offspring
+#' @inheritParams dbeta_deps
+#' @param weight_vec A vector of weights between 0 and 1 (do not need to add up to 1).
+#'
+grad_offspring_weights_original <- function(ocounts, osize, weight_vec, ploidy, p1geno, p2geno, d, eps, tau) {
+    .Call('updog_grad_offspring_weights_original', PACKAGE = 'updog', ocounts, osize, weight_vec, ploidy, p1geno, p2geno, d, eps, tau)
 }
 
 #' Vector of objective functions for offspring.

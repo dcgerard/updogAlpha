@@ -366,3 +366,155 @@ test_that("the grad_offspring_weights works", {
 }
 )
 
+
+######
+## Using original parameterization
+######
+
+test_that("dbeta_deps works ok", {
+  set.seed(9)
+  x <- 10
+  n <- 12
+  d <- 0.1
+  eps <- 0.1
+  p <- 0.25
+  tau <- 0.1
+
+  tempfunc <- function(eps) {
+    xi <- pbias(prob = p, bias = d, seq_error = eps)
+    dbetabinom_mu_rho_cpp(x = x, size = n, mu = xi, rho = tau, return_log = FALSE)
+  }
+
+  myenv <- new.env()
+  assign("eps", eps, envir = myenv)
+  nout <- stats::numericDeriv(quote(tempfunc(eps)), c("eps"), myenv)
+  cderiv <- dbeta_deps(x = x, n = n, d = d, eps = eps, p = p, tau = tau)
+
+  expect_equal(attr(nout, "gradient")[1, 1], cderiv, tol = 10 ^ -6)
+}
+)
+
+
+test_that("dbeta_dd works ok", {
+  set.seed(9)
+  x <- 10
+  n <- 12
+  d <- 0.1
+  eps <- 0.1
+  p <- 0.25
+  tau <- 0.1
+
+  tempfunc <- function(d) {
+    xi <- pbias(prob = p, bias = d, seq_error = eps)
+    dbetabinom_mu_rho_cpp(x = x, size = n, mu = xi, rho = tau, return_log = FALSE)
+  }
+
+  myenv <- new.env()
+  assign("d", d, envir = myenv)
+  nout <- stats::numericDeriv(quote(tempfunc(d)), c("d"), myenv)
+  cderiv <- dbeta_dd(x = x, n = n, d = d, eps = eps, p = p, tau = tau)
+
+  expect_equal(attr(nout, "gradient")[1, 1], cderiv, tol = 10 ^ -6)
+}
+)
+
+
+test_that("dbeta_dtau works ok", {
+  set.seed(9)
+  x <- 10
+  n <- 12
+  d <- 0.1
+  eps <- 0.1
+  p <- 0.25
+  tau <- 0.1
+
+  tempfunc <- function(tau) {
+    xi <- pbias(prob = p, bias = d, seq_error = eps)
+    dbetabinom_mu_rho_cpp(x = x, size = n, mu = xi, rho = tau, return_log = FALSE)
+  }
+
+  myenv <- new.env()
+  assign("tau", tau, envir = myenv)
+  nout <- stats::numericDeriv(quote(tempfunc(tau)), c("tau"), myenv)
+  cderiv <- dbeta_dtau(x = x, n = n, d = d, eps = eps, p = p, tau = tau)
+
+  expect_equal(attr(nout, "gradient")[1, 1], cderiv, tol = 10 ^ -6)
+}
+)
+
+
+
+test_that("the grad_offspring_original works", {
+  set.seed(9)
+  osize   <- stats::rbinom(n = 2, size = 70, prob = 0.4)
+  ocounts <- stats::rbinom(n = 2, size = osize, prob = 0.4)
+  ploidy <- 4
+  p1geno <- 2
+  p2geno <- 1
+  d <- 2
+  eps <- 0.01
+  tau <- 0.1
+
+  ## Numerical implementation ---------------------------------------
+  tempfunc <- function(d, eps, tau) {
+    obj_offspring(ocounts = ocounts, osize = osize, ploidy = ploidy, p1geno = p1geno,
+                  p2geno = p2geno, bias_val = d, seq_error = eps, od_param = tau,
+                  outlier = FALSE)
+  }
+
+  myenv <- new.env()
+  assign("d", d, envir = myenv)
+  assign("eps", eps, envir = myenv)
+  assign("tau", tau, envir = myenv)
+  nout <- stats::numericDeriv(quote(tempfunc(d, eps, tau)), c("d", "eps", "tau"), myenv)
+
+  ## Rcpp version ---------------------------------------------------
+  cderiv <- grad_offspring_original(ocounts = ocounts, osize = osize, ploidy = ploidy,
+                                    p1geno = p1geno, p2geno = p2geno,
+                                    d = d, eps = eps, tau = tau)
+
+  expect_equal(c(attr(nout, "gradient")), c(cderiv), tol = 10 ^ -5)
+}
+)
+
+
+test_that("the grad_offspring_weights_original works", {
+  set.seed(9)
+  osize   <- stats::rbinom(n = 2, size = 70, prob = 0.4)
+  ocounts <- stats::rbinom(n = 2, size = osize, prob = 0.4)
+  ploidy <- 4
+  p1geno <- 2
+  p2geno <- 1
+  d <- 2
+  eps <- 0.01
+  tau <- 0.1
+  weight_vec <- stats::runif(2)
+
+  ## Numerical implementation ---------------------------------------
+  tempfunc <- function(d, eps, tau) {
+    obj_offspring_weights(ocounts = ocounts, weight_vec = weight_vec,
+                          osize = osize, ploidy = ploidy, p1geno = p1geno,
+                          p2geno = p2geno, bias_val = d, seq_error = eps, od_param = tau,
+                          outlier = FALSE)
+  }
+
+  myenv <- new.env()
+  assign("d", d, envir = myenv)
+  assign("eps", eps, envir = myenv)
+  assign("tau", tau, envir = myenv)
+  nout <- stats::numericDeriv(quote(tempfunc(d, eps, tau)), c("d", "eps", "tau"), myenv)
+
+  ## Rcpp version ---------------------------------------------------
+  cderiv <- grad_offspring_weights_original(ocounts = ocounts, osize = osize,
+                                            weight_vec = weight_vec, ploidy = ploidy,
+                                            p1geno = p1geno, p2geno = p2geno,
+                                            d = d, eps = eps, tau = tau)
+
+  expect_equal(c(attr(nout, "gradient")), c(cderiv), tol = 10 ^ -5)
+}
+)
+
+
+
+
+
