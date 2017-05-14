@@ -47,7 +47,6 @@ update_good <- function(parvec, ocounts, osize, weight_vec, ploidy,
 
     for (p1geno in 0:ploidy) {
       for (p2geno in 0:p1geno) {
-        parvec <- best_par
         oout <- stats::optim(par = parvec, fn = obj_wrapp_all, gr = grad_wrapp_all,
                              ocounts = ocounts, osize = osize, weight_vec = weight_vec,
                              ploidy = ploidy, p1geno = p1geno, p2geno = p2geno, method = "BFGS",
@@ -55,6 +54,7 @@ update_good <- function(parvec, ocounts, osize, weight_vec, ploidy,
         if (oout$convergence != 0) {
           warning(oout$message)
         }
+        ## cat(p1geno, p2geno, ":", oout$value, "\n")
         if (best_llike < oout$value) {
           best_par   <- oout$par
           best_llike <- oout$value
@@ -118,13 +118,15 @@ updog_update_all <- function(ocounts, osize, ploidy, print_val = TRUE,
                              print_update = TRUE, commit_num = 4) {
 
   ## starting values ------------------------------------------
-  seq_error <- 0.01
-  od_param  <- 0.01
-  bias_val  <- 1
-  out_prop <- 0.01
-  out_mean <- 0.5
-  out_disp <- 1/3
+  seq_error  <- 0.01
+  od_param   <- 0.01
+  bias_val   <- 1
+  out_prop   <- 0.01
+  out_mean   <- 0.5
+  out_disp   <- 1/3
   weight_vec <- rep(out_prop, length = length(ocounts))
+  p1geno     <- 3
+  p2geno     <- 3
 
   llike_new <- -Inf
 
@@ -135,9 +137,15 @@ updog_update_all <- function(ocounts, osize, ploidy, print_val = TRUE,
     llike_old <- llike_new
 
     ## E-step ------------
-    weight_vec <- get_out_prop(ocounts = ocounts, osize = osize, ploidy = ploidy, p1geno = p1geno,
-                               p2geno = p2geno, d = bias_val, eps = seq_error, tau = od_param,
-                               out_prop = out_prop, out_mean = out_mean, out_disp = out_disp)
+    if (index > 1) {
+      weight_vec <- get_out_prop(ocounts = ocounts, osize = osize,
+                                 ploidy = ploidy, p1geno = p1geno,
+                                 p2geno = p2geno, d = bias_val,
+                                 eps = seq_error, tau = od_param,
+                                 out_prop = out_prop, out_mean = out_mean,
+                                 out_disp = out_disp)
+    }
+
 
     ## Update out_prop ---
     out_prop <- mean(weight_vec)
@@ -187,7 +195,6 @@ updog_update_all <- function(ocounts, osize, ploidy, print_val = TRUE,
                                seq_error = seq_error, od_param = od_param, outlier = TRUE,
                                out_prop = out_prop, out_mean = out_mean, out_disp = out_disp)
     err <- abs(llike_new - llike_old)
-    assertthat::assert_that(llike_new - llike_old > -10 ^ -6)
 
     if (print_update) {
       cat("    Log-Likelihood:", llike_new, "\n")
@@ -195,22 +202,29 @@ updog_update_all <- function(ocounts, osize, ploidy, print_val = TRUE,
       cat("              Bias:", bias_val, "\n")
       cat("  Sequencing Error:", seq_error, "\n")
       cat("   Over-dispersion:", od_param, "\n")
-      cat("Outlier Proportion:", out_prop, "\n\n")
+      cat("Outlier Proportion:", out_prop, "\n")
+      cat("      Outlier Mean:", out_mean, "\n")
+      cat("        Outlier OD:", out_disp, "\n\n")
+    }
+    if (index > 1) {
+      assertthat::assert_that(llike_new - llike_old > -10 ^ -6)
     }
 
     index <- index + 1
   }
 
   return_list <- list()
-  return_list$bias_val  <- bias_val
-  return_list$seq_error <- seq_error
-  return_list$od_param  <- od_param
-  return_list$p1geno    <- p1geno
-  return_list$p2geno    <- p2geno
-  return_list$out_prop  <- out_prop
-  return_list$out_mean  <- out_mean
-  return_list$out_disp  <- out_disp
-  return_list$prob_out  <- weight_vec
+  return_list$bias_val    <- bias_val
+  return_list$seq_error   <- seq_error
+  return_list$od_param    <- od_param
+  return_list$p1geno      <- p1geno
+  return_list$p2geno      <- p2geno
+  return_list$out_prop    <- out_prop
+  return_list$out_mean    <- out_mean
+  return_list$out_disp    <- out_disp
+  return_list$prob_out    <- weight_vec
+  return_list$num_iter    <- index
+  return_list$convergence <- (index >= maxiter) * 1
   return(return_list)
 }
 
