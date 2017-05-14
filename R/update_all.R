@@ -1,6 +1,6 @@
 
 #' wrapper for \code{\link{obj_offspring_weights_reparam}}
-#' @inheritParams obj_objective_vec
+#' @inheritParams obj_offspring_vec
 #' @param parvec A vector of three elements, s, ell, and r. We have s = log(bias_val) = log(d),
 #' ell = logit(seq_error) = logit(eps), and r = 1 / logit(od_param) = 1 / logit(tau).
 #' @param weight_vec A vector of weights obtained via the E-step.
@@ -17,7 +17,7 @@ obj_wrapp_all <- function(parvec, ocounts, osize, weight_vec,
 
 #' wrapper for \code{\link{grad_offspring_weights}}
 #'
-#' @inheritParams obj_objective_vec
+#' @inheritParams obj_offspring_vec
 #' @inheritParams obj_wrapp_all
 #'
 #' @author David Gerard
@@ -32,35 +32,48 @@ grad_wrapp_all <- function(parvec, ocounts, osize, weight_vec, ploidy, p1geno, p
 
 #' Update the OK points
 #'
-#' @inheritParams obj_ojective_vec
+#' @inheritParams obj_offspring_vec
 #' @inheritParams obj_wrapp_all
 #'
 #' @author David Gerard
 #'
-update_good <- function(parvec, ocounts, osize, weight_vec, ploidy) {
+update_good <- function(parvec, ocounts, osize, weight_vec, ploidy,
+                        p1geno = NULL, p2geno = NULL) {
   best_par <- parvec
-  best_p1 <- 0
-  best_p2 <- 0
-  best_llike <- -Inf
+  if (is.null(p1geno) | is.null(p2geno)) { ## try all p1geno/p2geno combos --
+    best_p1 <- 0
+    best_p2 <- 0
+    best_llike <- -Inf
 
-  for (p1geno in 0:ploidy) {
-    for (p2geno in 0:p1geno) {
-      parvec <- best_par
-      oout <- stats::optim(par = parvec, fn = obj_wrapp_all, gr = grad_wrapp_all,
-                           ocounts = ocounts, osize = osize, weight_vec = weight_vec,
-                           ploidy = ploidy, p1geno = p1geno, p2geno = p2geno, method = "BFGS",
-                           control = list(fnscale = -1, maxit = 1000))
-      if (oout$convergence != 0) {
-        warning(oout$message)
-      }
-      if (best_llike < oout$value) {
-        best_par   <- oout$par
-        best_llike <- oout$value
-        best_p1    <- p1geno
-        best_p2    <- p2geno
+    for (p1geno in 0:ploidy) {
+      for (p2geno in 0:p1geno) {
+        parvec <- best_par
+        oout <- stats::optim(par = parvec, fn = obj_wrapp_all, gr = grad_wrapp_all,
+                             ocounts = ocounts, osize = osize, weight_vec = weight_vec,
+                             ploidy = ploidy, p1geno = p1geno, p2geno = p2geno, method = "BFGS",
+                             control = list(fnscale = -1, maxit = 1000))
+        if (oout$convergence != 0) {
+          warning(oout$message)
+        }
+        if (best_llike < oout$value) {
+          best_par   <- oout$par
+          best_llike <- oout$value
+          best_p1    <- p1geno
+          best_p2    <- p2geno
+        }
       }
     }
+  } else { ## run only user-provided parental genotypes ----
+    oout <- stats::optim(par = parvec, fn = obj_wrapp_all, gr = grad_wrapp_all,
+                         ocounts = ocounts, osize = osize, weight_vec = weight_vec,
+                         ploidy = ploidy, p1geno = p1geno, p2geno = p2geno, method = "BFGS",
+                         control = list(fnscale = -1, maxit = 1000))
+    best_p1 <- p1geno
+    best_p2 <- p2geno
+    best_llike <- oout$value
+    best_par   <- oout$par
   }
+
   return_list           <- list()
   return_list$p1geno    <- best_p1
   return_list$p2geno    <- best_p2
@@ -87,15 +100,14 @@ out_grad_wrapp <- function(obj, ocounts, osize, weight_vec) {
 #' then estimating these genotypes by maximum marginal likelihood.
 #' Though this implementation does not allow for an outlier model.
 #'
-#' I mostly created this to check my gradient and objective function
-#' implementations.
 #'
 #' @inheritParams updog
 #' @param print_val A logical. Should we print the updates?
 #' @param tol The stopping criterion
 #' @param maxiter The maximum number of iterations
 #' @param print_update Should we print out the updates?
-#'
+#' @param commit_num The number of consecutive iterations where the parental
+#'     genotypes do not change before we commit to those parental genotypes.
 #'
 #' @author David Gerard
 #'
@@ -103,7 +115,7 @@ out_grad_wrapp <- function(obj, ocounts, osize, weight_vec) {
 #'
 updog_update_all <- function(ocounts, osize, ploidy, print_val = TRUE,
                              tol = 10 ^ -4, maxiter = 500,
-                             print_update = TRUE) {
+                             print_update = TRUE, commit_num = 4) {
 
   ## starting values ------------------------------------------
   seq_error <- 0.01
@@ -118,6 +130,7 @@ updog_update_all <- function(ocounts, osize, ploidy, print_val = TRUE,
 
   index <- 1
   err <- tol + 1
+  parental_count <- 0 ## counts number of consecutive times parental genotypes do not change.
   while ((index <= maxiter) & err > tol) {
     llike_old <- llike_new
 
@@ -136,18 +149,35 @@ updog_update_all <- function(ocounts, osize, ploidy, print_val = TRUE,
     parvec <- c(s, ell, r)
 
     ## update good --------
-    gout <- update_good(parvec = parvec, ocounts = ocounts, osize = osize,
-                        weight_vec = 1 - weight_vec, ploidy = ploidy)
+    if (parental_count >= 4) {
+      gout <- update_good(parvec = parvec, ocounts = ocounts, osize = osize,
+                          weight_vec = 1 - weight_vec, ploidy = ploidy,
+                          p1geno = p1geno, p2geno = p2geno)
+    } else {
+      gout <- update_good(parvec = parvec, ocounts = ocounts, osize = osize,
+                          weight_vec = 1 - weight_vec, ploidy = ploidy)
+    }
+
     bias_val  <- gout$bias
     seq_error <- gout$seq_error
     od_param  <- gout$od
+
+
+    ## update parental_count if no change
+    if (p1geno == gout$p1geno & p2geno == gout$p2geno) {
+      parental_count <- parental_count + 1
+    } else {
+      parental_count <- 0
+    }
     p1geno <- gout$p1geno
     p2geno <- gout$p2geno
 
     ## update bad --------
-    oout <- optim(par = c(out_mean, out_disp), fn = out_obj_wrapp, gr = out_grad_wrapp, ocounts = ocounts,
-                  osize = osize, weight_vec = weight_vec, method = "BFGS",
-                  control = list(fnscale = -1))
+    oout <- stats::optim(par = c(out_mean, out_disp),
+                         fn = out_obj_wrapp, gr = out_grad_wrapp,
+                         ocounts = ocounts, osize = osize,
+                         weight_vec = weight_vec, method = "BFGS",
+                         control = list(fnscale = -1))
     out_mean <- oout$par[1]
     out_disp <- oout$par[2]
 
@@ -161,7 +191,7 @@ updog_update_all <- function(ocounts, osize, ploidy, print_val = TRUE,
 
     if (print_update) {
       cat("    Log-Likelihood:", llike_new, "\n")
-      cat("Parental Genotypes:", gout$pa1geno, gout$p2geno, "\n")
+      cat("Parental Genotypes:", gout$p1geno, gout$p2geno, "\n")
       cat("              Bias:", bias_val, "\n")
       cat("  Sequencing Error:", seq_error, "\n")
       cat("   Over-dispersion:", od_param, "\n")
@@ -180,6 +210,7 @@ updog_update_all <- function(ocounts, osize, ploidy, print_val = TRUE,
   return_list$out_prop  <- out_prop
   return_list$out_mean  <- out_mean
   return_list$out_disp  <- out_disp
+  return_list$prob_out  <- weight_vec
   return(return_list)
 }
 
@@ -237,11 +268,18 @@ updog_vanilla <- function(ocounts, osize, ploidy, print_val) {
 
   ## Get the best parameters
   parout <- updog_update_all(ocounts, osize, ploidy, print_val = print_val)
-  postmat <- bbpost_tot(ocounts = ocounts, osize = osize, ploidy = ploidy, p1geno = parout$p1geno,
-                        p2geno = parout$p2geno, seq_error = parout$seq_error, bias_val = parout$bias_val,
-                        od_param = parout$od_param, outlier = TRUE, out_prop = parout$out_prop,
-                        out_mean = parout$out_mean, out_disp = parout$out_disp)
-  return(list(par = parout, post = postmat))
+  parout$postmat <- bbpost_tot(ocounts = ocounts, osize = osize,
+                               ploidy = ploidy, p1geno = parout$p1geno,
+                               p2geno = parout$p2geno,
+                               seq_error = parout$seq_error,
+                               bias_val = parout$bias_val,
+                               od_param = parout$od_param,
+                               outlier = TRUE, out_prop = parout$out_prop,
+                               out_mean = parout$out_mean,
+                               out_disp = parout$out_disp)
+  parout$ogeno <- apply(parout$postmat, 1, which.max) - 1
+  parout$maxpostprob <- parout$postmat[cbind(1:nrow(parout$postmat), parout$ogeno + 1)]
+  return(parout)
 }
 
 

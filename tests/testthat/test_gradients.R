@@ -510,7 +510,7 @@ test_that("the grad_offspring_weights_original works", {
                                             p1geno = p1geno, p2geno = p2geno,
                                             d = d, eps = eps, tau = tau)
 
-  expect_equal(c(attr(nout, "gradient")), c(cderiv), tol = 10 ^ -5)
+  expect_equal(c(attr(nout, "gradient")), c(cderiv), tol = 10 ^ -4)
 }
 )
 

@@ -4,7 +4,8 @@
 \alias{updog_update_all}
 \title{This function just updates everything. No options allowed!}
 \usage{
-updog_update_all(ocounts, osize, ploidy, print_val = TRUE)
+updog_update_all(ocounts, osize, ploidy, print_val = TRUE, tol = 10^-4,
+  maxiter = 500, print_update = TRUE, commit_num = 4)
 }
 \arguments{
 \item{ocounts}{A vector of non-negative integers. The ith element
@@ -17,15 +18,20 @@ total number of reads for the ith child.}
 genome in the species.}
 
 \item{print_val}{A logical. Should we print the updates?}
+
+\item{tol}{The stopping criterion}
+
+\item{maxiter}{The maximum number of iterations}
+
+\item{print_update}{Should we print out the updates?}
+
+\item{commit_num}{The number of consecutive iterations where the parental
+genotypes do not change before we commit to those parental genotypes.}
 }
 \description{
 This is the same as assuming a uniform prior on the parental genotypes,
 then estimating these genotypes by maximum marginal likelihood.
 Though this implementation does not allow for an outlier model.
-}
-\details{
-I mostly created this to check my gradient and objective function
-implementations.
 }
 \author{
 David Gerard
