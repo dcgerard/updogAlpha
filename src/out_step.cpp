@@ -15,6 +15,9 @@
 // [[Rcpp::export]]
 double outlier_obj(Rcpp::NumericVector ocounts, Rcpp::NumericVector osize,
                    Rcpp::NumericVector weight_vec, double out_mean, double out_disp) {
+  if (out_mean < 0 | out_mean > 1 | out_disp < 0 | out_disp > 1) {
+    return R_NegInf;
+  }
   Rcpp::NumericVector ldensevec = dbetabinom_mu_rho_cpp(ocounts, osize, out_mean, out_disp, true);
   double obj = Rcpp::sum(weight_vec * ldensevec);
   return obj;

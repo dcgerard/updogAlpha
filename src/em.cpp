@@ -17,15 +17,16 @@ Rcpp::NumericVector get_out_prop(Rcpp::NumericVector ocounts, Rcpp::NumericVecto
                                  double d, double eps, double tau, double out_prop,
                                  double out_mean, double out_disp) {
   // get density from good mixture -------------------------------------------------------
+  // last three arguments are not used here because outlier = falsle ---
   Rcpp::NumericVector ldensevec = obj_offspring_vec(ocounts, osize, ploidy, p1geno, p2geno,
                                                     d, eps, tau, false, out_prop,
                                                     out_mean, out_disp) +
-                                                      log(1.0 - out_mean);
+                                                      log(1.0 - out_prop);
 
 
   // get density from bad mixture --------------------------------------------------------
   Rcpp::NumericVector loutdensevec = dbetabinom_mu_rho_cpp(ocounts, osize, out_mean, out_disp, true) +
-    log(out_mean);
+    log(out_prop);
 
   // return vector
   Rcpp::NumericVector max_el = Rcpp::pmax(ldensevec, loutdensevec);
