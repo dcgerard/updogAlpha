@@ -140,6 +140,7 @@ out_grad_wrapp <- function(obj, ocounts, osize, weight_vec) {
 #' @param maxiter The maximum number of iterations
 #' @param commit_num The number of consecutive iterations where the parental
 #'     genotypes do not change before we commit to those parental genotypes.
+#' @param update_outmean A logical. Should we update \code{out_mean}?
 #'
 #' @author David Gerard
 #'
@@ -147,7 +148,7 @@ out_grad_wrapp <- function(obj, ocounts, osize, weight_vec) {
 #'
 updog_update_all <- function(ocounts, osize, ploidy, print_val = TRUE,
                              tol = 10 ^ -4, maxiter = 500,
-                             commit_num = 4) {
+                             commit_num = 4, update_outmean = FALSE) {
 
   ## starting values ------------------------------------------
   seq_error  <- 0.01
@@ -215,13 +216,23 @@ updog_update_all <- function(ocounts, osize, ploidy, print_val = TRUE,
     p2geno <- gout$p2geno
 
     ## update bad --------
-    oout <- stats::optim(par = c(out_mean, out_disp),
-                         fn = out_obj_wrapp, gr = out_grad_wrapp,
-                         ocounts = ocounts, osize = osize,
-                         weight_vec = weight_vec, method = "BFGS",
-                         control = list(fnscale = -1))
-    out_mean <- oout$par[1]
-    out_disp <- oout$par[2]
+    if (update_outmean) {
+      oout <- stats::optim(par = c(out_mean, out_disp),
+                           fn = out_obj_wrapp, gr = out_grad_wrapp,
+                           ocounts = ocounts, osize = osize,
+                           weight_vec = weight_vec, method = "BFGS",
+                           control = list(fnscale = -1))
+      out_mean <- oout$par[1]
+      out_disp <- oout$par[2]
+    } else {
+      oout <- stats::optim(par = out_disp, fn = outlier_obj,
+                           method = "Brent", control = list(fnscale = -1),
+                           lower = 0, upper = 1 - 10 ^ -3,
+                           ocounts = ocounts, osize = osize, weight_vec = weight_vec,
+                           out_mean = out_mean)
+      out_disp <- oout$par
+    }
+
 
     ## Calculate log-likelihood and update err and index -------
     llike_new <- obj_offspring(ocounts = ocounts, osize = osize, ploidy = ploidy,
@@ -312,15 +323,19 @@ bb_simple_post <- function(ncounts, ssize, ploidy, p1geno, p2geno, seq_error = 0
 #'
 #' @inheritParams updog
 #' @param print_val Should we print the updates?
+#' @param update_outmean A logical. Should we update \code{out_mean}?
 #'
 #' @author David Gerard
 #'
 #' @export
 #'
-updog_vanilla <- function(ocounts, osize, ploidy, print_val) {
+updog_vanilla <- function(ocounts, osize, ploidy, print_val = FALSE, update_outmean = FALSE) {
+  assertthat::assert_that(is.logical(print_val))
+  assertthat::assert_that(is.logical(update_outmean))
 
   ## Get the best parameters
-  parout <- updog_update_all(ocounts, osize, ploidy, print_val = print_val)
+  parout <- updog_update_all(ocounts, osize, ploidy, print_val = print_val,
+                             update_outmean = update_outmean)
   parout$postmat <- bbpost_tot(ocounts = ocounts, osize = osize,
                                ploidy = ploidy, p1geno = parout$p1geno,
                                p2geno = parout$p2geno,

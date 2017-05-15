@@ -5,7 +5,7 @@
 \title{This function just updates everything. No options allowed!}
 \usage{
 updog_update_all(ocounts, osize, ploidy, print_val = TRUE, tol = 10^-4,
-  maxiter = 500, commit_num = 4)
+  maxiter = 500, commit_num = 4, update_outmean = FALSE)
 }
 \arguments{
 \item{ocounts}{A vector of non-negative integers. The ith element
@@ -25,6 +25,8 @@ genome in the species.}
 
 \item{commit_num}{The number of consecutive iterations where the parental
 genotypes do not change before we commit to those parental genotypes.}
+
+\item{update_outmean}{A logical. Should we update \code{out_mean}?}
 }
 \description{
 This is the same as assuming a uniform prior on the parental genotypes,
