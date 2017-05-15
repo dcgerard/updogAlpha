@@ -9,10 +9,20 @@
 #'
 obj_wrapp_all <- function(parvec, ocounts, osize, weight_vec,
                           ploidy, p1geno, p2geno) {
-  obj_offspring_weights_reparam(ocounts = ocounts, osize = osize, weight_vec = weight_vec,
-                                ploidy = ploidy, p1geno = p1geno,
-                                p2geno = p2geno,
-                                s = parvec[1], ell = parvec[2], r = parvec[3])
+  ## Check if second to last pk is too large -----------------------------------------
+  eps <- expit(parvec[2])
+  fval <- (ploidy - 1) / ploidy * eps + (1 - eps) / ploidy
+  mind <- fval / (1 - fval)
+  if (exp(parvec[1]) < mind) {
+    return(-Inf)
+  }
+
+  ## Normal value ------------------------------------------------------------------------
+  val <- obj_offspring_weights_reparam(ocounts = ocounts, osize = osize, weight_vec = weight_vec,
+                                        ploidy = ploidy, p1geno = p1geno,
+                                        p2geno = p2geno,
+                                        s = parvec[1], ell = parvec[2], r = parvec[3])
+  return(val)
 }
 
 #' wrapper for \code{\link{grad_offspring_weights}}
@@ -47,7 +57,19 @@ update_good <- function(parvec, ocounts, osize, weight_vec, ploidy,
 
     for (p1geno in 0:ploidy) {
       for (p2geno in 0:p1geno) {
-        oout <- stats::optim(par = parvec, fn = obj_wrapp_all, gr = grad_wrapp_all,
+        ## If start position has -Inf, start somewhere else
+        val <- obj_offspring_weights_reparam(ocounts = ocounts, osize = osize,
+                                             weight_vec = weight_vec,
+                                             ploidy = ploidy, p1geno = p1geno,
+                                             p2geno = p2geno,
+                                             s = parvec[1], ell = parvec[2],
+                                             r = parvec[3])
+        if (val == -Inf) {
+          start_vec <- c(0, -4.5, 4.5) ## about (1, 0.01, 0.01) for (bias_val, seq_error, od_param)
+        } else {
+          start_vec <- parvec
+        }
+        oout <- stats::optim(par = start_vec, fn = obj_wrapp_all, gr = grad_wrapp_all,
                              ocounts = ocounts, osize = osize, weight_vec = weight_vec,
                              ploidy = ploidy, p1geno = p1geno, p2geno = p2geno, method = "BFGS",
                              control = list(fnscale = -1, maxit = 1000))
@@ -64,7 +86,19 @@ update_good <- function(parvec, ocounts, osize, weight_vec, ploidy,
       }
     }
   } else { ## run only user-provided parental genotypes ----
-    oout <- stats::optim(par = parvec, fn = obj_wrapp_all, gr = grad_wrapp_all,
+    ## If start position has -Inf, start somewhere else
+    val <- obj_offspring_weights_reparam(ocounts = ocounts, osize = osize,
+                                         weight_vec = weight_vec,
+                                         ploidy = ploidy, p1geno = p1geno,
+                                         p2geno = p2geno,
+                                         s = parvec[1], ell = parvec[2],
+                                         r = parvec[3])
+    if (val == -Inf) {
+      start_vec <- c(0, -4.5, 4.5) ## about (1, 0.01, 0.01) for (bias_val, seq_error, od_param)
+    } else {
+      start_vec <- parvec
+    }
+    oout <- stats::optim(par = start_vec, fn = obj_wrapp_all, gr = grad_wrapp_all,
                          ocounts = ocounts, osize = osize, weight_vec = weight_vec,
                          ploidy = ploidy, p1geno = p1geno, p2geno = p2geno, method = "BFGS",
                          control = list(fnscale = -1, maxit = 1000))
@@ -105,7 +139,6 @@ out_grad_wrapp <- function(obj, ocounts, osize, weight_vec) {
 #' @param print_val A logical. Should we print the updates?
 #' @param tol The stopping criterion
 #' @param maxiter The maximum number of iterations
-#' @param print_update Should we print out the updates?
 #' @param commit_num The number of consecutive iterations where the parental
 #'     genotypes do not change before we commit to those parental genotypes.
 #'
@@ -115,7 +148,7 @@ out_grad_wrapp <- function(obj, ocounts, osize, weight_vec) {
 #'
 updog_update_all <- function(ocounts, osize, ploidy, print_val = TRUE,
                              tol = 10 ^ -4, maxiter = 500,
-                             print_update = TRUE, commit_num = 4) {
+                             commit_num = 4) {
 
   ## starting values ------------------------------------------
   seq_error  <- 0.01
@@ -127,6 +160,8 @@ updog_update_all <- function(ocounts, osize, ploidy, print_val = TRUE,
   weight_vec <- rep(out_prop, length = length(ocounts))
   p1geno     <- 3
   p2geno     <- 3
+  non_mono   <- 0
+  non_mono_max <- 2 # non-monotonicity leniancy.
 
   llike_new <- -Inf
 
@@ -196,7 +231,7 @@ updog_update_all <- function(ocounts, osize, ploidy, print_val = TRUE,
                                out_prop = out_prop, out_mean = out_mean, out_disp = out_disp)
     err <- abs(llike_new - llike_old)
 
-    if (print_update) {
+    if (print_val) {
       cat("    Log-Likelihood:", llike_new, "\n")
       cat("Parental Genotypes:", gout$p1geno, gout$p2geno, "\n")
       cat("              Bias:", bias_val, "\n")
@@ -207,7 +242,12 @@ updog_update_all <- function(ocounts, osize, ploidy, print_val = TRUE,
       cat("        Outlier OD:", out_disp, "\n\n")
     }
     if (index > 1) {
-      assertthat::assert_that(llike_new - llike_old > -10 ^ -6)
+      if (llike_new - llike_old < -10 ^ -6) {
+        non_mono <- non_mono + 1
+      }
+      if (non_mono >= non_mono_max) {
+        stop("Your likelihood is not increasing.")
+      }
     }
 
     index <- index + 1
@@ -292,6 +332,7 @@ updog_vanilla <- function(ocounts, osize, ploidy, print_val) {
                                out_mean = parout$out_mean,
                                out_disp = parout$out_disp)
   parout$ogeno <- apply(parout$postmat, 1, which.max) - 1
+  parout$ogeno[abs(parout$prob_out - 1) < 10 ^ -3] <- NA   ## Put NA for ogeno when prob_out is almost 1 ----
   parout$maxpostprob <- parout$postmat[cbind(1:nrow(parout$postmat), parout$ogeno + 1)]
   return(parout)
 }

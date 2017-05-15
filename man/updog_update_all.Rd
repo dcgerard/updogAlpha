@@ -5,7 +5,7 @@
 \title{This function just updates everything. No options allowed!}
 \usage{
 updog_update_all(ocounts, osize, ploidy, print_val = TRUE, tol = 10^-4,
-  maxiter = 500, print_update = TRUE, commit_num = 4)
+  maxiter = 500, commit_num = 4)
 }
 \arguments{
 \item{ocounts}{A vector of non-negative integers. The ith element
@@ -22,8 +22,6 @@ genome in the species.}
 \item{tol}{The stopping criterion}
 
 \item{maxiter}{The maximum number of iterations}
-
-\item{print_update}{Should we print out the updates?}
 
 \item{commit_num}{The number of consecutive iterations where the parental
 genotypes do not change before we commit to those parental genotypes.}

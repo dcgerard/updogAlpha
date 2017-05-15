@@ -15,7 +15,11 @@ Rcpp::NumericVector logsumexp(Rcpp::NumericMatrix xx) {
   for (int r = 0; r < xx.nrow(); r++) {
     Rcpp::NumericMatrix::Row zzrow = xx(r, Rcpp::_); // reference rth row.
     maxrow = Rcpp::max(zzrow);
-    lse_vec(r) = log(Rcpp::sum(Rcpp::exp(zzrow - maxrow))) + maxrow;
+    if (maxrow == R_NegInf) {
+      lse_vec(r) = R_NegInf;
+    } else {
+      lse_vec(r) = log(Rcpp::sum(Rcpp::exp(zzrow - maxrow))) + maxrow;
+    }
   }
   return lse_vec;
 }
@@ -68,5 +72,6 @@ Rcpp::NumericVector colSums_cpp(Rcpp::NumericMatrix x) {
 //'
 // [[Rcpp::export]]
 double expit(double x) {
-  return std::exp(x) / (1 + std::exp(x));
+  double obj = 1.0 / (1.0 + std::exp(-1.0 * x));
+  return obj;
 }

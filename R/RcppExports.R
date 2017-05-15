@@ -411,6 +411,8 @@ obj_offspring_weights <- function(ocounts, osize, weight_vec, ploidy, p1geno, p2
 
 #' Reparameterization of \code{\link{obj_offspring_weights}}.
 #'
+#' It doesn't make any sense to have outlier = true since the weights are just for the EM already.
+#'
 #' @inheritParams obj_offspring_weights
 #' @inheritParams obj_offspring_reparam
 #'

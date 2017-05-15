@@ -170,7 +170,7 @@ double obj_offspring_reparam(Rcpp::NumericVector ocounts, Rcpp::NumericVector os
                              int ploidy, int p1geno, int p2geno,
                              double s, double ell,
                              double r) {
-  double tol = 2 * DBL_EPSILON;
+  double tol = 2.0 * DBL_EPSILON;
   // Rcpp::Rcout << "OVD:" << r << std::endl
   //             << "BIS:" << s << std::endl
   //             << "SEQ:" << ell << std::endl << std::endl;
@@ -179,7 +179,7 @@ double obj_offspring_reparam(Rcpp::NumericVector ocounts, Rcpp::NumericVector os
   double d = std::exp(s);
 
   if (tau > (1.0 - tol)) {
-    tau = 1.0 - 2 * tol;
+    tau = 1.0 - 2.0 * tol;
   }
   return obj_offspring(ocounts, osize, ploidy, p1geno, p2geno, d, eps, tau, false, 0.01, 0.5, 1.0 / 3.0);
 }
@@ -226,6 +226,8 @@ double obj_offspring_weights(Rcpp::NumericVector ocounts, Rcpp::NumericVector os
 }
 
 //' Reparameterization of \code{\link{obj_offspring_weights}}.
+//'
+//' It doesn't make any sense to have outlier = true since the weights are just for the EM already.
 //'
 //' @inheritParams obj_offspring_weights
 //' @inheritParams obj_offspring_reparam

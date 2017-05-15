@@ -32,7 +32,7 @@ reference allele the second parent has.}
 \item{r}{Same as \code{log((1.0 - od_param) / od_param)} from \code{\link{obj_offspring}}.}
 }
 \description{
-Reparameterization of \code{\link{obj_offspring_weights}}.
+It doesn't make any sense to have outlier = true since the weights are just for the EM already.
 }
 \author{
 David Gerard
