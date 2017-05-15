@@ -630,6 +630,7 @@ get_transition_mat <- function(ploidy, eps) {
 #' @param ploidy A non-negative integer. The ploidy of the species.
 #' @param ogeno The child genotypes
 #' @param seq_error The average sequencing error rate.
+#' @param bias_val The bias parameter.
 #' @param prob_ok A vector of posterior probabilities of not being a mistake.
 #' @param maxpostprob A vector of the posterior probabilities of begin at the modal probability.
 #' @param p1geno Parent 1's genotype.
@@ -640,10 +641,18 @@ get_transition_mat <- function(ploidy, eps) {
 #' @author David Gerard
 #'
 plot_geno <- function(ocounts, osize, ploidy, p1counts = NULL, p1size = NULL, p2counts = NULL,
-                      p2size = NULL, ogeno = NULL, seq_error = 0.01, prob_ok = NULL, maxpostprob = NULL,
+                      p2size = NULL, ogeno = NULL, seq_error = 0, bias_val = 1,
+                      prob_ok = NULL, maxpostprob = NULL,
                       p1geno = NULL, p2geno = NULL) {
   if (!requireNamespace("ggplot2", quietly = TRUE)) {
     stop("ggplot2 must be installed to use this function")
+  }
+
+  if (is.null(seq_error)) {
+    seq_error <- 0
+  }
+  if (is.null(bias_val)) {
+    bias_val <- 1
   }
 
   assertthat::assert_that(all(ocounts >= 0, na.rm = TRUE))
@@ -654,6 +663,7 @@ plot_geno <- function(ocounts, osize, ploidy, p1counts = NULL, p1size = NULL, p2
   ## get probabilities
   pk <- seq(0, ploidy) / ploidy ## the possible probabilities
   pk <- (1 - seq_error) * pk + seq_error * (1 - pk)
+  pk <- pk / (bias_val * (1 - pk) + pk)
 
   dfdat <- data.frame(A = ocounts, a = osize - ocounts)
   maxcount <- max(max(dfdat$A, na.rm = TRUE), max(dfdat$a, na.rm = TRUE))

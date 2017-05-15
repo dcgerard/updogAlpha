@@ -39,6 +39,7 @@ plot.updog <- function(x, gg = requireNamespace("ggplot2", quietly = TRUE), plot
                     p1counts = x$input$p1counts, p1size = x$input$p1size,
                     p2counts = x$input$p2counts, p2size = x$input$p2size,
                     ploidy = x$input$ploidy, ogeno = x$ogeno, seq_error = x$seq_error,
+                    bias_val = x$bias_val,
                     prob_ok = x$prob_ok, maxpostprob = maxpostprob,
                     p1geno = x$p1geno, p2geno = x$p2geno)
     print(pl)
@@ -47,10 +48,22 @@ plot.updog <- function(x, gg = requireNamespace("ggplot2", quietly = TRUE), plot
                    p1counts = x$input$p1counts, p1size = x$input$p1size,
                    p2counts = x$input$p2counts, p2size = x$input$p2size,
                    ploidy = x$input$ploidy, ogeno = x$ogeno, seq_error = x$seq_error,
+                   bias_val = x$bias_val,
                    prob_ok = x$prob_ok, maxpostprob = maxpostprob,
                    p1geno = x$p1geno, p2geno = x$p2geno)
   } else {
     stop("gg = TRUE but ggplot2 not installed")
+  }
+
+  ## rename od_param, out_mean and out_disp because of legacy code.
+  if (!is.null(x$out_mean)) {
+    x$out_mu <- x$out_mean
+  }
+  if (!is.null(x$out_disp)) {
+    x$out_rho <- x$out_disp
+  }
+  if (!is.null(x$od_param)) {
+    x$rho <- x$od_param
   }
 
   if (plot_beta) {
@@ -191,7 +204,7 @@ plot_beta_dist_gg <- function(alpha = NULL, beta = NULL, mu = NULL, rho = NULL) 
   }
 
   dfdat$murho <- paste0("mu=", format(dfdat$mu, digits = 2), ", rho=", format(dfdat$rho, digits = 2))
-  
+
   pl <- ggplot2::ggplot(data = dfdat, mapping = ggplot2::aes_string(x = "quantile", y = "density")) +
     ggplot2::facet_wrap(~murho) +
     ggplot2::geom_line() +
@@ -310,8 +323,16 @@ plot_beta_dist <- function(alpha = NULL, beta = NULL, mu = NULL, rho = NULL, ...
 #' @author David Gerard
 #'
 plot_geno_base <- function(ocounts, osize, ploidy, p1counts = NULL, p1size = NULL, p2counts = NULL,
-                           p2size = NULL, ogeno = NULL, seq_error = 0.01, prob_ok = NULL, maxpostprob = NULL,
+                           p2size = NULL, ogeno = NULL, seq_error = 0, bias_val = 1, prob_ok = NULL, maxpostprob = NULL,
                            p1geno = NULL, p2geno = NULL) {
+
+  if (is.null(seq_error)) {
+    seq_error <- 0
+  }
+  if (is.null(bias_val)) {
+    bias_val <- 1
+  }
+
 
   ## copied from plot_geno. Probably a better way to do this
   assertthat::assert_that(all(ocounts >= 0))
@@ -322,6 +343,7 @@ plot_geno_base <- function(ocounts, osize, ploidy, p1counts = NULL, p1size = NUL
   ## get probabilities
   pk <- seq(0, ploidy) / ploidy ## the possible probabilities
   pk <- (1 - seq_error) * pk + seq_error * (1 - pk)
+  pk <- pk / (bias_val * (1 - pk) + pk)
 
   dfdat <- data.frame(A = ocounts, a = osize - ocounts)
   maxcount <- max(max(dfdat$A), max(dfdat$a))

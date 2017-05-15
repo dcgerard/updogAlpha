@@ -5,8 +5,9 @@
 \title{The base R graphics version of \code{\link{plot_geno}}.}
 \usage{
 plot_geno_base(ocounts, osize, ploidy, p1counts = NULL, p1size = NULL,
-  p2counts = NULL, p2size = NULL, ogeno = NULL, seq_error = 0.01,
-  prob_ok = NULL, maxpostprob = NULL, p1geno = NULL, p2geno = NULL)
+  p2counts = NULL, p2size = NULL, ogeno = NULL, seq_error = 0,
+  bias_val = 1, prob_ok = NULL, maxpostprob = NULL, p1geno = NULL,
+  p2geno = NULL)
 }
 \arguments{
 \item{ocounts}{A vector of non-negative integers. The number of
@@ -32,6 +33,8 @@ reads in parent 2.}
 \item{ogeno}{The child genotypes}
 
 \item{seq_error}{The average sequencing error rate.}
+
+\item{bias_val}{The bias parameter.}
 
 \item{prob_ok}{A vector of posterior probabilities of not being a mistake.}
 

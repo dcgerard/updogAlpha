@@ -333,6 +333,12 @@ updog_vanilla <- function(ocounts, osize, ploidy, print_val) {
   parout$ogeno <- apply(parout$postmat, 1, which.max) - 1
   parout$ogeno[abs(parout$prob_out - 1) < 10 ^ -3] <- NA   ## Put NA for ogeno when prob_out is almost 1 ----
   parout$maxpostprob <- parout$postmat[cbind(1:nrow(parout$postmat), parout$ogeno + 1)]
+  parout$prob_ok <- 1 - parout$prob_out
+  parout$input <- list()
+  parout$input$ocounts <- ocounts
+  parout$input$osize <- osize
+  parout$input$ploidy <- ploidy
+  class(parout) <- "updog"
   return(parout)
 }
 
