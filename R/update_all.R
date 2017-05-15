@@ -11,8 +11,7 @@ obj_wrapp_all <- function(parvec, ocounts, osize, weight_vec,
                           ploidy, p1geno, p2geno) {
   ## Check if second to last pk is too large -----------------------------------------
   eps <- expit(parvec[2])
-  fval <- (ploidy - 1) / ploidy * eps + (1 - eps) / ploidy
-  mind <- fval / (1 - fval)
+  mind <- eps / (1 - eps) + 0.05 ## ad hoc bound
   if (exp(parvec[1]) < mind) {
     return(-Inf)
   }
