@@ -96,10 +96,10 @@ test_that("up_fix increases the up_obj at every iteration", {
     objvec <- rep(NA, length = itermax)
     for(iter_index in 1:itermax) {
         objout_old <- objout
-        fout <- up_fix(pival = pival, p1geno = p1geno, p2geno = p2geno, alpha = alpha,
-                       beta = beta, ocounts = ocounts, osize = osize,
-                       ldbinommat = ldbinommat, qarray = qarray, r1vec = r1vec,
-                       r2vec = r2vec, update_beta = TRUE, update_pi = TRUE, update_geno = TRUE)
+        trash <- capture_output(fout <- up_fix(pival = pival, p1geno = p1geno, p2geno = p2geno, alpha = alpha,
+                                               beta = beta, ocounts = ocounts, osize = osize,
+                                               ldbinommat = ldbinommat, qarray = qarray, r1vec = r1vec,
+                                               r2vec = r2vec, update_beta = TRUE, update_pi = TRUE, update_geno = TRUE))
         p1geno <- fout$p1geno
         p2geno <- fout$p2geno
         pival <- fout$pival
@@ -118,12 +118,12 @@ test_that("up_fix increases the up_obj at every iteration", {
 
     r1vec <- rep(1 / (ploidy + 1), length = ploidy + 1)
     r2vec <- rep(1 / (ploidy + 1), length = ploidy + 1)
-    maxout <- updog_maximize(ocounts = ocounts, osize = osize, qarray = qarray,
-                   r1vec = r1vec, r2vec = r2vec, pk = pk, pival = 0.99,
-                   alpha = 0.1, beta = 0.1,
-                   est_fudge = TRUE,
-                   tol = 10 ^ -4, itermax = 1000,
-                   update_geno = TRUE, update_pi = TRUE, update_beta = TRUE)
+    trash <- capture_output(maxout <- updog_maximize(ocounts = ocounts, osize = osize, qarray = qarray,
+                                                     r1vec = r1vec, r2vec = r2vec, pk = pk, pival = 0.99,
+                                                     alpha = 0.1, beta = 0.1,
+                                                     est_fudge = TRUE,
+                                                     tol = 10 ^ -4, itermax = 1000,
+                                                     update_geno = TRUE, update_pi = TRUE, update_beta = TRUE))
 
     plot_geno(ocounts = ocounts, osize = osize, ploidy = ploidy, p1counts = p1counts,
               p2counts = p2counts, p1size = p1size, p2size = p2size, ogeno = maxout$ogeno, prob_ok = maxout$theta)

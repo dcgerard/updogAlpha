@@ -117,11 +117,15 @@ update_good <- function(parvec, ocounts, osize, weight_vec, ploidy,
   return(return_list)
 }
 
-out_obj_wrapp <- function(obj, ocounts, osize, weight_vec) {
-  outlier_obj(ocounts = ocounts, osize = osize, weight_vec = weight_vec, out_mean = obj[1], out_disp = obj[2])
+out_obj_wrapp <- function(obj, ocounts, osize, weight_vec, min_disp = 0) {
+  if ((obj[2] < min_disp) | (obj[2] > 1 - 10 ^ -8) | (obj[1] < 10 ^ -8) | (obj[1] > 1 - 10 ^ -8)) {
+    return(-Inf)
+  } else {
+    outlier_obj(ocounts = ocounts, osize = osize, weight_vec = weight_vec, out_mean = obj[1], out_disp = obj[2])
+  }
 }
 
-out_grad_wrapp <- function(obj, ocounts, osize, weight_vec) {
+out_grad_wrapp <- function(obj, ocounts, osize, weight_vec, min_disp = 0) {
   outlier_grad(ocounts = ocounts, osize = osize, weight_vec = weight_vec, out_mean = obj[1], out_disp = obj[2])
 }
 
@@ -135,12 +139,29 @@ out_grad_wrapp <- function(obj, ocounts, osize, weight_vec) {
 #'
 #'
 #' @inheritParams updog
-#' @param print_val A logical. Should we print the updates?
+#' @param print_val A logical. Should we print the updates (\code{TRUE}) or not (\code{FALSE})?
 #' @param tol The stopping criterion
 #' @param maxiter The maximum number of iterations
 #' @param commit_num The number of consecutive iterations where the parental
 #'     genotypes do not change before we commit to those parental genotypes.
-#' @param update_outmean A logical. Should we update \code{out_mean}?
+#' @param min_disp The minimum value for the over-dispersion parameter of the
+#'     outlier distribution. If this gets too small, then we can be overly confident in
+#'     points being outliers.
+#' @param update_outmean A logical. Should we update \code{out_mean}
+#'     (\code{TRUE}) or not (\code{FALSE})?
+#' @param update_outdisp A logical. Should we update \code{out_mean}
+#'     (\code{TRUE}) or not (\code{FALSE})?
+#' @param update_outprop A logical. Should we update \code{out_prop}
+#'     (\code{TRUE}) or not (\code{FALSE})?
+#' @param p1geno The initial value of the first parental genotype.
+#' @param p2geno The initial value of the second parental genotype.
+#' @param seq_error The initial value of the sequencing error rate.
+#' @param od_param The initial value of the overdispersion parameter.
+#' @param bias_val The initial value of the bias parameter.
+#' @param out_prop The initial value of the proportion of points that are outliers.
+#' @param out_mean The initial value of the mean of the outlier distribution.
+#' @param out_disp The initial value of the over-dispersion parameter of the outlier distribution.
+#' @param non_mono_max The maximum number of iterations to allow non-monotonicity of likelihood.
 #'
 #' @author David Gerard
 #'
@@ -148,20 +169,17 @@ out_grad_wrapp <- function(obj, ocounts, osize, weight_vec) {
 #'
 updog_update_all <- function(ocounts, osize, ploidy, print_val = TRUE,
                              tol = 10 ^ -4, maxiter = 500,
-                             commit_num = 4, update_outmean = FALSE) {
+                             commit_num = 4, min_disp = 0,
+                             update_outmean = FALSE,
+                             update_outdisp = FALSE,
+                             update_outprop = TRUE,
+                             p1geno = 3, p2geno = 3, seq_error = 0.01,
+                             od_param = 0.01, bias_val = 1, out_prop = 0.001,
+                             out_mean = 0.5, out_disp = 1/3, non_mono_max = 2) {
 
   ## starting values ------------------------------------------
-  seq_error  <- 0.01
-  od_param   <- 0.01
-  bias_val   <- 1
-  out_prop   <- 0.01
-  out_mean   <- 0.5
-  out_disp   <- 1/3
   weight_vec <- rep(out_prop, length = length(ocounts))
-  p1geno     <- 3
-  p2geno     <- 3
   non_mono   <- 0
-  non_mono_max <- 2 # non-monotonicity leniancy.
 
   llike_new <- -Inf
 
@@ -171,7 +189,8 @@ updog_update_all <- function(ocounts, osize, ploidy, print_val = TRUE,
   while ((index <= maxiter) & err > tol) {
     llike_old <- llike_new
 
-    ## E-step ------------
+    ## E-step ----------------------------------------------------------------------------
+    ## Skip first iteration to get good estimates of other paramters before getting outlier weights.
     if (index > 1) {
       weight_vec <- get_out_prop(ocounts = ocounts, osize = osize,
                                  ploidy = ploidy, p1geno = p1geno,
@@ -182,17 +201,19 @@ updog_update_all <- function(ocounts, osize, ploidy, print_val = TRUE,
     }
 
 
-    ## Update out_prop ---
-    out_prop <- mean(weight_vec)
+    ## Update out_prop -----------------------------------------------------------------
+    if (update_outprop) {
+      out_prop <- mean(weight_vec)
+    }
 
-    ## reparameterization --
+    ## reparameterization --------------------------------------------------------------
     s   <- log(bias_val)
     ell <- log(seq_error / (1 - seq_error))
     r   <- log((1 - od_param) / od_param)
     parvec <- c(s, ell, r)
 
-    ## update good --------
-    if (parental_count >= 4) {
+    ## update good ---------------------------------------------------------------------
+    if (parental_count >= commit_num) {
       gout <- update_good(parvec = parvec, ocounts = ocounts, osize = osize,
                           weight_vec = 1 - weight_vec, ploidy = ploidy,
                           p1geno = p1geno, p2geno = p2geno)
@@ -206,7 +227,7 @@ updog_update_all <- function(ocounts, osize, ploidy, print_val = TRUE,
     od_param  <- gout$od
 
 
-    ## update parental_count if no change
+    ## update parental_count if no change ---------------------------------------------
     if (p1geno == gout$p1geno & p2geno == gout$p2geno) {
       parental_count <- parental_count + 1
     } else {
@@ -215,22 +236,42 @@ updog_update_all <- function(ocounts, osize, ploidy, print_val = TRUE,
     p1geno <- gout$p1geno
     p2geno <- gout$p2geno
 
-    ## update bad --------
-    if (update_outmean) {
-      oout <- stats::optim(par = c(out_mean, out_disp),
+    ## update bad -------- ------------------------------------------------------------
+    if (out_disp < min_disp) {
+      start_disp <- min_disp + 10 ^ -3
+    } else if (out_disp > 1 - 10 ^ -8) {
+      start_disp <- 1 - 10 ^ -6
+    } else {
+      start_disp <- out_disp
+    }
+    if (out_mean < 10 ^ -8) {
+      out_mean <- 10 ^ -6
+    } else if (out_mean > 1 - 10 ^ -8) {
+      out_mean <- 1 - 10 ^ -6
+    }
+    if (update_outmean & update_outdisp) {
+      oout <- stats::optim(par = c(out_mean, start_disp),
                            fn = out_obj_wrapp, gr = out_grad_wrapp,
                            ocounts = ocounts, osize = osize,
-                           weight_vec = weight_vec, method = "BFGS",
+                           weight_vec = weight_vec, min_disp = min_disp,
+                           method = "BFGS",
                            control = list(fnscale = -1))
       out_mean <- oout$par[1]
       out_disp <- oout$par[2]
-    } else {
-      oout <- stats::optim(par = out_disp, fn = outlier_obj,
+    } else if (update_outdisp) {
+      oout <- stats::optim(par = start_disp, fn = outlier_obj,
                            method = "Brent", control = list(fnscale = -1),
-                           lower = 0, upper = 1 - 10 ^ -3,
+                           lower = min_disp, upper = 1 - 10 ^ -3,
                            ocounts = ocounts, osize = osize, weight_vec = weight_vec,
                            out_mean = out_mean)
       out_disp <- oout$par
+    } else if (update_outmean) {
+      oout <- stats::optim(par = out_mean, fn = outlier_obj,
+                           method = "Brent", control = list(fnscale = -1),
+                           lower = 0, upper = 1,
+                           ocounts = ocounts, osize = osize, weight_vec = weight_vec,
+                           out_disp = out_disp)
+      out_mean <- oout$par
     }
 
 
@@ -256,11 +297,15 @@ updog_update_all <- function(ocounts, osize, ploidy, print_val = TRUE,
         non_mono <- non_mono + 1
       }
       if (non_mono >= non_mono_max) {
-        stop("Your likelihood is not increasing.")
+        stop("Your likelihood is not increasing.\n")
       }
     }
 
     index <- index + 1
+  }
+
+  if (abs(out_disp - min_disp) < 10 ^ -6) {
+    warning("out_disp estimated at minimum. Be wary of prob_ok results.\n")
   }
 
   return_list <- list()
@@ -322,20 +367,42 @@ bb_simple_post <- function(ncounts, ssize, ploidy, p1geno, p2geno, seq_error = 0
 #' genotypes and not assuming that we have parental sequence data, and then return the posterior summaries.
 #'
 #' @inheritParams updog
-#' @param print_val Should we print the updates?
-#' @param update_outmean A logical. Should we update \code{out_mean}?
+#' @inheritParams updog_update_all
 #'
 #' @author David Gerard
 #'
 #' @export
 #'
-updog_vanilla <- function(ocounts, osize, ploidy, print_val = FALSE, update_outmean = FALSE) {
+updog_vanilla <- function(ocounts, osize, ploidy, commit_num = 4, min_disp = 0,
+                          print_val = FALSE, update_outmean = FALSE,
+                          update_outdisp = FALSE, update_outprop = TRUE,
+                          p1geno = 3, p2geno = 3, seq_error = 0.01,
+                          od_param = 0.01, bias_val = 1, out_prop = 0.001,
+                          out_mean = 0.5, out_disp = 1/3, non_mono_max = 2) {
+  ## Check input -----------------------------------------------------------------------
   assertthat::assert_that(is.logical(print_val))
   assertthat::assert_that(is.logical(update_outmean))
+  assertthat::assert_that(is.logical(update_outdisp))
+  assertthat::are_equal(length(ocounts), length(osize))
+  assertthat::assert_that(all(ocounts <= osize))
+  assertthat::assert_that(all(ocounts >= 0))
+  assertthat::are_equal(ploidy %% 2, 0)
+  assertthat::assert_that(ploidy > 0)
+  assertthat::are_equal(length(ploidy), length(print_val), length(update_outdisp), length(update_outmean), length(min_disp), 1)
+  assertthat::assert_that(min_disp >= 0, min_disp < 1)
 
   ## Get the best parameters
-  parout <- updog_update_all(ocounts, osize, ploidy, print_val = print_val,
-                             update_outmean = update_outmean)
+  parout <- updog_update_all(ocounts, osize, ploidy, print_val = print_val, commit_num = commit_num,
+                             min_disp = min_disp, update_outprop = update_outprop,
+                             update_outmean = update_outmean, update_outdisp = update_outdisp,
+                             p1geno = p1geno, p2geno = p2geno, seq_error = seq_error,
+                             od_param = od_param, bias_val = bias_val, out_prop = out_prop,
+                             out_mean = out_mean, out_disp = out_disp, non_mono_max = non_mono_max)
+
+  if (parout$od_param < 10 ^ -13) { ## fix for getting some weird postmat's
+    parout$od_param <- 0
+  }
+
   parout$postmat <- bbpost_tot(ocounts = ocounts, osize = osize,
                                ploidy = ploidy, p1geno = parout$p1geno,
                                p2geno = parout$p2geno,

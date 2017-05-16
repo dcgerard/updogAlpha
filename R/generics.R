@@ -15,6 +15,8 @@
 #' @param plot_beta A logical. If true, then we'll also plot the
 #' estimated beta density of the outlier model, followed by the
 #' estimated beta distributions of the overdispersion models.
+#' @param ask A logical. Should we ask before continuing on to the
+#'     next plot (\code{TRUE}) or not (\code{FALSE})?
 #' @param ... Not used.
 #'
 #' @return A plot object.
@@ -23,10 +25,11 @@
 #'
 #' @export
 #'
-plot.updog <- function(x, gg = requireNamespace("ggplot2", quietly = TRUE), plot_beta = TRUE, ...) {
+plot.updog <- function(x, gg = requireNamespace("ggplot2", quietly = TRUE), plot_beta = TRUE, ask = TRUE, ...) {
   assertthat::assert_that(is.updog(x))
   assertthat::assert_that(is.logical(plot_beta))
   assertthat::assert_that(is.logical(gg))
+  assertthat::assert_that(is.logical(ask))
 
   if (!is.null(x$opostprob)) {
     maxpostprob <- apply(x$opostprob, 2, max)
@@ -67,8 +70,10 @@ plot.updog <- function(x, gg = requireNamespace("ggplot2", quietly = TRUE), plot
   }
 
   if (plot_beta) {
-    cat ("Press [enter] to continue")
-    line <- readline()
+    if (ask) {
+      cat ("Press [enter] to continue")
+      line <- readline()
+    }
     if (!is.null(x$out_mu) & !is.null(x$out_rho)) {
       if (gg) {
         plot_beta_dist_gg(mu = x$out_mu, rho = x$out_rho)
@@ -86,8 +91,10 @@ plot.updog <- function(x, gg = requireNamespace("ggplot2", quietly = TRUE), plot
     }
 
     if (!is.null(x$rho)) {
+      if (ask) {
         cat ("Press [enter] to continue")
         line <- readline()
+      }
         pk <- seq(0, x$input$ploidy) / x$input$ploidy ## the possible probabilities
         pk <- (1 - x$seq_error) * pk + x$seq_error * (1 - pk)
         if (gg) {

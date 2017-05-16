@@ -75,6 +75,12 @@ test_that("dbetabinom_mu_rho_cpp_double returns indicators", {
 }
 )
 
+test_that("dbetabinom_mu_rho_cpp_double for small od is about the same as binomial", {
+  expect_equal(dbetabinom_mu_rho_cpp(x = 2, size = 5, mu = 0.5, rho = 4^-16),
+               dbetabinom_mu_rho_cpp(x = 2, size = 5, mu = 0.5, rho = 0), tol = 10^-4)
+}
+)
+
 test_that("get_pvec works", {
   ploidy <- 4
   d <- 1.2

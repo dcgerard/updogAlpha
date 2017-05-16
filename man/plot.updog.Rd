@@ -5,7 +5,7 @@
 \title{Draw a genotype plot from the output of \code{\link{updog}}.}
 \usage{
 \method{plot}{updog}(x, gg = requireNamespace("ggplot2", quietly = TRUE),
-  plot_beta = TRUE, ...)
+  plot_beta = TRUE, ask = TRUE, ...)
 }
 \arguments{
 \item{x}{The output from \code{\link{updog}}.}
@@ -18,6 +18,9 @@ defaults to \code{FALSE}.}
 \item{plot_beta}{A logical. If true, then we'll also plot the
 estimated beta density of the outlier model, followed by the
 estimated beta distributions of the overdispersion models.}
+
+\item{ask}{A logical. Should we ask before continuing on to the
+next plot (\code{TRUE}) or not (\code{FALSE})?}
 
 \item{...}{Not used.}
 }

@@ -5,8 +5,11 @@
 \title{This is a vanilla version of updog that will optimize everything, assuming a uniform prior on the parental
 genotypes and not assuming that we have parental sequence data, and then return the posterior summaries.}
 \usage{
-updog_vanilla(ocounts, osize, ploidy, print_val = FALSE,
-  update_outmean = FALSE)
+updog_vanilla(ocounts, osize, ploidy, commit_num = 4, min_disp = 0,
+  print_val = FALSE, update_outmean = FALSE, update_outdisp = FALSE,
+  update_outprop = TRUE, p1geno = 3, p2geno = 3, seq_error = 0.01,
+  od_param = 0.01, bias_val = 1, out_prop = 0.001, out_mean = 0.5,
+  out_disp = 1/3, non_mono_max = 2)
 }
 \arguments{
 \item{ocounts}{A vector of non-negative integers. The ith element
@@ -18,9 +21,43 @@ total number of reads for the ith child.}
 \item{ploidy}{A positive integer. The number of copies of the
 genome in the species.}
 
-\item{print_val}{Should we print the updates?}
+\item{commit_num}{The number of consecutive iterations where the parental
+genotypes do not change before we commit to those parental genotypes.}
 
-\item{update_outmean}{A logical. Should we update \code{out_mean}?}
+\item{min_disp}{The minimum value for the over-dispersion parameter of the
+outlier distribution. If this gets too small, then we can be overly confident in
+points being outliers.}
+
+\item{print_val}{A logical. Should we print the updates (\code{TRUE}) or not (\code{FALSE})?}
+
+\item{update_outmean}{A logical. Should we update \code{out_mean}
+(\code{TRUE}) or not (\code{FALSE})?}
+
+\item{update_outdisp}{A logical. Should we update \code{out_mean}
+(\code{TRUE}) or not (\code{FALSE})?}
+
+\item{update_outprop}{A logical. Should we update \code{out_prop}
+(\code{TRUE}) or not (\code{FALSE})?}
+
+\item{p1geno}{The initial value of the first parental genotype.}
+
+\item{p2geno}{The initial value of the second parental genotype.}
+
+\item{seq_error}{A non-negative numeric. This is the known
+sequencing error rate. The default is to estimate this
+using data that are all approximately the reference allele.}
+
+\item{od_param}{The initial value of the overdispersion parameter.}
+
+\item{bias_val}{The initial value of the bias parameter.}
+
+\item{out_prop}{The initial value of the proportion of points that are outliers.}
+
+\item{out_mean}{The initial value of the mean of the outlier distribution.}
+
+\item{out_disp}{The initial value of the over-dispersion parameter of the outlier distribution.}
+
+\item{non_mono_max}{The maximum number of iterations to allow non-monotonicity of likelihood.}
 }
 \description{
 This is a vanilla version of updog that will optimize everything, assuming a uniform prior on the parental
