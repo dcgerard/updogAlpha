@@ -4,7 +4,8 @@
 \alias{grad_wrapp_all}
 \title{wrapper for \code{\link{grad_offspring_weights}}}
 \usage{
-grad_wrapp_all(parvec, ocounts, osize, weight_vec, ploidy, p1geno, p2geno)
+grad_wrapp_all(parvec, ocounts, osize, weight_vec, ploidy, p1geno, p2geno,
+  bound = TRUE)
 }
 \arguments{
 \item{parvec}{A vector of three elements, s, ell, and r. We have s = log(bias_val) = log(d),
@@ -26,6 +27,9 @@ reference allele the first parent has.}
 
 \item{p2geno}{The second parental genotype. The number of copies of the
 reference allele the second parent has.}
+
+\item{bound}{A logical. Should we bound the bias parameter by a somewhat arbitrary value
+(\code{TRUE}) or not (\code{FALSE})?}
 }
 \description{
 wrapper for \code{\link{grad_offspring_weights}}

@@ -8,7 +8,7 @@ updog_update_all(ocounts, osize, ploidy, print_val = TRUE, tol = 10^-4,
   maxiter = 500, commit_num = 4, min_disp = 0, update_outmean = FALSE,
   update_outdisp = FALSE, update_outprop = TRUE, p1geno = 3, p2geno = 3,
   seq_error = 0.01, od_param = 0.01, bias_val = 1, out_prop = 0.001,
-  out_mean = 0.5, out_disp = 1/3, non_mono_max = 2)
+  out_mean = 0.5, out_disp = 1/3, non_mono_max = 2, bound = TRUE)
 }
 \arguments{
 \item{ocounts}{A vector of non-negative integers. The ith element
@@ -59,6 +59,9 @@ points being outliers.}
 \item{out_disp}{The initial value of the over-dispersion parameter of the outlier distribution.}
 
 \item{non_mono_max}{The maximum number of iterations to allow non-monotonicity of likelihood.}
+
+\item{bound}{A logical. Should we bound the bias parameter by a somewhat arbitrary value
+(\code{TRUE}) or not (\code{FALSE})?}
 }
 \description{
 This is the same as assuming a uniform prior on the parental genotypes,

@@ -5,7 +5,7 @@
 \title{Update the OK points}
 \usage{
 update_good(parvec, ocounts, osize, weight_vec, ploidy, p1geno = NULL,
-  p2geno = NULL)
+  p2geno = NULL, bound = TRUE)
 }
 \arguments{
 \item{parvec}{A vector of three elements, s, ell, and r. We have s = log(bias_val) = log(d),
@@ -27,6 +27,9 @@ reference allele the first parent has.}
 
 \item{p2geno}{The second parental genotype. The number of copies of the
 reference allele the second parent has.}
+
+\item{bound}{A logical. Should we bound the bias parameter by a somewhat arbitrary value
+(\code{TRUE}) or not (\code{FALSE})?}
 }
 \description{
 Update the OK points
