@@ -100,3 +100,21 @@ test_that("non_llike_increase_dat can be fit", {
   llike_new
 }
 )
+
+
+test_that("update_* doesn't update parameters set to FALSE", {
+  osize <- rbinom(n = 20, size = 70, prob = 0.5)
+  ocounts <- rbinom(n = 20, size = osize, prob = 0.5)
+  uout <- updog_vanilla(ocounts = ocounts, osize = osize,
+                        ploidy = 4, update_bias_val = FALSE, bias_val = 0.9)
+  expect_equal(uout$bias_val, 0.9)
+
+  uout <- updog_vanilla(ocounts = ocounts, osize = osize,
+                        ploidy = 4, update_seq_error = FALSE, seq_error = 0.3)
+  expect_equal(uout$seq_error, 0.3)
+
+  uout <- updog_vanilla(ocounts = ocounts, osize = osize,
+                        ploidy = 4, update_od_param = FALSE, od_param = 0.1)
+  expect_equal(uout$od_param, 0.1)
+}
+)

@@ -5,7 +5,8 @@
 \title{Update the OK points}
 \usage{
 update_good(parvec, ocounts, osize, weight_vec, ploidy, p1geno = NULL,
-  p2geno = NULL, bound = TRUE)
+  p2geno = NULL, bound = TRUE, update_bias_val = TRUE,
+  update_seq_error = TRUE, update_od_param = TRUE)
 }
 \arguments{
 \item{parvec}{A vector of three elements, s, ell, and r. We have s = log(bias_val) = log(d),
@@ -30,6 +31,15 @@ reference allele the second parent has.}
 
 \item{bound}{A logical. Should we bound the bias parameter by a somewhat arbitrary value
 (\code{TRUE}) or not (\code{FALSE})?}
+
+\item{update_bias_val}{A logical. Should we update the bias parameter
+(the first position of \code{parvec})?}
+
+\item{update_seq_error}{A logical. Should we update the sequencing error parameter
+(the second position of \code{parvec})?}
+
+\item{update_od_param}{A logical. Should we update the overdispersion parameter
+(the third position of \code{parvec})?}
 }
 \description{
 Update the OK points

@@ -6,11 +6,20 @@
 #' @param weight_vec A vector of weights obtained via the E-step.
 #' @param bound A logical. Should we bound the bias parameter by a somewhat arbitrary value
 #'     (\code{TRUE}) or not (\code{FALSE})?
+#' @param update_bias_val A logical. Not used. Here for compatability
+#'     with \code{\link{grad_wrapp_all}}.
+#' @param update_seq_error A logical. Not used. Here for compatability
+#'     with \code{\link{grad_wrapp_all}}.
+#' @param update_od_param A logical. Not used. Here for compatability
+#'     with \code{\link{grad_wrapp_all}}.
 #'
 #' @author David Gerard
 #'
 obj_wrapp_all <- function(parvec, ocounts, osize, weight_vec,
-                          ploidy, p1geno, p2geno, bound = TRUE) {
+                          ploidy, p1geno, p2geno, bound = TRUE,
+                          update_bias_val = TRUE,
+                          update_seq_error = TRUE,
+                          update_od_param = TRUE) {
   ## Check if second to last pk is too large -----------------------------------------
   if (bound) {
     eps <- expit(parvec[2])
@@ -33,13 +42,31 @@ obj_wrapp_all <- function(parvec, ocounts, osize, weight_vec,
 #'
 #' @inheritParams obj_offspring_vec
 #' @inheritParams obj_wrapp_all
+#' @param update_bias_val A logical. If \code{FALSE}, then the first position
+#'     of the returned gradient will be zero.
+#' @param update_seq_error A logical. If \code{FALSE}, then the second position
+#'     of the returned gradient will be zero.
+#' @param update_od_param A logical. If \code{FALSE}, then the third position
+#'     of the returned gradient will be zero.
 #'
 #' @author David Gerard
 #'
-grad_wrapp_all <- function(parvec, ocounts, osize, weight_vec, ploidy, p1geno, p2geno, bound = TRUE) {
+grad_wrapp_all <- function(parvec, ocounts, osize, weight_vec, ploidy, p1geno, p2geno, bound = TRUE,
+                           update_bias_val = TRUE,
+                           update_seq_error = TRUE,
+                           update_od_param = TRUE) {
   gout <- grad_offspring_weights(ocounts = ocounts, osize = osize, weight_vec = weight_vec,
                                  ploidy = ploidy, p1geno = p1geno, p2geno = p2geno, s = parvec[1],
                                  ell = parvec[2], r = parvec[3])
+  if (!update_bias_val) {
+    gout[1] <- 0
+  }
+  if (!update_seq_error) {
+    gout[2] <- 0
+  }
+  if (!update_od_param) {
+    gout[3] <- 0
+  }
   return(gout)
 }
 
@@ -50,11 +77,20 @@ grad_wrapp_all <- function(parvec, ocounts, osize, weight_vec, ploidy, p1geno, p
 #' @inheritParams obj_wrapp_all
 #' @param bound A logical. Should we bound the bias parameter by a somewhat arbitrary value
 #'     (\code{TRUE}) or not (\code{FALSE})?
+#' @param update_bias_val A logical. Should we update the bias parameter
+#'     (the first position of \code{parvec})?
+#' @param update_seq_error A logical. Should we update the sequencing error parameter
+#'     (the second position of \code{parvec})?
+#' @param update_od_param A logical. Should we update the overdispersion parameter
+#'     (the third position of \code{parvec})?
 #'
 #' @author David Gerard
 #'
 update_good <- function(parvec, ocounts, osize, weight_vec, ploidy,
-                        p1geno = NULL, p2geno = NULL, bound = TRUE) {
+                        p1geno = NULL, p2geno = NULL, bound = TRUE,
+                        update_bias_val = TRUE,
+                        update_seq_error = TRUE,
+                        update_od_param = TRUE) {
   best_par <- parvec
   if (is.null(p1geno) | is.null(p2geno)) { ## try all p1geno/p2geno combos --
     best_p1 <- 0
@@ -78,7 +114,10 @@ update_good <- function(parvec, ocounts, osize, weight_vec, ploidy,
         oout <- stats::optim(par = start_vec, fn = obj_wrapp_all, gr = grad_wrapp_all,
                              ocounts = ocounts, osize = osize, weight_vec = weight_vec,
                              ploidy = ploidy, p1geno = p1geno, p2geno = p2geno, method = "BFGS",
-                             control = list(fnscale = -1, maxit = 1000), bound = bound)
+                             control = list(fnscale = -1, maxit = 1000), bound = bound,
+                             update_bias_val = update_bias_val,
+                             update_seq_error = update_seq_error,
+                             update_od_param = update_od_param)
         if (oout$convergence != 0) {
           warning(oout$message)
         }
@@ -107,7 +146,10 @@ update_good <- function(parvec, ocounts, osize, weight_vec, ploidy,
     oout <- stats::optim(par = start_vec, fn = obj_wrapp_all, gr = grad_wrapp_all,
                          ocounts = ocounts, osize = osize, weight_vec = weight_vec,
                          ploidy = ploidy, p1geno = p1geno, p2geno = p2geno, method = "BFGS",
-                         control = list(fnscale = -1, maxit = 1000), bound = bound)
+                         control = list(fnscale = -1, maxit = 1000), bound = bound,
+                         update_bias_val = update_bias_val,
+                         update_seq_error = update_seq_error,
+                         update_od_param = update_od_param)
     best_p1 <- p1geno
     best_p2 <- p2geno
     best_llike <- oout$value
@@ -160,6 +202,12 @@ out_grad_wrapp <- function(obj, ocounts, osize, weight_vec, min_disp = 0) {
 #'     (\code{TRUE}) or not (\code{FALSE})?
 #' @param update_outprop A logical. Should we update \code{out_prop}
 #'     (\code{TRUE}) or not (\code{FALSE})?
+#' @param update_bias_val A logical. Should we update \code{bias_val}
+#'     (\code{TRUE}) or not (\code{FALSE})?
+#' @param update_seq_error A logical. Should we update \code{seq_error}
+#'     (\code{TRUE}) or not (\code{FALSE})?
+#' @param update_od_param A logical. Should we update \code{od_param}
+#'     (\code{TRUE}) or not (\code{FALSE})?
 #' @param p1geno The initial value of the first parental genotype.
 #' @param p2geno The initial value of the second parental genotype.
 #' @param seq_error The initial value of the sequencing error rate.
@@ -182,6 +230,9 @@ updog_update_all <- function(ocounts, osize, ploidy, print_val = TRUE,
                              update_outmean = FALSE,
                              update_outdisp = FALSE,
                              update_outprop = TRUE,
+                             update_bias_val = TRUE,
+                             update_seq_error = TRUE,
+                             update_od_param = TRUE,
                              p1geno = 3, p2geno = 3, seq_error = 0.01,
                              od_param = 0.01, bias_val = 1, out_prop = 0.001,
                              out_mean = 0.5, out_disp = 1/3, non_mono_max = 2,
@@ -226,10 +277,16 @@ updog_update_all <- function(ocounts, osize, ploidy, print_val = TRUE,
     if (parental_count >= commit_num) {
       gout <- update_good(parvec = parvec, ocounts = ocounts, osize = osize,
                           weight_vec = 1 - weight_vec, ploidy = ploidy,
-                          p1geno = p1geno, p2geno = p2geno, bound = bound)
+                          p1geno = p1geno, p2geno = p2geno, bound = bound,
+                          update_bias_val = update_bias_val,
+                          update_seq_error = update_seq_error,
+                          update_od_param = update_od_param)
     } else {
       gout <- update_good(parvec = parvec, ocounts = ocounts, osize = osize,
-                          weight_vec = 1 - weight_vec, ploidy = ploidy, bound = bound)
+                          weight_vec = 1 - weight_vec, ploidy = ploidy, bound = bound,
+                          update_bias_val = update_bias_val,
+                          update_seq_error = update_seq_error,
+                          update_od_param = update_od_param)
     }
 
     bias_val  <- gout$bias
@@ -387,6 +444,9 @@ bb_simple_post <- function(ncounts, ssize, ploidy, p1geno, p2geno, seq_error = 0
 updog_vanilla <- function(ocounts, osize, ploidy, commit_num = 4, min_disp = 0,
                           print_val = FALSE, update_outmean = FALSE,
                           update_outdisp = FALSE, update_outprop = TRUE,
+                          update_bias_val = TRUE,
+                          update_seq_error = TRUE,
+                          update_od_param = TRUE,
                           p1geno = 3, p2geno = 3, seq_error = 0.01,
                           od_param = 0.01, bias_val = 1, out_prop = 0.001,
                           out_mean = 0.5, out_disp = 1/3, non_mono_max = 2,
@@ -409,7 +469,10 @@ updog_vanilla <- function(ocounts, osize, ploidy, commit_num = 4, min_disp = 0,
                              update_outmean = update_outmean, update_outdisp = update_outdisp,
                              p1geno = p1geno, p2geno = p2geno, seq_error = seq_error,
                              od_param = od_param, bias_val = bias_val, out_prop = out_prop,
-                             out_mean = out_mean, out_disp = out_disp, non_mono_max = non_mono_max)
+                             out_mean = out_mean, out_disp = out_disp, non_mono_max = non_mono_max,
+                             update_bias_val = update_bias_val,
+                             update_seq_error = update_seq_error,
+                             update_od_param = update_od_param)
 
   if (parout$od_param < 10 ^ -13) { ## fix for getting some weird postmat's
     parout$od_param <- 0

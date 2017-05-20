@@ -7,7 +7,8 @@ genotypes and not assuming that we have parental sequence data, and then return 
 \usage{
 updog_vanilla(ocounts, osize, ploidy, commit_num = 4, min_disp = 0,
   print_val = FALSE, update_outmean = FALSE, update_outdisp = FALSE,
-  update_outprop = TRUE, p1geno = 3, p2geno = 3, seq_error = 0.01,
+  update_outprop = TRUE, update_bias_val = TRUE, update_seq_error = TRUE,
+  update_od_param = TRUE, p1geno = 3, p2geno = 3, seq_error = 0.01,
   od_param = 0.01, bias_val = 1, out_prop = 0.001, out_mean = 0.5,
   out_disp = 1/3, non_mono_max = 2, bound = TRUE)
 }
@@ -37,6 +38,15 @@ points being outliers.}
 (\code{TRUE}) or not (\code{FALSE})?}
 
 \item{update_outprop}{A logical. Should we update \code{out_prop}
+(\code{TRUE}) or not (\code{FALSE})?}
+
+\item{update_bias_val}{A logical. Should we update \code{bias_val}
+(\code{TRUE}) or not (\code{FALSE})?}
+
+\item{update_seq_error}{A logical. Should we update \code{seq_error}
+(\code{TRUE}) or not (\code{FALSE})?}
+
+\item{update_od_param}{A logical. Should we update \code{od_param}
 (\code{TRUE}) or not (\code{FALSE})?}
 
 \item{p1geno}{The initial value of the first parental genotype.}
