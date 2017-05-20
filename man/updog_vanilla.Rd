@@ -10,7 +10,7 @@ updog_vanilla(ocounts, osize, ploidy, commit_num = 4, min_disp = 0,
   update_outprop = TRUE, update_bias_val = TRUE, update_seq_error = TRUE,
   update_od_param = TRUE, p1geno = 3, p2geno = 3, seq_error = 0.01,
   od_param = 0.01, bias_val = 1, out_prop = 0.001, out_mean = 0.5,
-  out_disp = 1/3, non_mono_max = 2, bound = TRUE)
+  out_disp = 1/3, non_mono_max = 2, bound_bias = TRUE)
 }
 \arguments{
 \item{ocounts}{A vector of non-negative integers. The ith element
@@ -69,7 +69,7 @@ using data that are all approximately the reference allele.}
 
 \item{non_mono_max}{The maximum number of iterations to allow non-monotonicity of likelihood.}
 
-\item{bound}{A logical. Should we bound the bias parameter by a somewhat arbitrary value
+\item{bound_bias}{A logical. Should we bound \code{bias_val} by a somewhat arbitrary value
 (\code{TRUE}) or not (\code{FALSE})?}
 }
 \description{

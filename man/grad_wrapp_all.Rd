@@ -5,7 +5,7 @@
 \title{wrapper for \code{\link{grad_offspring_weights}}}
 \usage{
 grad_wrapp_all(parvec, ocounts, osize, weight_vec, ploidy, p1geno, p2geno,
-  bound = TRUE, update_bias_val = TRUE, update_seq_error = TRUE,
+  bound_bias = TRUE, update_bias_val = TRUE, update_seq_error = TRUE,
   update_od_param = TRUE)
 }
 \arguments{
@@ -29,7 +29,7 @@ reference allele the first parent has.}
 \item{p2geno}{The second parental genotype. The number of copies of the
 reference allele the second parent has.}
 
-\item{bound}{A logical. Should we bound the bias parameter by a somewhat arbitrary value
+\item{bound_bias}{A logical. Should we bound the bias parameter \code{parvec[1]} by a somewhat arbitrary value
 (\code{TRUE}) or not (\code{FALSE})?}
 
 \item{update_bias_val}{A logical. If \code{FALSE}, then the first position

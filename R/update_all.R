@@ -4,8 +4,12 @@
 #' @param parvec A vector of three elements, s, ell, and r. We have s = log(bias_val) = log(d),
 #' ell = logit(seq_error) = logit(eps), and r = 1 / logit(od_param) = 1 / logit(tau).
 #' @param weight_vec A vector of weights obtained via the E-step.
-#' @param bound A logical. Should we bound the bias parameter by a somewhat arbitrary value
+#' @param bound_bias A logical. Should we bound the bias parameter \code{parvec[1]} by a somewhat arbitrary value
 #'     (\code{TRUE}) or not (\code{FALSE})?
+#' @param bound_od A logical. Should we bound the overdisperion parameter
+#'     \code{parvec[3]} by a very small number (\code{TRUE}) or not
+#'     (\code{FALSE}). This is mostly because my code for super super small
+#'     values of \code{parvec[3]} can be unstable.
 #' @param update_bias_val A logical. Not used. Here for compatability
 #'     with \code{\link{grad_wrapp_all}}.
 #' @param update_seq_error A logical. Not used. Here for compatability
@@ -16,15 +20,22 @@
 #' @author David Gerard
 #'
 obj_wrapp_all <- function(parvec, ocounts, osize, weight_vec,
-                          ploidy, p1geno, p2geno, bound = TRUE,
+                          ploidy, p1geno, p2geno,
+                          bound_bias = TRUE,
+                          bound_od = TRUE,
                           update_bias_val = TRUE,
                           update_seq_error = TRUE,
                           update_od_param = TRUE) {
   ## Check if second to last pk is too large -----------------------------------------
-  if (bound) {
+  if (bound_bias) {
     eps <- expit(parvec[2])
     mind <- eps / (1 - eps) + 0.05 ## ad hoc bound
     if (exp(parvec[1]) < mind) {
+      return(-Inf)
+    }
+  }
+  if (bound_od) {
+    if (parvec[3] > 18) {
       return(-Inf)
     }
   }
@@ -51,7 +62,8 @@ obj_wrapp_all <- function(parvec, ocounts, osize, weight_vec,
 #'
 #' @author David Gerard
 #'
-grad_wrapp_all <- function(parvec, ocounts, osize, weight_vec, ploidy, p1geno, p2geno, bound = TRUE,
+grad_wrapp_all <- function(parvec, ocounts, osize, weight_vec, ploidy, p1geno, p2geno,
+                           bound_bias = TRUE,
                            update_bias_val = TRUE,
                            update_seq_error = TRUE,
                            update_od_param = TRUE) {
@@ -75,7 +87,7 @@ grad_wrapp_all <- function(parvec, ocounts, osize, weight_vec, ploidy, p1geno, p
 #'
 #' @inheritParams obj_offspring_vec
 #' @inheritParams obj_wrapp_all
-#' @param bound A logical. Should we bound the bias parameter by a somewhat arbitrary value
+#' @param bound_bias A logical. Should we bound the bias parameter \code{parvec[1]} by a somewhat arbitrary value
 #'     (\code{TRUE}) or not (\code{FALSE})?
 #' @param update_bias_val A logical. Should we update the bias parameter
 #'     (the first position of \code{parvec})?
@@ -87,7 +99,8 @@ grad_wrapp_all <- function(parvec, ocounts, osize, weight_vec, ploidy, p1geno, p
 #' @author David Gerard
 #'
 update_good <- function(parvec, ocounts, osize, weight_vec, ploidy,
-                        p1geno = NULL, p2geno = NULL, bound = TRUE,
+                        p1geno = NULL, p2geno = NULL,
+                        bound_bias = TRUE,
                         update_bias_val = TRUE,
                         update_seq_error = TRUE,
                         update_od_param = TRUE) {
@@ -114,7 +127,8 @@ update_good <- function(parvec, ocounts, osize, weight_vec, ploidy,
         oout <- stats::optim(par = start_vec, fn = obj_wrapp_all, gr = grad_wrapp_all,
                              ocounts = ocounts, osize = osize, weight_vec = weight_vec,
                              ploidy = ploidy, p1geno = p1geno, p2geno = p2geno, method = "BFGS",
-                             control = list(fnscale = -1, maxit = 1000), bound = bound,
+                             control = list(fnscale = -1, maxit = 1000),
+                             bound_bias = bound_bias,
                              update_bias_val = update_bias_val,
                              update_seq_error = update_seq_error,
                              update_od_param = update_od_param)
@@ -146,7 +160,8 @@ update_good <- function(parvec, ocounts, osize, weight_vec, ploidy,
     oout <- stats::optim(par = start_vec, fn = obj_wrapp_all, gr = grad_wrapp_all,
                          ocounts = ocounts, osize = osize, weight_vec = weight_vec,
                          ploidy = ploidy, p1geno = p1geno, p2geno = p2geno, method = "BFGS",
-                         control = list(fnscale = -1, maxit = 1000), bound = bound,
+                         control = list(fnscale = -1, maxit = 1000),
+                         bound_bias = bound_bias,
                          update_bias_val = update_bias_val,
                          update_seq_error = update_seq_error,
                          update_od_param = update_od_param)
@@ -217,7 +232,7 @@ out_grad_wrapp <- function(obj, ocounts, osize, weight_vec, min_disp = 0) {
 #' @param out_mean The initial value of the mean of the outlier distribution.
 #' @param out_disp The initial value of the over-dispersion parameter of the outlier distribution.
 #' @param non_mono_max The maximum number of iterations to allow non-monotonicity of likelihood.
-#' @param bound A logical. Should we bound the bias parameter by a somewhat arbitrary value
+#' @param bound_bias A logical. Should we bound \code{bias_val} by a somewhat arbitrary value
 #'     (\code{TRUE}) or not (\code{FALSE})?
 #'
 #' @author David Gerard
@@ -236,7 +251,7 @@ updog_update_all <- function(ocounts, osize, ploidy, print_val = TRUE,
                              p1geno = 3, p2geno = 3, seq_error = 0.01,
                              od_param = 0.01, bias_val = 1, out_prop = 0.001,
                              out_mean = 0.5, out_disp = 1/3, non_mono_max = 2,
-                             bound = TRUE) {
+                             bound_bias = TRUE) {
 
   ## starting values ------------------------------------------
   weight_vec <- rep(out_prop, length = length(ocounts))
@@ -277,13 +292,15 @@ updog_update_all <- function(ocounts, osize, ploidy, print_val = TRUE,
     if (parental_count >= commit_num) {
       gout <- update_good(parvec = parvec, ocounts = ocounts, osize = osize,
                           weight_vec = 1 - weight_vec, ploidy = ploidy,
-                          p1geno = p1geno, p2geno = p2geno, bound = bound,
+                          p1geno = p1geno, p2geno = p2geno,
+                          bound_bias = bound_bias,
                           update_bias_val = update_bias_val,
                           update_seq_error = update_seq_error,
                           update_od_param = update_od_param)
     } else {
       gout <- update_good(parvec = parvec, ocounts = ocounts, osize = osize,
-                          weight_vec = 1 - weight_vec, ploidy = ploidy, bound = bound,
+                          weight_vec = 1 - weight_vec, ploidy = ploidy,
+                          bound_bias = bound_bias,
                           update_bias_val = update_bias_val,
                           update_seq_error = update_seq_error,
                           update_od_param = update_od_param)
@@ -450,7 +467,7 @@ updog_vanilla <- function(ocounts, osize, ploidy, commit_num = 4, min_disp = 0,
                           p1geno = 3, p2geno = 3, seq_error = 0.01,
                           od_param = 0.01, bias_val = 1, out_prop = 0.001,
                           out_mean = 0.5, out_disp = 1/3, non_mono_max = 2,
-                          bound = TRUE) {
+                          bound_bias = TRUE) {
   ## Check input -----------------------------------------------------------------------
   assertthat::assert_that(is.logical(print_val))
   assertthat::assert_that(is.logical(update_outmean))

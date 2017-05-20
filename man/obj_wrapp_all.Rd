@@ -5,8 +5,8 @@
 \title{wrapper for \code{\link{obj_offspring_weights_reparam}}}
 \usage{
 obj_wrapp_all(parvec, ocounts, osize, weight_vec, ploidy, p1geno, p2geno,
-  bound = TRUE, update_bias_val = TRUE, update_seq_error = TRUE,
-  update_od_param = TRUE)
+  bound_bias = TRUE, bound_od = TRUE, update_bias_val = TRUE,
+  update_seq_error = TRUE, update_od_param = TRUE)
 }
 \arguments{
 \item{parvec}{A vector of three elements, s, ell, and r. We have s = log(bias_val) = log(d),
@@ -29,8 +29,13 @@ reference allele the first parent has.}
 \item{p2geno}{The second parental genotype. The number of copies of the
 reference allele the second parent has.}
 
-\item{bound}{A logical. Should we bound the bias parameter by a somewhat arbitrary value
+\item{bound_bias}{A logical. Should we bound the bias parameter \code{parvec[1]} by a somewhat arbitrary value
 (\code{TRUE}) or not (\code{FALSE})?}
+
+\item{bound_od}{A logical. Should we bound the overdisperion parameter
+\code{parvec[3]} by a very small number (\code{TRUE}) or not
+(\code{FALSE}). This is mostly because my code for super super small
+values of \code{parvec[3]} can be unstable.}
 
 \item{update_bias_val}{A logical. Not used. Here for compatability
 with \code{\link{grad_wrapp_all}}.}
