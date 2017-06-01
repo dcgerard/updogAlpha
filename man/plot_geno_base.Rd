@@ -7,7 +7,7 @@
 plot_geno_base(ocounts, osize, ploidy, p1counts = NULL, p1size = NULL,
   p2counts = NULL, p2size = NULL, ogeno = NULL, seq_error = 0,
   bias_val = 1, prob_ok = NULL, maxpostprob = NULL, p1geno = NULL,
-  p2geno = NULL)
+  p2geno = NULL, use_colorblind = TRUE)
 }
 \arguments{
 \item{ocounts}{A vector of non-negative integers. The number of
@@ -43,6 +43,9 @@ reads in parent 2.}
 \item{p1geno}{Parent 1's genotype.}
 
 \item{p2geno}{Parent 2's genotype.}
+
+\item{use_colorblind}{A logical. Should we use a colorblind safe palette (\code{TRUE}),
+or not (\code{FALSE})?}
 }
 \description{
 The base R graphics version of \code{\link{plot_geno}}.

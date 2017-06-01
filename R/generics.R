@@ -17,6 +17,8 @@
 #' estimated beta distributions of the overdispersion models.
 #' @param ask A logical. Should we ask before continuing on to the
 #'     next plot (\code{TRUE}) or not (\code{FALSE})?
+#' @param use_colorblind A logical. Should we use a colorblind safe palette (\code{TRUE}),
+#'     or not (\code{FALSE})?
 #' @param ... Not used.
 #'
 #' @return A plot object.
@@ -25,17 +27,13 @@
 #'
 #' @export
 #'
-plot.updog <- function(x, gg = requireNamespace("ggplot2", quietly = TRUE), plot_beta = TRUE, ask = TRUE, ...) {
+plot.updog <- function(x, gg = requireNamespace("ggplot2", quietly = TRUE),
+                       plot_beta = TRUE, ask = TRUE,
+                       use_colorblind = TRUE, ...) {
   assertthat::assert_that(is.updog(x))
   assertthat::assert_that(is.logical(plot_beta))
   assertthat::assert_that(is.logical(gg))
   assertthat::assert_that(is.logical(ask))
-
-  if (!is.null(x$opostprob)) {
-    maxpostprob <- apply(x$opostprob, 2, max)
-  } else {
-    maxpostprob <- NULL
-  }
 
   if (requireNamespace("ggplot2", quietly = TRUE) & gg) {
     pl <- plot_geno(ocounts = x$input$ocounts, osize = x$input$osize,
@@ -43,8 +41,8 @@ plot.updog <- function(x, gg = requireNamespace("ggplot2", quietly = TRUE), plot
                     p2counts = x$input$p2counts, p2size = x$input$p2size,
                     ploidy = x$input$ploidy, ogeno = x$ogeno, seq_error = x$seq_error,
                     bias_val = x$bias_val,
-                    prob_ok = x$prob_ok, maxpostprob = maxpostprob,
-                    p1geno = x$p1geno, p2geno = x$p2geno)
+                    prob_ok = x$prob_ok, maxpostprob = x$maxpostprob,
+                    p1geno = x$p1geno, p2geno = x$p2geno, use_colorblind = use_colorblind)
     print(pl)
   } else if (!gg) {
     plot_geno_base(ocounts = x$input$ocounts, osize = x$input$osize,
@@ -52,8 +50,8 @@ plot.updog <- function(x, gg = requireNamespace("ggplot2", quietly = TRUE), plot
                    p2counts = x$input$p2counts, p2size = x$input$p2size,
                    ploidy = x$input$ploidy, ogeno = x$ogeno, seq_error = x$seq_error,
                    bias_val = x$bias_val,
-                   prob_ok = x$prob_ok, maxpostprob = maxpostprob,
-                   p1geno = x$p1geno, p2geno = x$p2geno)
+                   prob_ok = x$prob_ok, maxpostprob = x$maxpostprob,
+                   p1geno = x$p1geno, p2geno = x$p2geno, use_colorblind = use_colorblind)
   } else {
     stop("gg = TRUE but ggplot2 not installed")
   }
@@ -331,7 +329,12 @@ plot_beta_dist <- function(alpha = NULL, beta = NULL, mu = NULL, rho = NULL, ...
 #'
 plot_geno_base <- function(ocounts, osize, ploidy, p1counts = NULL, p1size = NULL, p2counts = NULL,
                            p2size = NULL, ogeno = NULL, seq_error = 0, bias_val = 1, prob_ok = NULL, maxpostprob = NULL,
-                           p1geno = NULL, p2geno = NULL) {
+                           p1geno = NULL, p2geno = NULL, use_colorblind = TRUE) {
+
+  if (ploidy > 6 & use_colorblind) {
+    warning("use_colorblind is only supported when ploidy <= 6")
+    use_colorblind <- FALSE
+  }
 
   if (is.null(seq_error)) {
     seq_error <- 0
@@ -378,9 +381,18 @@ plot_geno_base <- function(ocounts, osize, ploidy, p1counts = NULL, p1size = NUL
                          xend = xend, yend = yend)
 
 
+
+  ## Deal with colors and transparancies -------------------------------------
+  if (use_colorblind & requireNamespace("ggthemes", quietly = TRUE)) {
+    possible_colors <- paste0(ggthemes::colorblind_pal()(ploidy + 1), "FF")
+  } else if (use_colorblind) {
+    possible_colors <- grDevices::rainbow(ploidy + 1, alpha = 1)
+    warning("ggthemes needs to be installed to set use_colorblind = TRUE.")
+  } else {
+    possible_colors <- grDevices::rainbow(ploidy + 1, alpha = 1)
+  }
+
   col_vec <- rep(NA, length = length(ogeno))
-  ## Deal with colors and transparancies
-  possible_colors <- grDevices::rainbow(ploidy + 1, alpha = 1)
   if (!is.null(ogeno)) {
     col_vec <- possible_colors[ogeno + 1]
   } else {

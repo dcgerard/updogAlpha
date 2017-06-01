@@ -657,6 +657,11 @@ plot_geno <- function(ocounts, osize, ploidy, p1counts = NULL, p1size = NULL, p2
     bias_val <- 1
   }
 
+  if (ploidy > 6 & use_colorblind) {
+    warning("use_colorblind is only supported when ploidy <= 6")
+    use_colorblind <- FALSE
+  }
+
   assertthat::assert_that(all(ocounts >= 0, na.rm = TRUE))
   assertthat::assert_that(all(osize >= ocounts, na.rm = TRUE))
   assertthat::assert_that(ploidy >= 1)

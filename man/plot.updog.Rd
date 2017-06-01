@@ -5,7 +5,7 @@
 \title{Draw a genotype plot from the output of \code{\link{updog}}.}
 \usage{
 \method{plot}{updog}(x, gg = requireNamespace("ggplot2", quietly = TRUE),
-  plot_beta = TRUE, ask = TRUE, ...)
+  plot_beta = TRUE, ask = TRUE, use_colorblind = TRUE, ...)
 }
 \arguments{
 \item{x}{The output from \code{\link{updog}}.}
@@ -21,6 +21,9 @@ estimated beta distributions of the overdispersion models.}
 
 \item{ask}{A logical. Should we ask before continuing on to the
 next plot (\code{TRUE}) or not (\code{FALSE})?}
+
+\item{use_colorblind}{A logical. Should we use a colorblind safe palette (\code{TRUE}),
+or not (\code{FALSE})?}
 
 \item{...}{Not used.}
 }
