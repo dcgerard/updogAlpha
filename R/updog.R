@@ -635,6 +635,8 @@ get_transition_mat <- function(ploidy, eps) {
 #' @param maxpostprob A vector of the posterior probabilities of begin at the modal probability.
 #' @param p1geno Parent 1's genotype.
 #' @param p2geno Parent 2's genotype.
+#' @param use_colorblind A logical. Should we use a colorblind safe palette (\code{TRUE}),
+#'     or not (\code{FALSE})?
 #'
 #' @export
 #'
@@ -643,7 +645,7 @@ get_transition_mat <- function(ploidy, eps) {
 plot_geno <- function(ocounts, osize, ploidy, p1counts = NULL, p1size = NULL, p2counts = NULL,
                       p2size = NULL, ogeno = NULL, seq_error = 0, bias_val = 1,
                       prob_ok = NULL, maxpostprob = NULL,
-                      p1geno = NULL, p2geno = NULL) {
+                      p1geno = NULL, p2geno = NULL, use_colorblind = TRUE) {
   if (!requireNamespace("ggplot2", quietly = TRUE)) {
     stop("ggplot2 must be installed to use this function")
   }
@@ -746,8 +748,17 @@ plot_geno <- function(ocounts, osize, ploidy, p1counts = NULL, p1size = NULL, p2
      }
    }
 
+
+
   if (!is.null(ogeno) | !is.null(p1geno) | !is.null(p2geno)) {
-    pl <- pl + ggplot2::scale_color_hue(drop = FALSE)
+    if (use_colorblind & requireNamespace("ggthemes", quietly = TRUE)) {
+      pl <- pl + ggthemes::scale_color_colorblind(drop = FALSE)
+    } else if (use_colorblind) {
+      pl <- pl + ggplot2::scale_color_hue(drop = FALSE)
+      warning("ggthemes needs to be installed to set use_colorblind = TRUE.")
+    } else {
+      pl <- pl + ggplot2::scale_color_hue(drop = FALSE)
+    }
   }
 
    return(pl)

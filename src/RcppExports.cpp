@@ -689,3 +689,56 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+
+static const R_CallMethodDef CallEntries[] = {
+    {"updog_bbpost_double", (DL_FUNC) &updog_bbpost_double, 12},
+    {"updog_bbpost_tot", (DL_FUNC) &updog_bbpost_tot, 12},
+    {"updog_get_out_prop", (DL_FUNC) &updog_get_out_prop, 11},
+    {"updog_dbeta_dprop", (DL_FUNC) &updog_dbeta_dprop, 4},
+    {"updog_dbeta_dh", (DL_FUNC) &updog_dbeta_dh, 4},
+    {"updog_dh_dr", (DL_FUNC) &updog_dh_dr, 1},
+    {"updog_dd_ds", (DL_FUNC) &updog_dd_ds, 1},
+    {"updog_dbeta_dr", (DL_FUNC) &updog_dbeta_dr, 4},
+    {"updog_dxi_df", (DL_FUNC) &updog_dxi_df, 2},
+    {"updog_df_deps", (DL_FUNC) &updog_df_deps, 2},
+    {"updog_deps_dell", (DL_FUNC) &updog_deps_dell, 1},
+    {"updog_dbeta_dl", (DL_FUNC) &updog_dbeta_dl, 6},
+    {"updog_dxi_dd", (DL_FUNC) &updog_dxi_dd, 2},
+    {"updog_dbeta_ds", (DL_FUNC) &updog_dbeta_ds, 6},
+    {"updog_dbeta_dr_ell", (DL_FUNC) &updog_dbeta_dr_ell, 6},
+    {"updog_grad_offspring_mat", (DL_FUNC) &updog_grad_offspring_mat, 8},
+    {"updog_grad_offspring", (DL_FUNC) &updog_grad_offspring, 8},
+    {"updog_grad_offspring_weights", (DL_FUNC) &updog_grad_offspring_weights, 9},
+    {"updog_dbeta_deps", (DL_FUNC) &updog_dbeta_deps, 6},
+    {"updog_dbeta_dd", (DL_FUNC) &updog_dbeta_dd, 6},
+    {"updog_dh_dtau", (DL_FUNC) &updog_dh_dtau, 1},
+    {"updog_dbeta_dtau", (DL_FUNC) &updog_dbeta_dtau, 6},
+    {"updog_grad_offspring_mat_original", (DL_FUNC) &updog_grad_offspring_mat_original, 8},
+    {"updog_grad_offspring_original", (DL_FUNC) &updog_grad_offspring_original, 8},
+    {"updog_grad_offspring_weights_original", (DL_FUNC) &updog_grad_offspring_weights_original, 9},
+    {"updog_obj_offspring_vec", (DL_FUNC) &updog_obj_offspring_vec, 12},
+    {"updog_obj_offspring", (DL_FUNC) &updog_obj_offspring, 12},
+    {"updog_obj_offspring_reparam", (DL_FUNC) &updog_obj_offspring_reparam, 8},
+    {"updog_obj_offspring_weights", (DL_FUNC) &updog_obj_offspring_weights, 13},
+    {"updog_obj_offspring_weights_reparam", (DL_FUNC) &updog_obj_offspring_weights_reparam, 9},
+    {"updog_outlier_obj", (DL_FUNC) &updog_outlier_obj, 5},
+    {"updog_dbeta_dtau_withxi", (DL_FUNC) &updog_dbeta_dtau_withxi, 4},
+    {"updog_outlier_grad", (DL_FUNC) &updog_outlier_grad, 5},
+    {"updog_pbias", (DL_FUNC) &updog_pbias, 3},
+    {"updog_pbias_double", (DL_FUNC) &updog_pbias_double, 3},
+    {"updog_dbetabinom_cpp", (DL_FUNC) &updog_dbetabinom_cpp, 5},
+    {"updog_dbetabinom_mu_rho_cpp", (DL_FUNC) &updog_dbetabinom_mu_rho_cpp, 5},
+    {"updog_dbetabinom_mu_rho_cpp_double", (DL_FUNC) &updog_dbetabinom_mu_rho_cpp_double, 5},
+    {"updog_dhyper_cpp", (DL_FUNC) &updog_dhyper_cpp, 4},
+    {"updog_get_q_array_cpp", (DL_FUNC) &updog_get_q_array_cpp, 1},
+    {"updog_logsumexp", (DL_FUNC) &updog_logsumexp, 1},
+    {"updog_get_pvec", (DL_FUNC) &updog_get_pvec, 3},
+    {"updog_colSums_cpp", (DL_FUNC) &updog_colSums_cpp, 1},
+    {"updog_expit", (DL_FUNC) &updog_expit, 1},
+    {NULL, NULL, 0}
+};
+
+RcppExport void R_init_updog(DllInfo *dll) {
+    R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
+    R_useDynamicSymbols(dll, FALSE);
+}

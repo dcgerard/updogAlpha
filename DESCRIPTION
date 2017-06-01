@@ -16,7 +16,8 @@ Suggests:
     covr,
     ggplot2,
     VGAM,
-    txtplot
+    txtplot,
+    ggthemes
 Imports:
     assertthat,
     Rcpp,
