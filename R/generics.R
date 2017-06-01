@@ -369,8 +369,8 @@ plot_geno_base <- function(ocounts, osize, ploidy, p1counts = NULL, p1size = NUL
   }
 
   if (!is.null(maxpostprob)) {
-    assertthat::assert_that(all(maxpostprob >= 0))
-    assertthat::assert_that(all(maxpostprob <= 1))
+    assertthat::assert_that(all(maxpostprob >= 0, na.rm = TRUE))
+    assertthat::assert_that(all(maxpostprob <= 1, na.rm = TRUE))
     dfdat$maxpostprob <- maxpostprob
   }
 
