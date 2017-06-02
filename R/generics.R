@@ -19,6 +19,12 @@
 #'     next plot (\code{TRUE}) or not (\code{FALSE})?
 #' @param use_colorblind A logical. Should we use a colorblind safe palette (\code{TRUE}),
 #'     or not (\code{FALSE})?
+#' @param show_maxpostprob A logical. Should we scale the sizes by \code{x$maxpostprob} (\code{TRUE}),
+#'     or not (\code{FALSE})?
+#' @param show_ogeno A logical. Should we color code by \code{x$ogeno} (\code{TRUE}),
+#'     or not (\code{FALSE})?
+#' @param show_outlier A logical. Should we scale the transparency by \code{x$prob_ok} (\code{TRUE}),
+#'     or not (\code{FALSE})?
 #' @param ... Not used.
 #'
 #' @return A plot object.
@@ -29,11 +35,29 @@
 #'
 plot.updog <- function(x, gg = requireNamespace("ggplot2", quietly = TRUE),
                        plot_beta = TRUE, ask = TRUE,
-                       use_colorblind = TRUE, ...) {
+                       use_colorblind = TRUE,
+                       show_maxpostprob = FALSE,
+                       show_ogeno = TRUE,
+                       show_outlier = TRUE, ...) {
+
   assertthat::assert_that(is.updog(x))
   assertthat::assert_that(is.logical(plot_beta))
   assertthat::assert_that(is.logical(gg))
   assertthat::assert_that(is.logical(ask))
+  assertthat::assert_that(is.logical(use_colorblind))
+  assertthat::assert_that(is.logical(show_maxpostprob))
+  assertthat::assert_that(is.logical(show_ogeno))
+  assertthat::assert_that(is.logical(show_outlier))
+
+  if (!show_maxpostprob) {
+    x$maxpostprob <- NULL
+  }
+  if (!show_ogeno) {
+    x$ogeno <- NULL
+  }
+  if (!show_outlier) {
+    x$prob_ok <- NULL
+  }
 
   if (requireNamespace("ggplot2", quietly = TRUE) & gg) {
     pl <- plot_geno(ocounts = x$input$ocounts, osize = x$input$osize,
@@ -461,7 +485,7 @@ plot_geno_base <- function(ocounts, osize, ploidy, p1counts = NULL, p1size = NUL
                      legend = format(possible_transparancies, digits = 2), bty = "n")
   }
   if (!is.null(maxpostprob)) {
-    maxpostprob_legend <- seq(0.1, max(maxpostprob), length = 4)
+    maxpostprob_legend <- c(0.25, 0.5, 0.75, 1)
     maxpostprob_val <- maxpostprob_legend * cex_val
     graphics::legend("topleft", col = "black", pch = 16, pt.cex = maxpostprob_val,
                      legend = format(maxpostprob_legend, digits = 2), title = "maxpostprob", bty = "n")
@@ -469,6 +493,185 @@ plot_geno_base <- function(ocounts, osize, ploidy, p1counts = NULL, p1size = NUL
 
   ## reset old options before exiting
   on.exit(graphics::par(old_options), add = TRUE)
+}
+
+
+
+#' Make a genotype plot.
+#'
+#' The x-axis will be the counts of the non-reference allele,
+#' and the y-axis will be the counts of the reference allele.
+#' Transparency is controlled by the \code{prob_ok} vector,
+#' size is controlled by the \code{maxpostprob} vector.
+#'
+#' If parental genotypes are provided (\code{p1geno} and \code{p2geno}) then
+#' the will be colored the same as the offspring. Since they are often hard to see,
+#' a small black dot will also indicate their position.
+#'
+#' @param ocounts A vector of non-negative integers. The number of
+#'     reference alleles observed in the offspring.
+#' @param osize A vector of positive integers. The total number of
+#'     reads in the offspring.
+#' @param p1counts A vector of non-negative integers. The number of
+#'     reference alleles observed in parent 1.
+#' @param p1size A vector of positive integers. The total number of
+#'     reads in parent 1.
+#' @param p2counts A vector of non-negative integers. The number of
+#'     reference alleles observed in parent 2.
+#' @param p2size A vector of positive integers. The total number of
+#'     reads in parent 2.
+#' @param ploidy A non-negative integer. The ploidy of the species.
+#' @param ogeno The child genotypes
+#' @param seq_error The average sequencing error rate.
+#' @param bias_val The bias parameter.
+#' @param prob_ok A vector of posterior probabilities of not being a mistake.
+#' @param maxpostprob A vector of the posterior probabilities of begin at the modal probability.
+#' @param p1geno Parent 1's genotype.
+#' @param p2geno Parent 2's genotype.
+#' @param use_colorblind A logical. Should we use a colorblind safe palette (\code{TRUE}),
+#'     or not (\code{FALSE})?
+#'
+#' @export
+#'
+#' @author David Gerard
+#'
+plot_geno <- function(ocounts, osize, ploidy, p1counts = NULL, p1size = NULL, p2counts = NULL,
+                      p2size = NULL, ogeno = NULL, seq_error = 0, bias_val = 1,
+                      prob_ok = NULL, maxpostprob = NULL,
+                      p1geno = NULL, p2geno = NULL, use_colorblind = TRUE) {
+  if (!requireNamespace("ggplot2", quietly = TRUE)) {
+    stop("ggplot2 must be installed to use this function")
+  }
+
+  if (is.null(seq_error)) {
+    seq_error <- 0
+  }
+  if (is.null(bias_val)) {
+    bias_val <- 1
+  }
+
+  if (ploidy > 6 & use_colorblind) {
+    warning("use_colorblind is only supported when ploidy <= 6")
+    use_colorblind <- FALSE
+  }
+
+  assertthat::assert_that(all(ocounts >= 0, na.rm = TRUE))
+  assertthat::assert_that(all(osize >= ocounts, na.rm = TRUE))
+  assertthat::assert_that(ploidy >= 1)
+  assertthat::assert_that(seq_error >= 0)
+
+  ## get probabilities
+  pk <- seq(0, ploidy) / ploidy ## the possible probabilities
+  pk <- (1 - seq_error) * pk + seq_error * (1 - pk)
+  pk <- pk / (bias_val * (1 - pk) + pk)
+
+  dfdat <- data.frame(A = ocounts, a = osize - ocounts)
+  maxcount <- max(max(dfdat$A, na.rm = TRUE), max(dfdat$a, na.rm = TRUE))
+  if (!is.null(ogeno)) {
+    assertthat::are_equal(length(ogeno), length(ocounts))
+    dfdat$genotype <- factor(ogeno, levels = 0:ploidy)
+  }
+
+  if (!is.null(prob_ok)) {
+    assertthat::assert_that(all(prob_ok >= 0))
+    assertthat::assert_that(all(prob_ok <= 1))
+    dfdat$prob_ok <- prob_ok
+  }
+
+  if (!is.null(maxpostprob)) {
+    assertthat::assert_that(all(maxpostprob >= 0, na.rm = TRUE))
+    assertthat::assert_that(all(maxpostprob <= 1, na.rm = TRUE))
+    dfdat$maxpostprob <- maxpostprob
+  }
+
+  slopevec <- pk / (1 - pk)
+  xend <- pmin(rep(maxcount, ploidy + 1), maxcount / slopevec)
+  yend <- pmin(rep(maxcount, ploidy + 1), maxcount * slopevec)
+  df_lines <- data.frame(x = rep(0, ploidy + 1), y = rep(0, ploidy + 1),
+                         xend = xend, yend = yend)
+
+  ## Plot children
+  if (is.null(prob_ok) & is.null(maxpostprob)) {
+    pl <- ggplot2::ggplot(data = dfdat, mapping = ggplot2::aes_string(y = "A", x = "a"))
+  } else if (!is.null(prob_ok) & is.null(maxpostprob)) {
+    pl <- ggplot2::ggplot(data = dfdat, mapping = ggplot2::aes_string(y = "A", x = "a", alpha = "prob_ok"))
+  } else if (is.null(prob_ok) & !is.null(maxpostprob)) {
+    pl <- ggplot2::ggplot(data = dfdat, mapping = ggplot2::aes_string(y = "A", x = "a", size = "maxpostprob"))
+  } else if (!is.null(prob_ok) & !is.null(maxpostprob)) {
+    pl <- ggplot2::ggplot(data = dfdat, mapping = ggplot2::aes_string(y = "A", x = "a", alpha = "prob_ok", size = "maxpostprob"))
+  }
+
+  ## add offspring genotypes ------------------------------------------------
+  if (!is.null(ogeno)) {
+    pl <- pl + ggplot2::geom_point(ggplot2::aes_string(colour = "genotype"))
+  } else {
+    pl <- pl + ggplot2::geom_point()
+  }
+
+
+
+  pl <- pl + ggplot2::theme_bw() +
+    ggplot2::xlim(0, maxcount) +
+    ggplot2::ylim(0, maxcount) +
+    ggplot2::ylab("Counts A") +
+    ggplot2::xlab("Counts a")  +
+    ggplot2::geom_segment(data = df_lines, mapping = ggplot2::aes_string(x = "x", y = "y", xend = "xend", yend = "yend"),
+                          lty = 2, alpha = 1/2, color = "black", size = 0.5)
+
+  ## add parents if we have them
+  if (!is.null(p1size) & !is.null(p1counts)) {
+    assertthat::assert_that(all(p1counts >= 0, na.rm = TRUE))
+    assertthat::assert_that(all(p1size >= p1counts, na.rm = TRUE))
+    p1dat <- data.frame(A = p1counts, a = p1size - p1counts)
+    if (!is.null(p1geno)) {
+      p1dat$genotype <- factor(p1geno, levels = 0:ploidy)
+      pl <- pl + ggplot2::geom_point(data = p1dat, mapping = ggplot2::aes_string(color = "genotype"),
+                                     size = 3, pch = 3, alpha = 1, show.legend = FALSE)
+      pl <- pl + ggplot2::geom_point(data = p1dat, size = 1, color = "black", pch = 16, alpha = 1)
+    } else {
+      pl <- pl + ggplot2::geom_point(data = p1dat, size = 3, color = "black", pch = 3, alpha = 1)
+    }
+  }
+  if (!is.null(p2size) & !is.null(p2counts)) {
+    assertthat::assert_that(all(p2counts >= 0, na.rm = TRUE))
+    assertthat::assert_that(all(p2size >= p2counts, na.rm = TRUE))
+    p2dat <- data.frame(A = p2counts, a = p2size - p2counts)
+    if (!is.null(p2geno)) {
+      p2dat$genotype <- factor(p2geno, levels = 0:ploidy)
+      pl <- pl + ggplot2::geom_point(data = p2dat, mapping = ggplot2::aes_string(color = "genotype"),
+                                     size = 3, pch = 4, alpha = 1, show.legend = FALSE)
+      pl <- pl + ggplot2::geom_point(data = p2dat, size = 1, color = "black", pch = 16, alpha = 1)
+    } else {
+      pl <- pl + ggplot2::geom_point(data = p2dat, size = 3, color = "black", pch = 4, alpha = 1)
+    }
+  }
+
+
+  ## Set color scale based on use_colorblind --------------------------------------
+  if (!is.null(ogeno) | !is.null(p1geno) | !is.null(p2geno)) {
+    if (use_colorblind & requireNamespace("ggthemes", quietly = TRUE)) {
+      pl <- pl + ggthemes::scale_color_colorblind(drop = FALSE)
+    } else if (use_colorblind) {
+      pl <- pl + ggplot2::scale_color_hue(drop = FALSE)
+      warning("ggthemes needs to be installed to set use_colorblind = TRUE.")
+    } else {
+      pl <- pl + ggplot2::scale_color_hue(drop = FALSE)
+    }
+  }
+
+  ## Set transparency scale --------------------------------------------------------
+  if (!is.null(prob_ok)) {
+    pl <- pl + ggplot2::scale_alpha_continuous(breaks = c(0, 0.25, 0.5, 0.75, 1))
+  }
+
+  ## Set size scale -----------------------------------------------------------------
+  if (!is.null(maxpostprob)) {
+    pl <- pl + ggplot2::scale_size_continuous(breaks = c(0, 0.25, 0.5, 0.75, 1),
+                                              range = c(0.5, 3))
+  }
+
+
+  return(pl)
 }
 
 

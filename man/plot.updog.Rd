@@ -5,7 +5,8 @@
 \title{Draw a genotype plot from the output of \code{\link{updog}}.}
 \usage{
 \method{plot}{updog}(x, gg = requireNamespace("ggplot2", quietly = TRUE),
-  plot_beta = TRUE, ask = TRUE, use_colorblind = TRUE, ...)
+  plot_beta = TRUE, ask = TRUE, use_colorblind = TRUE,
+  show_maxpostprob = FALSE, show_ogeno = TRUE, show_outlier = TRUE, ...)
 }
 \arguments{
 \item{x}{The output from \code{\link{updog}}.}
@@ -23,6 +24,15 @@ estimated beta distributions of the overdispersion models.}
 next plot (\code{TRUE}) or not (\code{FALSE})?}
 
 \item{use_colorblind}{A logical. Should we use a colorblind safe palette (\code{TRUE}),
+or not (\code{FALSE})?}
+
+\item{show_maxpostprob}{A logical. Should we scale the sizes by \code{x$maxpostprob} (\code{TRUE}),
+or not (\code{FALSE})?}
+
+\item{show_ogeno}{A logical. Should we color code by \code{x$ogeno} (\code{TRUE}),
+or not (\code{FALSE})?}
+
+\item{show_outlier}{A logical. Should we scale the transparency by \code{x$prob_ok} (\code{TRUE}),
 or not (\code{FALSE})?}
 
 \item{...}{Not used.}
