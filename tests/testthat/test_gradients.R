@@ -644,3 +644,58 @@ test_that("grad_wrapp_all matches obj_wrap_all", {
 
 }
 )
+
+test_that("out_grad_parent matches dbetabinom_mu_rho_cpp_double", {
+  pcounts  <- 13
+  psize    <- 21
+  out_mean <- 0.8
+  out_disp <- 0.4
+  weight   <- 0.8
+
+  tempfunc <- function(out_mean, out_disp) {
+    weight * dbetabinom_mu_rho_cpp_double(x = pcounts, size = psize, mu = out_mean, rho = out_disp, return_log = TRUE)
+  }
+
+  myenv <- new.env()
+  assign("out_mean", out_mean, envir = myenv)
+  assign("out_disp", out_disp, envir = myenv)
+  nout <- stats::numericDeriv(quote(tempfunc(out_mean, out_disp)), c("out_mean", "out_disp"), myenv)
+  cderiv <- out_grad_parent(pcounts = pcounts, psize = psize,
+                            out_mean = out_mean, out_disp = out_disp,
+                            weight = weight)
+  expect_equal(cderiv, c(attr(nout, "gradient")), tol = 10 ^ -5)
+}
+)
+
+test_that("out_grad_wrapp matches out_obj_wrapp", {
+  parvec     <- c(0.5, 0.3)
+  ocounts    <- c(11, 12)
+  osize      <- c(20, 30)
+  weight_vec <- c(0.1, 0.2)
+  p1counts   <- 12
+  p1size     <- 20
+  p1weight   <- 0.3
+  p2counts   <- 18
+  p2size     <- 44
+  p2weight   <- 0.2
+  p1geno     <- 2
+  p2geno     <- 2
+  ploidy     <- 4
+
+  tempfunc <- function(parvec) {
+    out_obj_wrapp(parvec = parvec, ocounts = ocounts, osize = osize,
+                  weight_vec = weight_vec, p1counts = p1counts,
+                  p1size = p1size, p1weight = p1weight,
+                  p2counts = p2counts, p2size = p2size, p2weight = p2weight)
+  }
+
+  myenv <- new.env()
+  assign("parvec", parvec, envir = myenv)
+  nout <- stats::numericDeriv(quote(tempfunc(parvec)), "parvec", myenv)
+  cderiv <- out_grad_wrapp(parvec = parvec, ocounts = ocounts, osize = osize,
+                           weight_vec = weight_vec, p1counts = p1counts,
+                           p1size = p1size, p1weight = p1weight,
+                           p2counts = p2counts, p2size = p2size, p2weight = p2weight)
+  expect_equal(cderiv, c(attr(nout, "gradient")), tol = 10 ^ -6)
+}
+)

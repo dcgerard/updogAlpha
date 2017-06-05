@@ -532,6 +532,23 @@ grad_parent_reparam <- function(pcounts, psize, ploidy, pgeno, s, ell, r, weight
     .Call('updog_grad_parent_reparam', PACKAGE = 'updog', pcounts, psize, ploidy, pgeno, s, ell, r, weight)
 }
 
+#' Gradient function for \code{\link{dbetabinom_mu_rho_cpp_double}}.
+#'
+#' @inheritParams obj_parent
+#' @param out_mean The mean of the BB.
+#' @param out_disp The overdispersion parameter of the BB.
+#' @param weight The probability a point is an outlier.
+#'
+#' @return A vector of length two. The first element of which is the partial derivative
+#'     of the outlier mean. The second element of which is the partial
+#'     derivative of the outlier overdispersion parameter.
+#'
+#' @author David Gerard
+#'
+out_grad_parent <- function(pcounts, psize, out_mean, out_disp, weight) {
+    .Call('updog_out_grad_parent', PACKAGE = 'updog', pcounts, psize, out_mean, out_disp, weight)
+}
+
 #' E-step for the parents.
 #'
 #' @inheritParams obj_parent

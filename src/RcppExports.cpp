@@ -623,6 +623,21 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// out_grad_parent
+Rcpp::NumericVector out_grad_parent(double pcounts, double psize, double out_mean, double out_disp, double weight);
+RcppExport SEXP updog_out_grad_parent(SEXP pcountsSEXP, SEXP psizeSEXP, SEXP out_meanSEXP, SEXP out_dispSEXP, SEXP weightSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< double >::type pcounts(pcountsSEXP);
+    Rcpp::traits::input_parameter< double >::type psize(psizeSEXP);
+    Rcpp::traits::input_parameter< double >::type out_mean(out_meanSEXP);
+    Rcpp::traits::input_parameter< double >::type out_disp(out_dispSEXP);
+    Rcpp::traits::input_parameter< double >::type weight(weightSEXP);
+    rcpp_result_gen = Rcpp::wrap(out_grad_parent(pcounts, psize, out_mean, out_disp, weight));
+    return rcpp_result_gen;
+END_RCPP
+}
 // get_parent_outprop
 double get_parent_outprop(double pcounts, double psize, int ploidy, int pgeno, double d, double eps, double tau, double out_prop, double out_mean, double out_disp);
 RcppExport SEXP updog_get_parent_outprop(SEXP pcountsSEXP, SEXP psizeSEXP, SEXP ploidySEXP, SEXP pgenoSEXP, SEXP dSEXP, SEXP epsSEXP, SEXP tauSEXP, SEXP out_propSEXP, SEXP out_meanSEXP, SEXP out_dispSEXP) {
@@ -824,6 +839,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"updog_obj_parent_reparam", (DL_FUNC) &updog_obj_parent_reparam, 8},
     {"updog_grad_parent", (DL_FUNC) &updog_grad_parent, 8},
     {"updog_grad_parent_reparam", (DL_FUNC) &updog_grad_parent_reparam, 8},
+    {"updog_out_grad_parent", (DL_FUNC) &updog_out_grad_parent, 5},
     {"updog_get_parent_outprop", (DL_FUNC) &updog_get_parent_outprop, 10},
     {"updog_pbias", (DL_FUNC) &updog_pbias, 3},
     {"updog_pbias_double", (DL_FUNC) &updog_pbias_double, 3},

@@ -192,6 +192,34 @@ Rcpp::NumericVector grad_parent_reparam(double pcounts, double psize, int ploidy
   return(grad);
 }
 
+//' Gradient function for \code{\link{dbetabinom_mu_rho_cpp_double}}.
+//'
+//' @inheritParams obj_parent
+//' @param out_mean The mean of the BB.
+//' @param out_disp The overdispersion parameter of the BB.
+//' @param weight The probability a point is an outlier.
+//'
+//' @return A vector of length two. The first element of which is the partial derivative
+//'     of the outlier mean. The second element of which is the partial
+//'     derivative of the outlier overdispersion parameter.
+//'
+//' @author David Gerard
+//'
+// [[Rcpp::export]]
+Rcpp::NumericVector out_grad_parent(double pcounts, double psize,
+                                    double out_mean, double out_disp,
+                                    double weight) {
+
+  Rcpp::NumericVector grad(2);
+
+  double fval = dbetabinom_mu_rho_cpp_double(pcounts, psize, out_mean, out_disp, false);
+  grad(0) = weight * dbeta_dprop(pcounts, psize, out_mean, out_disp) / fval;
+  double h = (1.0 - out_disp) / out_disp;
+  grad(1) = weight * dbeta_dh(pcounts, psize, out_mean, h) * dh_dtau(out_disp) / fval;
+
+  return grad;
+}
+
 
 //' E-step for the parents.
 //'
@@ -227,9 +255,6 @@ double get_parent_outprop(double pcounts, double psize,
 
   return theta;
 }
-
-
-
 
 
 

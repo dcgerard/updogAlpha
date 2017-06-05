@@ -225,7 +225,7 @@ update_good <- function(parvec, ocounts, osize, weight_vec, ploidy,
 
 #' Wrapper for \code{\link{outlier_obj}}.
 #'
-#' @param obj A numeric vector of length two. The first element is the outlier mean.
+#' @param parvec A numeric vector of length two. The first element is the outlier mean.
 #'     The second element is the outlier overdispersion parameter.
 #' @param ocounts The offspring counts of the reference allele.
 #' @param osize The offspring counts of reads.
@@ -241,22 +241,22 @@ update_good <- function(parvec, ocounts, osize, weight_vec, ploidy,
 #' @author David Gerard
 #'
 #'
-out_obj_wrapp <- function(obj, ocounts, osize, weight_vec,
+out_obj_wrapp <- function(parvec, ocounts, osize, weight_vec,
                           p1counts = NULL, p1size = NULL, p1weight = NULL,
                           p2counts = NULL, p2size = NULL, p2weight = NULL,
                           min_disp = 0) {
-  if ((obj[2] < min_disp) | (obj[2] > 1 - 10 ^ -8) | (obj[1] < 10 ^ -8) | (obj[1] > 1 - 10 ^ -8)) {
+  if ((parvec[2] < min_disp) | (parvec[2] > 1 - 10 ^ -8) | (parvec[1] < 10 ^ -8) | (parvec[1] > 1 - 10 ^ -8)) {
     return(-Inf)
   } else {
-    obj <- outlier_obj(ocounts = ocounts, osize = osize, weight_vec = weight_vec, out_mean = obj[1], out_disp = obj[2])
+    obj <- outlier_obj(ocounts = ocounts, osize = osize, weight_vec = weight_vec, out_mean = parvec[1], out_disp = parvec[2])
   }
 
   ## add parent data if we have it.
   if (!is.null(p1counts) & !is.null(p1size) & !is.null(p1weight)) {
-    obj <- obj + dbetabinom_mu_rho_cpp_double(x = p1counts, size = p1size, mu = obj[1], rho = obj[2], return_log = TRUE)
+    obj <- obj + p1weight * dbetabinom_mu_rho_cpp_double(x = p1counts, size = p1size, mu = parvec[1], rho = parvec[2], return_log = TRUE)
   }
   if (!is.null(p2counts) & !is.null(p2size) & !is.null(p2weight)) {
-    obj <- obj + dbetabinom_mu_rho_cpp_double(x = p2counts, size = p2size, mu = obj[1], rho = obj[2], return_log = TRUE)
+    obj <- obj + p2weight * dbetabinom_mu_rho_cpp_double(x = p2counts, size = p2size, mu = parvec[1], rho = parvec[2], return_log = TRUE)
   }
   return(obj)
 }
@@ -267,11 +267,23 @@ out_obj_wrapp <- function(obj, ocounts, osize, weight_vec,
 #'
 #' @author David Gerard
 #'
-out_grad_wrapp <- function(obj, ocounts, osize, weight_vec,
+out_grad_wrapp <- function(parvec, ocounts, osize, weight_vec,
                            p1counts = NULL, p1size = NULL, p1weight = NULL,
                            p2counts = NULL, p2size = NULL, p2weight = NULL,
                            min_disp = 0) {
-  outlier_grad(ocounts = ocounts, osize = osize, weight_vec = weight_vec, out_mean = obj[1], out_disp = obj[2])
+  grad <- outlier_grad(ocounts = ocounts, osize = osize, weight_vec = weight_vec,
+                       out_mean = parvec[1], out_disp = parvec[2])
+  if (!is.null(p1counts) & !is.null(p1size) & !is.null(p1weight)) { ## update grad if have parent 1 info
+    grad <- grad + out_grad_parent(pcounts = p1counts, psize = p1size,
+                                   out_mean = parvec[1], out_disp = parvec[2],
+                                   weight = p1weight)
+  }
+  if (!is.null(p2counts) & !is.null(p2size) & !is.null(p2weight)) { ## update grad if have parent 2 info
+    grad <- grad + out_grad_parent(pcounts = p2counts, psize = p2size,
+                                   out_mean = parvec[1], out_disp = parvec[2],
+                                   weight = p2weight)
+  }
+  return(grad)
 }
 
 

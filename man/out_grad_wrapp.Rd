@@ -4,12 +4,12 @@
 \alias{out_grad_wrapp}
 \title{Wrapper for \code{\link{outlier_grad}}.}
 \usage{
-out_grad_wrapp(obj, ocounts, osize, weight_vec, p1counts = NULL,
+out_grad_wrapp(parvec, ocounts, osize, weight_vec, p1counts = NULL,
   p1size = NULL, p1weight = NULL, p2counts = NULL, p2size = NULL,
   p2weight = NULL, min_disp = 0)
 }
 \arguments{
-\item{obj}{A numeric vector of length two. The first element is the outlier mean.
+\item{parvec}{A numeric vector of length two. The first element is the outlier mean.
 The second element is the outlier overdispersion parameter.}
 
 \item{ocounts}{The offspring counts of the reference allele.}
