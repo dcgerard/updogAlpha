@@ -28,6 +28,10 @@ reference allele the second parent has.}
 
 \item{tau}{The overdisperion parameter.}
 }
+\value{
+A NumericVector of length three with the partial derivatives of
+    \code{d}, \code{eps}, and \code{tau}, in that order.
+}
 \description{
 Gradient of \code{\link{obj_offspring}} using the original parameterization.
 }

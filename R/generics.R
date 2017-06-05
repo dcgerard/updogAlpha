@@ -603,7 +603,7 @@ plot_geno <- function(ocounts, osize, ploidy, p1counts = NULL, p1size = NULL, p2
 
   ## add offspring genotypes ------------------------------------------------
   if (!is.null(ogeno)) {
-    pl <- pl + ggplot2::geom_point(ggplot2::aes_string(colour = "genotype"))
+    pl <- pl + ggplot2::geom_point(ggplot2::aes_string(color = "genotype"))
   } else {
     pl <- pl + ggplot2::geom_point()
   }
@@ -661,12 +661,12 @@ plot_geno <- function(ocounts, osize, ploidy, p1counts = NULL, p1size = NULL, p2
 
   ## Set transparency scale --------------------------------------------------------
   if (!is.null(prob_ok)) {
-    pl <- pl + ggplot2::scale_alpha_continuous(breaks = c(0, 0.25, 0.5, 0.75, 1))
+    pl <- pl + ggplot2::scale_alpha_continuous(breaks = c(-0.01, 0.25, 0.5, 0.75, 1.01))
   }
 
   ## Set size scale -----------------------------------------------------------------
   if (!is.null(maxpostprob)) {
-    pl <- pl + ggplot2::scale_size_continuous(breaks = c(0, 0.25, 0.5, 0.75, 1),
+    pl <- pl + ggplot2::scale_size_continuous(breaks = c(-0.01, 0.25, 0.5, 0.75, 1.01),
                                               range = c(0.5, 3))
   }
 

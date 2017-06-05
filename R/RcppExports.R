@@ -312,6 +312,9 @@ grad_offspring_mat_original <- function(ocounts, osize, ploidy, p1geno, p2geno, 
 #' @inheritParams obj_offspring
 #' @inheritParams dbeta_deps
 #'
+#' @return A NumericVector of length three with the partial derivatives of
+#'     \code{d}, \code{eps}, and \code{tau}, in that order.
+#'
 #' @author David Gerard
 #'
 #' @export
@@ -325,6 +328,9 @@ grad_offspring_original <- function(ocounts, osize, ploidy, p1geno, p2geno, d, e
 #' @inheritParams obj_offspring
 #' @inheritParams dbeta_deps
 #' @param weight_vec A vector of weights between 0 and 1 (do not need to add up to 1).
+#'
+#' @return A NumericVector of length three with the partial derivatives of
+#'     \code{d}, \code{eps}, and \code{tau}, in that order.
 #'
 grad_offspring_weights_original <- function(ocounts, osize, weight_vec, ploidy, p1geno, p2geno, d, eps, tau) {
     .Call('updog_grad_offspring_weights_original', PACKAGE = 'updog', ocounts, osize, weight_vec, ploidy, p1geno, p2geno, d, eps, tau)
@@ -456,6 +462,74 @@ dbeta_dtau_withxi <- function(x, n, xi, tau) {
 #'
 outlier_grad <- function(ocounts, osize, weight_vec, out_mean, out_disp) {
     .Call('updog_outlier_grad', PACKAGE = 'updog', ocounts, osize, weight_vec, out_mean, out_disp)
+}
+
+#' Parent contribution to objective function.
+#'
+#' For each parental read counts you have, add this to
+#' \code{{\link{obj_offspring}}} to get the objective function.
+#'
+#' @inheritParams obj_offspring_vec
+#' @param pcounts The number of counts of the reference allele we observe in
+#'     a parent.
+#' @param psize The total number of reads we observe in a parent.
+#' @param pgeno The genotype of the parent.
+#' @param weight A double that multiplies to the log-likelihood (objective).
+#'     Should only be used when \code{outlier = FALSE} during the M
+#'     step of the EM algorithm.
+#'
+#' @author David Gerard
+#'
+obj_parent <- function(pcounts, psize, ploidy, pgeno, bias_val = 1, seq_error = 0, od_param = 0, outlier = FALSE, out_prop = 0.01, out_mean = 0.5, out_disp = 1.0 / 3.0, weight = 1.0) {
+    .Call('updog_obj_parent', PACKAGE = 'updog', pcounts, psize, ploidy, pgeno, bias_val, seq_error, od_param, outlier, out_prop, out_mean, out_disp, weight)
+}
+
+#' A reparameterization of \code{\link{obj_parent}}
+#'
+#' @inheritParams obj_offspring_reparam
+#' @inheritParams obj_offspring_vec
+#' @inheritParams obj_parent
+#' @param weight A double between 0 and 1. This should only not be 1 when
+#'     doing the em algorithm and the weight is the probabiility that
+#'     a point being ok.
+#'
+#' @author David Gerard
+#'
+obj_parent_reparam <- function(pcounts, psize, ploidy, pgeno, s, ell, r, weight = 1.0) {
+    .Call('updog_obj_parent_reparam', PACKAGE = 'updog', pcounts, psize, ploidy, pgeno, s, ell, r, weight)
+}
+
+#' Gradient of \code{\link{obj_parent}} (when \code{outlier = FALSE}) with respect to
+#' \code{bias_val}, \code{seq_error}, and \code{od_param}. Basically, this just calculates
+#' derivatives of the log beta-binomial density.
+#'
+#' @inheritParams obj_parent
+#' @inheritParams obj_offspring_vec
+#'
+#' @return A \code{NumericVector} of length three that contains the partial derivatives of
+#'     \code{bias_val}, \code{seq_error}, and \code{od_param}, in that order.
+#'
+#' @author David Gerard
+#'
+grad_parent <- function(pcounts, psize, ploidy, pgeno, bias_val = 1, seq_error = 0, od_param = 0, weight = 1.0) {
+    .Call('updog_grad_parent', PACKAGE = 'updog', pcounts, psize, ploidy, pgeno, bias_val, seq_error, od_param, weight)
+}
+
+#' The gradient of \code{\link{obj_parent_reparam}} with respect to \code{s}, \code{ell},
+#' and \code{r}, which recall are reparameterizations of the bias, seqeuncing error, and
+#' overdispersion, respectively.
+#'
+#' @inheritParams obj_offspring_reparam
+#' @inheritParams obj_offspring_vec
+#' @inheritParams obj_parent
+#'
+#' @return A \code{NumericVector} of length three with the partial derivatives of \code{s},
+#'     \code{ell}, and \code{r} in that order.
+#'
+#' @author David Gerard
+#'
+grad_parent_reparam <- function(pcounts, psize, ploidy, pgeno, s, ell, r, weight = 1.0) {
+    .Call('updog_grad_parent_reparam', PACKAGE = 'updog', pcounts, psize, ploidy, pgeno, s, ell, r, weight)
 }
 
 #' Returns the probability of seeing the reference allele after including

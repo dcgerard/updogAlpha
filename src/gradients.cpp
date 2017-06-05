@@ -470,7 +470,7 @@ double dh_dtau(double tau) {
 //' @author David Gerard
 //'
 // [[Rcpp::export]]
-double dbeta_dtau(double x, double n, double d, double eps, double p, double tau){
+double dbeta_dtau(double x, double n, double d, double eps, double p, double tau) {
   double xi  = pbias_double(p, d, eps); // adjusted prob of A
   double h = (1.0 - tau) / tau;
   double dbdh = dbeta_dh(x, n, xi, h);
@@ -537,6 +537,9 @@ Rcpp::NumericMatrix grad_offspring_mat_original(Rcpp::NumericVector ocounts,
 //' @inheritParams obj_offspring
 //' @inheritParams dbeta_deps
 //'
+//' @return A NumericVector of length three with the partial derivatives of
+//'     \code{d}, \code{eps}, and \code{tau}, in that order.
+//'
 //' @author David Gerard
 //'
 //' @export
@@ -560,6 +563,9 @@ Rcpp::NumericVector grad_offspring_original(Rcpp::NumericVector ocounts,
 //' @inheritParams obj_offspring
 //' @inheritParams dbeta_deps
 //' @param weight_vec A vector of weights between 0 and 1 (do not need to add up to 1).
+//'
+//' @return A NumericVector of length three with the partial derivatives of
+//'     \code{d}, \code{eps}, and \code{tau}, in that order.
 //'
 // [[Rcpp::export]]
 Rcpp::NumericVector grad_offspring_weights_original(Rcpp::NumericVector ocounts,

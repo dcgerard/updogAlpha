@@ -539,3 +539,73 @@ test_that("outlier_grad matches outlier_obj", {
 )
 
 
+test_that("grad_parent matchs obj_parent", {
+  set.seed(10)
+  pcounts   <- 11
+  psize     <- 20
+  ploidy    <- 4
+  bias_val  <- 0.9
+  seq_error <- 0.1
+  od_param  <- 0.9
+  pgeno     <- 1
+  weight    <- 0.8
+
+  tempfunc <- function(bias_val, seq_error, od_param) {
+    obj_parent(pcounts = pcounts, psize = psize, pgeno = pgeno,
+               ploidy = ploidy, bias_val = bias_val,
+               seq_error = seq_error, od_param = od_param,
+               outlier = FALSE, weight = weight)
+  }
+
+  myenv <- new.env()
+  assign("bias_val", bias_val, envir = myenv)
+  assign("seq_error", seq_error, envir = myenv)
+  assign("od_param", od_param, envir = myenv)
+  nout <- stats::numericDeriv(quote(tempfunc(bias_val, seq_error, od_param)), c("bias_val", "seq_error", "od_param"), myenv)
+  cderiv <- grad_parent(pcounts = pcounts, psize = psize, pgeno = pgeno,
+                        ploidy = ploidy, bias_val = bias_val, seq_error = seq_error,
+                        od_param = od_param, weight = weight)
+  expect_equal(c(attr(nout, "gradient")), cderiv, tol = 10 ^ -6)
+
+}
+)
+
+
+test_that("grad_parent_reparam matches obj_parent_reparam", {
+  set.seed(10)
+  pcounts   <- 11
+  psize     <- 20
+  ploidy    <- 4
+  bias_val  <- 0.9
+  seq_error <- 0.1
+  od_param  <- 0.9
+  pgeno     <- 1
+  weight    <- 0.8
+
+  s <- log(bias_val)
+  ell <- log(seq_error / (1 - seq_error))
+  r <- log((1 - od_param) / od_param)
+
+  ## test equality of obj functions while I have the reparameterizations ---
+  o1 <- obj_parent_reparam(pcounts = pcounts, psize = psize, ploidy = ploidy, pgeno = pgeno, s = s, ell = ell, r = r, weight = weight)
+  o2 <- obj_parent(pcounts = pcounts, psize = psize, ploidy = ploidy, pgeno = pgeno, bias_val = bias_val, seq_error = seq_error, od_param = od_param, weight = weight)
+  expect_equal(o1, o2)
+
+  ## now test gradient ---
+
+  tempfunc <- function(s, ell, r) {
+    obj_parent_reparam(pcounts = pcounts, psize = psize, ploidy = ploidy,
+                       pgeno = pgeno, s = s, ell = ell, r = r, weight = weight)
+  }
+
+  myenv <- new.env()
+  assign("s", s, envir = myenv)
+  assign("ell", ell, envir = myenv)
+  assign("r", r, envir = myenv)
+  nout <- stats::numericDeriv(quote(tempfunc(s, ell, r)), c("s", "ell", "r"), myenv)
+  cderiv <- grad_parent_reparam(pcounts = pcounts, psize = psize, pgeno = pgeno,
+                                ploidy = ploidy, s = s, ell = ell, r = r,
+                                weight = weight)
+  expect_equal(c(attr(nout, "gradient")), cderiv, tol = 10 ^ -5)
+}
+)

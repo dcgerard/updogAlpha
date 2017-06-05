@@ -27,6 +27,9 @@ test_that("plot works", {
 test_that("plot.updog works", {
   umout <- readRDS(file = "updog_class.RDS")
   umout$maxpostprob <- runif(length(umout$ogeno))
+  umout$ogeno[1] <- NA
+  plot(umout, plot_beta = FALSE, show_maxpostprob = FALSE)
+
   plot(umout, gg = TRUE, plot_beta = TRUE, ask = FALSE)
   plot(umout, gg = FALSE, plot_beta = TRUE, ask = FALSE)
   plot(umout, gg = TRUE, plot_beta = FALSE, show_ogeno = FALSE)

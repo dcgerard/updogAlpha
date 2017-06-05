@@ -44,3 +44,10 @@ double expit(double x);
 double dbeta_dprop(double x, double n, double xi, double tau);
 double dbeta_dh(double x, double n, double xi, double h);
 double dh_dtau(double tau);
+double dbeta_deps(double x, double n, double d, double eps, double p, double tau);
+double dbeta_dd(double x, double n, double d, double eps, double p, double tau);
+double dbeta_dtau(double x, double n, double d, double eps, double p, double tau);
+double dbeta_ds(double x, double n, double s, double ell, double p, double h);
+double dbeta_dl(double x, double n, double d, double ell, double p, double h);
+double dbeta_dr_ell(double x, double n, double d, double ell, double p, double r);
+

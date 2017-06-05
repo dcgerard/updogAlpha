@@ -171,12 +171,10 @@ double obj_offspring_reparam(Rcpp::NumericVector ocounts, Rcpp::NumericVector os
                              double s, double ell,
                              double r) {
   double tol = 2.0 * DBL_EPSILON;
-  // Rcpp::Rcout << "OVD:" << r << std::endl
-  //             << "BIS:" << s << std::endl
-  //             << "SEQ:" << ell << std::endl << std::endl;
-  double eps = expit(ell);
-  double tau = 1.0 / (std::exp(r) + 1.0);
-  double d = std::exp(s);
+
+  double eps = expit(ell); // sequencing error rate
+  double tau = 1.0 / (std::exp(r) + 1.0); // overidspersion parameter
+  double d = std::exp(s); // bias parameter
 
   if (tau > (1.0 - tol)) {
     tau = 1.0 - 2.0 * tol;
@@ -241,9 +239,9 @@ double obj_offspring_weights_reparam(Rcpp::NumericVector ocounts,
                                      int ploidy, int p1geno, int p2geno,
                                      double s, double ell,
                                      double r) {
-  double eps = expit(ell);
-  double tau = 1.0 / (std::exp(r) + 1.0);
-  double d = std::exp(s);
+  double eps = expit(ell); // sequencing error rate
+  double tau = 1.0 / (std::exp(r) + 1.0); // over-dispersion parameter
+  double d = std::exp(s); // bias parameter
   return obj_offspring_weights(ocounts, osize, weight_vec,
                                ploidy, p1geno, p2geno, d, eps,
                                tau, false, 0.01, 0.5, 1.0 / 3.0);

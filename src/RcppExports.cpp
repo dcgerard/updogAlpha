@@ -547,6 +547,82 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// obj_parent
+double obj_parent(double pcounts, double psize, int ploidy, int pgeno, double bias_val, double seq_error, double od_param, bool outlier, double out_prop, double out_mean, double out_disp, double weight);
+RcppExport SEXP updog_obj_parent(SEXP pcountsSEXP, SEXP psizeSEXP, SEXP ploidySEXP, SEXP pgenoSEXP, SEXP bias_valSEXP, SEXP seq_errorSEXP, SEXP od_paramSEXP, SEXP outlierSEXP, SEXP out_propSEXP, SEXP out_meanSEXP, SEXP out_dispSEXP, SEXP weightSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< double >::type pcounts(pcountsSEXP);
+    Rcpp::traits::input_parameter< double >::type psize(psizeSEXP);
+    Rcpp::traits::input_parameter< int >::type ploidy(ploidySEXP);
+    Rcpp::traits::input_parameter< int >::type pgeno(pgenoSEXP);
+    Rcpp::traits::input_parameter< double >::type bias_val(bias_valSEXP);
+    Rcpp::traits::input_parameter< double >::type seq_error(seq_errorSEXP);
+    Rcpp::traits::input_parameter< double >::type od_param(od_paramSEXP);
+    Rcpp::traits::input_parameter< bool >::type outlier(outlierSEXP);
+    Rcpp::traits::input_parameter< double >::type out_prop(out_propSEXP);
+    Rcpp::traits::input_parameter< double >::type out_mean(out_meanSEXP);
+    Rcpp::traits::input_parameter< double >::type out_disp(out_dispSEXP);
+    Rcpp::traits::input_parameter< double >::type weight(weightSEXP);
+    rcpp_result_gen = Rcpp::wrap(obj_parent(pcounts, psize, ploidy, pgeno, bias_val, seq_error, od_param, outlier, out_prop, out_mean, out_disp, weight));
+    return rcpp_result_gen;
+END_RCPP
+}
+// obj_parent_reparam
+double obj_parent_reparam(double pcounts, double psize, int ploidy, int pgeno, double s, double ell, double r, double weight);
+RcppExport SEXP updog_obj_parent_reparam(SEXP pcountsSEXP, SEXP psizeSEXP, SEXP ploidySEXP, SEXP pgenoSEXP, SEXP sSEXP, SEXP ellSEXP, SEXP rSEXP, SEXP weightSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< double >::type pcounts(pcountsSEXP);
+    Rcpp::traits::input_parameter< double >::type psize(psizeSEXP);
+    Rcpp::traits::input_parameter< int >::type ploidy(ploidySEXP);
+    Rcpp::traits::input_parameter< int >::type pgeno(pgenoSEXP);
+    Rcpp::traits::input_parameter< double >::type s(sSEXP);
+    Rcpp::traits::input_parameter< double >::type ell(ellSEXP);
+    Rcpp::traits::input_parameter< double >::type r(rSEXP);
+    Rcpp::traits::input_parameter< double >::type weight(weightSEXP);
+    rcpp_result_gen = Rcpp::wrap(obj_parent_reparam(pcounts, psize, ploidy, pgeno, s, ell, r, weight));
+    return rcpp_result_gen;
+END_RCPP
+}
+// grad_parent
+Rcpp::NumericVector grad_parent(double pcounts, double psize, int ploidy, int pgeno, double bias_val, double seq_error, double od_param, double weight);
+RcppExport SEXP updog_grad_parent(SEXP pcountsSEXP, SEXP psizeSEXP, SEXP ploidySEXP, SEXP pgenoSEXP, SEXP bias_valSEXP, SEXP seq_errorSEXP, SEXP od_paramSEXP, SEXP weightSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< double >::type pcounts(pcountsSEXP);
+    Rcpp::traits::input_parameter< double >::type psize(psizeSEXP);
+    Rcpp::traits::input_parameter< int >::type ploidy(ploidySEXP);
+    Rcpp::traits::input_parameter< int >::type pgeno(pgenoSEXP);
+    Rcpp::traits::input_parameter< double >::type bias_val(bias_valSEXP);
+    Rcpp::traits::input_parameter< double >::type seq_error(seq_errorSEXP);
+    Rcpp::traits::input_parameter< double >::type od_param(od_paramSEXP);
+    Rcpp::traits::input_parameter< double >::type weight(weightSEXP);
+    rcpp_result_gen = Rcpp::wrap(grad_parent(pcounts, psize, ploidy, pgeno, bias_val, seq_error, od_param, weight));
+    return rcpp_result_gen;
+END_RCPP
+}
+// grad_parent_reparam
+Rcpp::NumericVector grad_parent_reparam(double pcounts, double psize, int ploidy, int pgeno, double s, double ell, double r, double weight);
+RcppExport SEXP updog_grad_parent_reparam(SEXP pcountsSEXP, SEXP psizeSEXP, SEXP ploidySEXP, SEXP pgenoSEXP, SEXP sSEXP, SEXP ellSEXP, SEXP rSEXP, SEXP weightSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< double >::type pcounts(pcountsSEXP);
+    Rcpp::traits::input_parameter< double >::type psize(psizeSEXP);
+    Rcpp::traits::input_parameter< int >::type ploidy(ploidySEXP);
+    Rcpp::traits::input_parameter< int >::type pgeno(pgenoSEXP);
+    Rcpp::traits::input_parameter< double >::type s(sSEXP);
+    Rcpp::traits::input_parameter< double >::type ell(ellSEXP);
+    Rcpp::traits::input_parameter< double >::type r(rSEXP);
+    Rcpp::traits::input_parameter< double >::type weight(weightSEXP);
+    rcpp_result_gen = Rcpp::wrap(grad_parent_reparam(pcounts, psize, ploidy, pgeno, s, ell, r, weight));
+    return rcpp_result_gen;
+END_RCPP
+}
 // pbias
 Rcpp::NumericVector pbias(Rcpp::NumericVector prob, double bias, double seq_error);
 RcppExport SEXP updog_pbias(SEXP probSEXP, SEXP biasSEXP, SEXP seq_errorSEXP) {
@@ -724,6 +800,10 @@ static const R_CallMethodDef CallEntries[] = {
     {"updog_outlier_obj", (DL_FUNC) &updog_outlier_obj, 5},
     {"updog_dbeta_dtau_withxi", (DL_FUNC) &updog_dbeta_dtau_withxi, 4},
     {"updog_outlier_grad", (DL_FUNC) &updog_outlier_grad, 5},
+    {"updog_obj_parent", (DL_FUNC) &updog_obj_parent, 12},
+    {"updog_obj_parent_reparam", (DL_FUNC) &updog_obj_parent_reparam, 8},
+    {"updog_grad_parent", (DL_FUNC) &updog_grad_parent, 8},
+    {"updog_grad_parent_reparam", (DL_FUNC) &updog_grad_parent_reparam, 8},
     {"updog_pbias", (DL_FUNC) &updog_pbias, 3},
     {"updog_pbias_double", (DL_FUNC) &updog_pbias_double, 3},
     {"updog_dbetabinom_cpp", (DL_FUNC) &updog_dbetabinom_cpp, 5},
