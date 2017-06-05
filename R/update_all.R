@@ -486,6 +486,8 @@ updog_update_all <- function(ocounts, osize, ploidy,
                            fn = out_obj_wrapp, gr = out_grad_wrapp,
                            ocounts = ocounts, osize = osize,
                            weight_vec = weight_vec, min_disp = min_disp,
+                           p1counts = p1counts, p1size = p1size, p1weight = p1weight,
+                           p2counts = p2counts, p2size = p2size, p2weight = p2weight,
                            method = "BFGS",
                            control = list(fnscale = -1))
       out_mean <- oout$par[1]
@@ -494,6 +496,8 @@ updog_update_all <- function(ocounts, osize, ploidy,
       oout <- stats::optim(par = start_disp, fn = outlier_obj,
                            method = "Brent", control = list(fnscale = -1),
                            lower = min_disp, upper = 1 - 10 ^ -3,
+                           p1counts = p1counts, p1size = p1size, p1weight = p1weight,
+                           p2counts = p2counts, p2size = p2size, p2weight = p2weight,
                            ocounts = ocounts, osize = osize, weight_vec = weight_vec,
                            out_mean = out_mean)
       out_disp <- oout$par
@@ -501,6 +505,8 @@ updog_update_all <- function(ocounts, osize, ploidy,
       oout <- stats::optim(par = out_mean, fn = outlier_obj,
                            method = "Brent", control = list(fnscale = -1),
                            lower = 0, upper = 1,
+                           p1counts = p1counts, p1size = p1size, p1weight = p1weight,
+                           p2counts = p2counts, p2size = p2size, p2weight = p2weight,
                            ocounts = ocounts, osize = osize, weight_vec = weight_vec,
                            out_disp = out_disp)
       out_mean <- oout$par
@@ -512,6 +518,19 @@ updog_update_all <- function(ocounts, osize, ploidy,
                                p1geno = p1geno, p2geno = p2geno, bias_val = bias_val,
                                seq_error = seq_error, od_param = od_param, outlier = TRUE,
                                out_prop = out_prop, out_mean = out_mean, out_disp = out_disp)
+    if (!is.null(p1counts) & !is.null(p1size)) { ## add parent 1 if available
+      llike_new <- llike_new + obj_parent(pcounts = p1counts, psize = p1size, ploidy = ploidy,
+                                          pgeno = p1geno, bias_val = bias_val, seq_error = seq_error,
+                                          od_param = od_param, outlier = TRUE, out_prop = out_prop,
+                                          out_mean = out_mean, out_disp = out_disp)
+    }
+    if (!is.null(p2counts) & !is.null(p2size)) { ## add parent 2 if available
+      llike_new <- llike_new + obj_parent(pcounts = p2counts, psize = p2size, ploidy = ploidy,
+                                          pgeno = p2geno, bias_val = bias_val, seq_error = seq_error,
+                                          od_param = od_param, outlier = TRUE, out_prop = out_prop,
+                                          out_mean = out_mean, out_disp = out_disp)
+    }
+
     err <- abs(llike_new - llike_old)
 
     if (print_val) {
@@ -611,16 +630,25 @@ updog_vanilla <- function(ocounts, osize, ploidy,
                           p1size = NULL,
                           p2counts = NULL,
                           p2size = NULL,
-                          commit_num = 4, min_disp = 0,
-                          print_val = FALSE, update_outmean = FALSE,
-                          update_outdisp = FALSE, update_outprop = TRUE,
+                          commit_num = 4,
+                          min_disp = 0,
+                          print_val = FALSE,
+                          update_outmean = FALSE,
+                          update_outdisp = FALSE,
+                          update_outprop = TRUE,
                           update_bias_val = TRUE,
                           update_seq_error = TRUE,
                           update_od_param = TRUE,
                           update_pgeno = TRUE,
-                          p1geno = 3, p2geno = 3, seq_error = 0.01,
-                          od_param = 0.01, bias_val = 1, out_prop = 0.001,
-                          out_mean = 0.5, out_disp = 1/3, non_mono_max = 2,
+                          p1geno = 3,
+                          p2geno = 3,
+                          seq_error = 0.01,
+                          od_param = 0.01,
+                          bias_val = 1,
+                          out_prop = 0.001,
+                          out_mean = 0.5,
+                          out_disp = 1/3,
+                          non_mono_max = 2,
                           bound_bias = TRUE) {
   ## Check input -----------------------------------------------------------------------
   assertthat::assert_that(is.logical(print_val))
