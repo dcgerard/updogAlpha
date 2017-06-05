@@ -63,7 +63,7 @@ obj_wrapp_all <- function(parvec, ocounts, osize, weight_vec,
   if (!is.null(p2counts) & !is.null(p2size) & !is.null(p2weight)) { ## add contribution from parent 2
     val <- val + obj_parent_reparam(pcounts = p2counts, psize = p2size, ploidy = ploidy,
                                     pgeno = p2geno, s = parvec[1], ell = parvec[2],
-                                    r = parvec[3], weight = p1weight)
+                                    r = parvec[3], weight = p2weight)
   }
 
   return(val)
@@ -103,7 +103,7 @@ grad_wrapp_all <- function(parvec, ocounts, osize, weight_vec, ploidy, p1geno, p
     gout <- gout + grad_parent_reparam(pcounts = p2counts, psize = p2size,
                                        ploidy = ploidy, pgeno = p2geno,
                                        s = parvec[1], ell = parvec[2],
-                                       r = parvec[3], weight = p1weight)
+                                       r = parvec[3], weight = p2weight)
   }
   if (!update_bias_val) {
     gout[1] <- 0
@@ -223,25 +223,60 @@ update_good <- function(parvec, ocounts, osize, weight_vec, ploidy,
   return(return_list)
 }
 
-out_obj_wrapp <- function(obj, ocounts, osize, weight_vec, min_disp = 0) {
+#' Wrapper for \code{\link{outlier_obj}}.
+#'
+#' @param obj A numeric vector of length two. The first element is the outlier mean.
+#'     The second element is the outlier overdispersion parameter.
+#' @param ocounts The offspring counts of the reference allele.
+#' @param osize The offspring counts of reads.
+#' @param weight_vec The probability a point is an outlier.
+#' @param min_disp The bound on the overdispersion parameter (can't be too small).
+#' @param p1counts The parent 1 counts of the reference allele.
+#' @param p1size The parent 1 counts of reads.
+#' @param p1weight The probability parent 1 is an outlier.
+#' @param p2counts The parent 2 counts of the reference allele.
+#' @param p2size The parent 2 counts of reads.
+#' @param p2weight The probability parent 2 is an outlier.
+#'
+#' @author David Gerard
+#'
+#'
+out_obj_wrapp <- function(obj, ocounts, osize, weight_vec,
+                          p1counts = NULL, p1size = NULL, p1weight = NULL,
+                          p2counts = NULL, p2size = NULL, p2weight = NULL,
+                          min_disp = 0) {
   if ((obj[2] < min_disp) | (obj[2] > 1 - 10 ^ -8) | (obj[1] < 10 ^ -8) | (obj[1] > 1 - 10 ^ -8)) {
     return(-Inf)
   } else {
-    outlier_obj(ocounts = ocounts, osize = osize, weight_vec = weight_vec, out_mean = obj[1], out_disp = obj[2])
+    obj <- outlier_obj(ocounts = ocounts, osize = osize, weight_vec = weight_vec, out_mean = obj[1], out_disp = obj[2])
   }
+
+  ## add parent data if we have it.
+  if (!is.null(p1counts) & !is.null(p1size) & !is.null(p1weight)) {
+    obj <- obj + dbetabinom_mu_rho_cpp_double(x = p1counts, size = p1size, mu = obj[1], rho = obj[2], return_log = TRUE)
+  }
+  if (!is.null(p2counts) & !is.null(p2size) & !is.null(p2weight)) {
+    obj <- obj + dbetabinom_mu_rho_cpp_double(x = p2counts, size = p2size, mu = obj[1], rho = obj[2], return_log = TRUE)
+  }
+  return(obj)
 }
 
-out_grad_wrapp <- function(obj, ocounts, osize, weight_vec, min_disp = 0) {
+#' Wrapper for \code{\link{outlier_grad}}.
+#'
+#' @inheritParams out_obj_wrapp
+#'
+#' @author David Gerard
+#'
+out_grad_wrapp <- function(obj, ocounts, osize, weight_vec,
+                           p1counts = NULL, p1size = NULL, p1weight = NULL,
+                           p2counts = NULL, p2size = NULL, p2weight = NULL,
+                           min_disp = 0) {
   outlier_grad(ocounts = ocounts, osize = osize, weight_vec = weight_vec, out_mean = obj[1], out_disp = obj[2])
 }
 
 
 
-#' This function just updates everything. No options allowed!
-#'
-#' This is the same as assuming a uniform prior on the parental genotypes,
-#' then estimating these genotypes by maximum marginal likelihood.
-#' Though this implementation does not allow for an outlier model.
+#' This is the main optimization function for updog.
 #'
 #'
 #' @inheritParams updog
@@ -326,7 +361,7 @@ updog_update_all <- function(ocounts, osize, ploidy,
   ## starting values ------------------------------------------
   weight_vec <- rep(out_prop, length = length(ocounts)) ## probability each point is an outlier.
   p1weight   <- out_prop ## probability parent 1 is an outlier
-  p1weight   <- out_prop ## probability parent 2 is an outlier.
+  p2weight   <- out_prop ## probability parent 2 is an outlier.
 
   non_mono   <- 0 ## counts number of times likelihood does not increase.
 
@@ -390,6 +425,8 @@ updog_update_all <- function(ocounts, osize, ploidy,
       gout <- update_good(parvec = parvec, ocounts = ocounts, osize = osize,
                           weight_vec = 1 - weight_vec, ploidy = ploidy,
                           p1geno = p1geno, p2geno = p2geno,
+                          p1counts = p1counts, p1size = p1size, p1weight = p1weight,
+                          p2counts = p2counts, p2size = p2size, p2weight = p2weight,
                           bound_bias = bound_bias,
                           update_bias_val = update_bias_val,
                           update_seq_error = update_seq_error,
@@ -397,6 +434,8 @@ updog_update_all <- function(ocounts, osize, ploidy,
     } else {
       gout <- update_good(parvec = parvec, ocounts = ocounts, osize = osize,
                           weight_vec = 1 - weight_vec, ploidy = ploidy,
+                          p1counts = p1counts, p1size = p1size, p1weight = p1weight,
+                          p2counts = p2counts, p2size = p2size, p2weight = p2weight,
                           bound_bias = bound_bias,
                           update_bias_val = update_bias_val,
                           update_seq_error = update_seq_error,

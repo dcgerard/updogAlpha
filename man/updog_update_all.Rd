@@ -2,7 +2,7 @@
 % Please edit documentation in R/update_all.R
 \name{updog_update_all}
 \alias{updog_update_all}
-\title{This function just updates everything. No options allowed!}
+\title{This is the main optimization function for updog.}
 \usage{
 updog_update_all(ocounts, osize, ploidy, p1counts = NULL, p1size = NULL,
   p2counts = NULL, p2size = NULL, print_val = TRUE, tol = 10^-4,
@@ -99,9 +99,7 @@ points being outliers.}
 (\code{TRUE}) or not (\code{FALSE})?}
 }
 \description{
-This is the same as assuming a uniform prior on the parental genotypes,
-then estimating these genotypes by maximum marginal likelihood.
-Though this implementation does not allow for an outlier model.
+This is the main optimization function for updog.
 }
 \author{
 David Gerard
