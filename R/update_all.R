@@ -469,18 +469,18 @@ updog_update_all <- function(ocounts, osize, ploidy,
     p2geno <- gout$p2geno
 
     ## update bad -------- ------------------------------------------------------------
-    if (out_disp < min_disp) {
-      start_disp <- min_disp + 10 ^ -3
-    } else if (out_disp > 1 - 10 ^ -8) {
-      start_disp <- 1 - 10 ^ -6
-    } else {
-      start_disp <- out_disp
-    }
-    if (out_mean < 10 ^ -8) {
-      out_mean <- 10 ^ -6
-    } else if (out_mean > 1 - 10 ^ -8) {
-      out_mean <- 1 - 10 ^ -6
-    }
+    # if (out_disp < min_disp) {
+    #   start_disp <- min_disp + 10 ^ -3
+    # } else if (out_disp > 1 - 10 ^ -8) {
+    #   start_disp <- 1 - 10 ^ -6
+    # } else {
+    #   start_disp <- out_disp
+    # }
+    # if (out_mean < 10 ^ -8) {
+    #   out_mean <- 10 ^ -6
+    # } else if (out_mean > 1 - 10 ^ -8) {
+    #   out_mean <- 1 - 10 ^ -6
+    # }
     if (update_outmean & update_outdisp) {
       oout <- stats::optim(par = c(out_mean, start_disp),
                            fn = out_obj_wrapp, gr = out_grad_wrapp,
