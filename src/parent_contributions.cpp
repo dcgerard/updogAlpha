@@ -193,6 +193,42 @@ Rcpp::NumericVector grad_parent_reparam(double pcounts, double psize, int ploidy
 }
 
 
+//' E-step for the parents.
+//'
+//' @inheritParams obj_parent
+//' @inheritParams obj_offspring_vec
+//' @param d Same as \code{bias_val} in \code{\link{obj_parent}}.
+//' @param eps Same as \code{seq_error} in \code{\link{obj_parent}}.
+//' @param tau Same as \code{od_param} in \code{\link{obj_parent}}.
+//'
+//' @author David Gerard
+//'
+//'
+// [[Rcpp::export]]
+double get_parent_outprop(double pcounts, double psize,
+                          int ploidy, int pgeno,
+                          double d, double eps, double tau,
+                          double out_prop, double out_mean,
+                          double out_disp) {
+  double tol  = 2.0 * DBL_EPSILON;
+  double prob = (double)pgeno / (double)ploidy;
+  double xi   = pbias_double(prob, d, eps);
+
+  double theta; // The weight to return.
+  if (out_prop < tol) {
+    theta = 0.0;
+  } else {
+    double lgood   = dbetabinom_mu_rho_cpp_double(pcounts, psize, xi, tau, true) + std::log(1 - out_prop);
+    double lout    = dbetabinom_mu_rho_cpp_double(pcounts, psize, out_mean, out_disp, true) + log(out_prop);
+    double max_val = std::max(lgood, lout);
+    double ldenom  = std::log(std::exp(lgood - max_val) + std::exp(lout - max_val)) + max_val;
+    theta          = std::exp(lout - ldenom);
+  }
+
+  return theta;
+}
+
+
 
 
 

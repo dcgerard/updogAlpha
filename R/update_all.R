@@ -223,6 +223,8 @@ out_grad_wrapp <- function(obj, ocounts, osize, weight_vec, min_disp = 0) {
 #'     (\code{TRUE}) or not (\code{FALSE})?
 #' @param update_od_param A logical. Should we update \code{od_param}
 #'     (\code{TRUE}) or not (\code{FALSE})?
+#' @param update_pgeno A logical. Should we update \code{p1geno} and \code{p1geno}
+#'     (\code{TRUE}) or not (\code{FALSE})?
 #' @param p1geno The initial value of the first parental genotype.
 #' @param p2geno The initial value of the second parental genotype.
 #' @param seq_error The initial value of the sequencing error rate.
@@ -239,30 +241,51 @@ out_grad_wrapp <- function(obj, ocounts, osize, weight_vec, min_disp = 0) {
 #'
 #' @export
 #'
-updog_update_all <- function(ocounts, osize, ploidy, print_val = TRUE,
-                             tol = 10 ^ -4, maxiter = 500,
-                             commit_num = 4, min_disp = 0,
+updog_update_all <- function(ocounts, osize, ploidy,
+                             p1counts = NULL,
+                             p1size = NULL,
+                             p2counts = NULL,
+                             p2size = NULL,
+                             print_val = TRUE,
+                             tol = 10 ^ -4,
+                             maxiter = 500,
+                             commit_num = 4,
+                             min_disp = 0,
                              update_outmean = FALSE,
                              update_outdisp = FALSE,
                              update_outprop = TRUE,
                              update_bias_val = TRUE,
                              update_seq_error = TRUE,
                              update_od_param = TRUE,
-                             p1geno = 3, p2geno = 3, seq_error = 0.01,
-                             od_param = 0.01, bias_val = 1, out_prop = 0.001,
-                             out_mean = 0.5, out_disp = 1/3, non_mono_max = 2,
+                             update_pgeno = TRUE,
+                             p1geno = 3,
+                             p2geno = 3,
+                             seq_error = 0.01,
+                             od_param = 0.01,
+                             bias_val = 1,
+                             out_prop = 0.001,
+                             out_mean = 0.5,
+                             out_disp = 1/3,
+                             non_mono_max = 2,
                              bound_bias = TRUE) {
 
+  if (!update_pgeno) {
+    commit_num <- -1 ## parent_count is initialized at 0, so we just don't update parental genotypes if we set commit_num to be less than or equal to 0.
+  }
+
   ## starting values ------------------------------------------
-  weight_vec <- rep(out_prop, length = length(ocounts))
-  non_mono   <- 0
+  weight_vec <- rep(out_prop, length = length(ocounts)) ## probability each point is an outlier.
+  p1weight   <- out_prop ## probability parent 1 is an outlier
+  p1weight   <- out_prop ## probability parent 2 is an outlier.
+
+  non_mono   <- 0 ## counts number of times likelihood does not increase.
 
   llike_new <- -Inf
 
   index <- 1
   err <- tol + 1
   parental_count <- 0 ## counts number of consecutive times parental genotypes do not change.
-  while ((index <= maxiter) & err > tol) {
+  while ((index <= maxiter) & (err > tol)) {
     llike_old <- llike_new
 
     ## E-step ----------------------------------------------------------------------------
@@ -458,12 +481,18 @@ bb_simple_post <- function(ncounts, ssize, ploidy, p1geno, p2geno, seq_error = 0
 #'
 #' @export
 #'
-updog_vanilla <- function(ocounts, osize, ploidy, commit_num = 4, min_disp = 0,
+updog_vanilla <- function(ocounts, osize, ploidy,
+                          p1counts = NULL,
+                          p1size = NULL,
+                          p2counts = NULL,
+                          p2size = NULL,
+                          commit_num = 4, min_disp = 0,
                           print_val = FALSE, update_outmean = FALSE,
                           update_outdisp = FALSE, update_outprop = TRUE,
                           update_bias_val = TRUE,
                           update_seq_error = TRUE,
                           update_od_param = TRUE,
+                          update_pgeno = TRUE,
                           p1geno = 3, p2geno = 3, seq_error = 0.01,
                           od_param = 0.01, bias_val = 1, out_prop = 0.001,
                           out_mean = 0.5, out_disp = 1/3, non_mono_max = 2,
@@ -472,6 +501,7 @@ updog_vanilla <- function(ocounts, osize, ploidy, commit_num = 4, min_disp = 0,
   assertthat::assert_that(is.logical(print_val))
   assertthat::assert_that(is.logical(update_outmean))
   assertthat::assert_that(is.logical(update_outdisp))
+  assertthat::assert_that(is.logical(update_pgeno))
   assertthat::are_equal(length(ocounts), length(osize))
   assertthat::assert_that(all(ocounts <= osize))
   assertthat::assert_that(all(ocounts >= 0))
@@ -480,10 +510,42 @@ updog_vanilla <- function(ocounts, osize, ploidy, commit_num = 4, min_disp = 0,
   assertthat::are_equal(length(ploidy), length(print_val), length(update_outdisp), length(update_outmean), length(min_disp), 1)
   assertthat::assert_that(min_disp >= 0, min_disp < 1)
 
+  if (!is.null(p1counts) & !is.null(p1size)) {
+    assertthat::are_equal(length(p1counts), length(p1size))
+    if (length(p1counts) > 1) {
+      message("Aggregating parent 1 counts into one sample.\nIncorporating variability between samples of the same parent is currently not supported.")
+      p1counts <- sum(p1counts)
+      p1size   <- sum(p1size)
+    }
+    assertthat::assert_that(p1counts >= 0, p1counts <= p1size)
+  } else if (!is.null(p1counts) | !is.null(p1size)) {
+    warning("You can't just specify one of p1counts and p1size. Ignoring parent 1 data.")
+    p1counts <- NULL
+    p1size <- NULL
+  }
+
+  if (!is.null(p2counts) & !is.null(p2size)) {
+    assertthat::are_equal(length(p2counts), length(p2size))
+    if (length(p2counts) > 1) {
+      message("Aggregating parent 2 counts into one sample.\nIncorporating variability between samples of the same parent is currently not supported.")
+      p2counts <- sum(p2counts)
+      p2size   <- sum(p2size)
+    }
+    assertthat::assert_that(p2counts >= 0, p2counts <= p2size)
+  } else if (!is.null(p2counts) | !is.null(p2size)) {
+    warning("You can't just specify one of p2counts and p2size. Ignoring parent 2 data.")
+    p2counts <- NULL
+    p2size <- NULL
+  }
+
   ## Get the best parameters
-  parout <- updog_update_all(ocounts, osize, ploidy, print_val = print_val, commit_num = commit_num,
+  parout <- updog_update_all(ocounts, osize, ploidy,
+                             p1counts = p1counts, p1size = p1size,
+                             p2counts = p2counts, p2size = p2size,
+                             print_val = print_val, commit_num = commit_num,
                              min_disp = min_disp, update_outprop = update_outprop,
                              update_outmean = update_outmean, update_outdisp = update_outdisp,
+                             update_pgeno = update_pgeno,
                              p1geno = p1geno, p2geno = p2geno, seq_error = seq_error,
                              od_param = od_param, bias_val = bias_val, out_prop = out_prop,
                              out_mean = out_mean, out_disp = out_disp, non_mono_max = non_mono_max,

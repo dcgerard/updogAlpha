@@ -623,6 +623,26 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// get_parent_outprop
+double get_parent_outprop(double pcounts, double psize, int ploidy, int pgeno, double d, double eps, double tau, double out_prop, double out_mean, double out_disp);
+RcppExport SEXP updog_get_parent_outprop(SEXP pcountsSEXP, SEXP psizeSEXP, SEXP ploidySEXP, SEXP pgenoSEXP, SEXP dSEXP, SEXP epsSEXP, SEXP tauSEXP, SEXP out_propSEXP, SEXP out_meanSEXP, SEXP out_dispSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< double >::type pcounts(pcountsSEXP);
+    Rcpp::traits::input_parameter< double >::type psize(psizeSEXP);
+    Rcpp::traits::input_parameter< int >::type ploidy(ploidySEXP);
+    Rcpp::traits::input_parameter< int >::type pgeno(pgenoSEXP);
+    Rcpp::traits::input_parameter< double >::type d(dSEXP);
+    Rcpp::traits::input_parameter< double >::type eps(epsSEXP);
+    Rcpp::traits::input_parameter< double >::type tau(tauSEXP);
+    Rcpp::traits::input_parameter< double >::type out_prop(out_propSEXP);
+    Rcpp::traits::input_parameter< double >::type out_mean(out_meanSEXP);
+    Rcpp::traits::input_parameter< double >::type out_disp(out_dispSEXP);
+    rcpp_result_gen = Rcpp::wrap(get_parent_outprop(pcounts, psize, ploidy, pgeno, d, eps, tau, out_prop, out_mean, out_disp));
+    return rcpp_result_gen;
+END_RCPP
+}
 // pbias
 Rcpp::NumericVector pbias(Rcpp::NumericVector prob, double bias, double seq_error);
 RcppExport SEXP updog_pbias(SEXP probSEXP, SEXP biasSEXP, SEXP seq_errorSEXP) {
@@ -804,6 +824,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"updog_obj_parent_reparam", (DL_FUNC) &updog_obj_parent_reparam, 8},
     {"updog_grad_parent", (DL_FUNC) &updog_grad_parent, 8},
     {"updog_grad_parent_reparam", (DL_FUNC) &updog_grad_parent_reparam, 8},
+    {"updog_get_parent_outprop", (DL_FUNC) &updog_get_parent_outprop, 10},
     {"updog_pbias", (DL_FUNC) &updog_pbias, 3},
     {"updog_pbias_double", (DL_FUNC) &updog_pbias_double, 3},
     {"updog_dbetabinom_cpp", (DL_FUNC) &updog_dbetabinom_cpp, 5},

@@ -4,13 +4,14 @@
 \alias{updog_update_all}
 \title{This function just updates everything. No options allowed!}
 \usage{
-updog_update_all(ocounts, osize, ploidy, print_val = TRUE, tol = 10^-4,
+updog_update_all(ocounts, osize, ploidy, p1counts = NULL, p1size = NULL,
+  p2counts = NULL, p2size = NULL, print_val = TRUE, tol = 10^-4,
   maxiter = 500, commit_num = 4, min_disp = 0, update_outmean = FALSE,
   update_outdisp = FALSE, update_outprop = TRUE, update_bias_val = TRUE,
-  update_seq_error = TRUE, update_od_param = TRUE, p1geno = 3,
-  p2geno = 3, seq_error = 0.01, od_param = 0.01, bias_val = 1,
-  out_prop = 0.001, out_mean = 0.5, out_disp = 1/3, non_mono_max = 2,
-  bound_bias = TRUE)
+  update_seq_error = TRUE, update_od_param = TRUE, update_pgeno = TRUE,
+  p1geno = 3, p2geno = 3, seq_error = 0.01, od_param = 0.01,
+  bias_val = 1, out_prop = 0.001, out_mean = 0.5, out_disp = 1/3,
+  non_mono_max = 2, bound_bias = TRUE)
 }
 \arguments{
 \item{ocounts}{A vector of non-negative integers. The ith element
@@ -21,6 +22,26 @@ total number of reads for the ith child.}
 
 \item{ploidy}{A positive integer. The number of copies of the
 genome in the species.}
+
+\item{p1counts}{A vector of non-negative integers. The ith element
+is the number of reads of the reference allele in the ith
+sample of parent 1.  If \code{NULL} then the prior
+probabilities on parent 1's genotype will default to uniform.}
+
+\item{p1size}{A vector of positive integers. The ith element is the
+total number of reads in the ith sample of parent 1.  If
+\code{NULL} then the prior probabilities on parent 1's genotype
+will default to uniform.}
+
+\item{p2counts}{A vector of non-negative integers. The ith element
+is the number of reads of the reference allele in the ith
+sample of parent 2.  If \code{NULL} then the prior
+probabilities on parent 2's genotype will default to uniform.}
+
+\item{p2size}{A vector of positive integers. The ith element is the
+total number of reads in the ith sample of parent 2.  If
+\code{NULL} then the prior probabilities on parent 2's genotype
+will default to uniform.}
 
 \item{print_val}{A logical. Should we print the updates (\code{TRUE}) or not (\code{FALSE})?}
 
@@ -51,6 +72,9 @@ points being outliers.}
 (\code{TRUE}) or not (\code{FALSE})?}
 
 \item{update_od_param}{A logical. Should we update \code{od_param}
+(\code{TRUE}) or not (\code{FALSE})?}
+
+\item{update_pgeno}{A logical. Should we update \code{p1geno} and \code{p1geno}
 (\code{TRUE}) or not (\code{FALSE})?}
 
 \item{p1geno}{The initial value of the first parental genotype.}

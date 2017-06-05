@@ -532,6 +532,21 @@ grad_parent_reparam <- function(pcounts, psize, ploidy, pgeno, s, ell, r, weight
     .Call('updog_grad_parent_reparam', PACKAGE = 'updog', pcounts, psize, ploidy, pgeno, s, ell, r, weight)
 }
 
+#' E-step for the parents.
+#'
+#' @inheritParams obj_parent
+#' @inheritParams obj_offspring_vec
+#' @param d Same as \code{bias_val} in \code{\link{obj_parent}}.
+#' @param eps Same as \code{seq_error} in \code{\link{obj_parent}}.
+#' @param tau Same as \code{od_param} in \code{\link{obj_parent}}.
+#'
+#' @author David Gerard
+#'
+#'
+get_parent_outprop <- function(pcounts, psize, ploidy, pgeno, d, eps, tau, out_prop, out_mean, out_disp) {
+    .Call('updog_get_parent_outprop', PACKAGE = 'updog', pcounts, psize, ploidy, pgeno, d, eps, tau, out_prop, out_mean, out_disp)
+}
+
 #' Returns the probability of seeing the reference allele after including
 #' the mapping-bias and the sequencing-error.
 #'
