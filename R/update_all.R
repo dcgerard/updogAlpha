@@ -213,6 +213,7 @@ update_good <- function(parvec, ocounts, osize, weight_vec, ploidy,
     best_par   <- oout$par
   }
 
+
   return_list           <- list()
   return_list$p1geno    <- best_p1
   return_list$p2geno    <- best_p2
@@ -437,8 +438,8 @@ updog_update_all <- function(ocounts, osize, ploidy,
       gout <- update_good(parvec = parvec, ocounts = ocounts, osize = osize,
                           weight_vec = 1 - weight_vec, ploidy = ploidy,
                           p1geno = p1geno, p2geno = p2geno,
-                          p1counts = p1counts, p1size = p1size, p1weight = p1weight,
-                          p2counts = p2counts, p2size = p2size, p2weight = p2weight,
+                          p1counts = p1counts, p1size = p1size, p1weight = 1 - p1weight,
+                          p2counts = p2counts, p2size = p2size, p2weight = 1 - p2weight,
                           bound_bias = bound_bias,
                           update_bias_val = update_bias_val,
                           update_seq_error = update_seq_error,
@@ -446,8 +447,8 @@ updog_update_all <- function(ocounts, osize, ploidy,
     } else {
       gout <- update_good(parvec = parvec, ocounts = ocounts, osize = osize,
                           weight_vec = 1 - weight_vec, ploidy = ploidy,
-                          p1counts = p1counts, p1size = p1size, p1weight = p1weight,
-                          p2counts = p2counts, p2size = p2size, p2weight = p2weight,
+                          p1counts = p1counts, p1size = p1size, p1weight = 1 - p1weight,
+                          p2counts = p2counts, p2size = p2size, p2weight = 1 - p2weight,
                           bound_bias = bound_bias,
                           update_bias_val = update_bias_val,
                           update_seq_error = update_seq_error,
@@ -474,7 +475,7 @@ updog_update_all <- function(ocounts, osize, ploidy,
     # } else if (out_disp > 1 - 10 ^ -8) {
     #   start_disp <- 1 - 10 ^ -6
     # } else {
-    #   start_disp <- out_disp
+       start_disp <- out_disp
     # }
     # if (out_mean < 10 ^ -8) {
     #   out_mean <- 10 ^ -6
