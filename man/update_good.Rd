@@ -4,9 +4,10 @@
 \alias{update_good}
 \title{Update the OK points}
 \usage{
-update_good(parvec, ocounts, osize, weight_vec, ploidy, p1geno = NULL,
-  p2geno = NULL, bound_bias = TRUE, update_bias_val = TRUE,
-  update_seq_error = TRUE, update_od_param = TRUE)
+update_good(parvec, ocounts, osize, weight_vec, ploidy, p1counts = NULL,
+  p1size = NULL, p1weight = NULL, p2counts = NULL, p2size = NULL,
+  p2weight = NULL, p1geno = NULL, p2geno = NULL, bound_bias = TRUE,
+  update_bias_val = TRUE, update_seq_error = TRUE, update_od_param = TRUE)
 }
 \arguments{
 \item{parvec}{A vector of three elements, s, ell, and r. We have s = log(bias_val) = log(d),
@@ -22,6 +23,18 @@ individuals.}
 
 \item{ploidy}{An integer. The ploidy of the species. This is assumed
 to be the same for each individual.}
+
+\item{p1counts}{The number of reference alleles observed from parent 1.}
+
+\item{p1size}{The number of reads observed from parent 1.}
+
+\item{p1weight}{The posterior probability that parent 1 is not an outlier.}
+
+\item{p2counts}{The number of reference alleles observed from parent 2.}
+
+\item{p2size}{The number of reads observed from parent 2.}
+
+\item{p2weight}{The posterior probability that parent 2 is not an outlier.}
 
 \item{p1geno}{The first parental genotype. The number of copies of the
 reference allele the first parent has.}

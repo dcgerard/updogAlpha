@@ -16,11 +16,19 @@
 #'     with \code{\link{grad_wrapp_all}}.
 #' @param update_od_param A logical. Not used. Here for compatability
 #'     with \code{\link{grad_wrapp_all}}.
+#' @param p1counts The number of reference alleles observed from parent 1.
+#' @param p1size The number of reads observed from parent 1.
+#' @param p1weight The posterior probability that parent 1 is not an outlier.
+#' @param p2counts The number of reference alleles observed from parent 2.
+#' @param p2size The number of reads observed from parent 2.
+#' @param p2weight The posterior probability that parent 2 is not an outlier.
 #'
 #' @author David Gerard
 #'
 obj_wrapp_all <- function(parvec, ocounts, osize, weight_vec,
                           ploidy, p1geno, p2geno,
+                          p1counts = NULL, p1size = NULL, p1weight = NULL,
+                          p2counts = NULL, p2size = NULL, p2weight = NULL,
                           bound_bias = TRUE,
                           bound_od = TRUE,
                           update_bias_val = TRUE,
@@ -46,6 +54,18 @@ obj_wrapp_all <- function(parvec, ocounts, osize, weight_vec,
                                         ploidy = ploidy, p1geno = p1geno,
                                         p2geno = p2geno,
                                         s = parvec[1], ell = parvec[2], r = parvec[3])
+
+  if (!is.null(p1counts) & !is.null(p1size) & !is.null(p1weight)) { ## add contribution from parent 1
+    val <- val + obj_parent_reparam(pcounts = p1counts, psize = p1size, ploidy = ploidy,
+                                    pgeno = p1geno, s = parvec[1], ell = parvec[2],
+                                    r = parvec[3], weight = p1weight)
+  }
+  if (!is.null(p2counts) & !is.null(p2size) & !is.null(p2weight)) { ## add contribution from parent 2
+    val <- val + obj_parent_reparam(pcounts = p2counts, psize = p2size, ploidy = ploidy,
+                                    pgeno = p2geno, s = parvec[1], ell = parvec[2],
+                                    r = parvec[3], weight = p1weight)
+  }
+
   return(val)
 }
 
@@ -63,6 +83,8 @@ obj_wrapp_all <- function(parvec, ocounts, osize, weight_vec,
 #' @author David Gerard
 #'
 grad_wrapp_all <- function(parvec, ocounts, osize, weight_vec, ploidy, p1geno, p2geno,
+                           p1counts = NULL, p1size = NULL, p1weight = NULL,
+                           p2counts = NULL, p2size = NULL, p2weight = NULL,
                            bound_bias = TRUE,
                            update_bias_val = TRUE,
                            update_seq_error = TRUE,
@@ -70,6 +92,19 @@ grad_wrapp_all <- function(parvec, ocounts, osize, weight_vec, ploidy, p1geno, p
   gout <- grad_offspring_weights(ocounts = ocounts, osize = osize, weight_vec = weight_vec,
                                  ploidy = ploidy, p1geno = p1geno, p2geno = p2geno, s = parvec[1],
                                  ell = parvec[2], r = parvec[3])
+
+  if (!is.null(p1counts) & !is.null(p1size) & !is.null(p1weight)) {
+    gout <- gout + grad_parent_reparam(pcounts = p1counts, psize = p1size,
+                                       ploidy = ploidy, pgeno = p1geno,
+                                       s = parvec[1], ell = parvec[2],
+                                       r = parvec[3], weight = p1weight)
+  }
+  if (!is.null(p2counts) & !is.null(p2size) & !is.null(p2weight)) {
+    gout <- gout + grad_parent_reparam(pcounts = p2counts, psize = p2size,
+                                       ploidy = ploidy, pgeno = p2geno,
+                                       s = parvec[1], ell = parvec[2],
+                                       r = parvec[3], weight = p1weight)
+  }
   if (!update_bias_val) {
     gout[1] <- 0
   }
@@ -81,7 +116,6 @@ grad_wrapp_all <- function(parvec, ocounts, osize, weight_vec, ploidy, p1geno, p
   }
   return(gout)
 }
-
 
 #' Update the OK points
 #'
@@ -99,6 +133,8 @@ grad_wrapp_all <- function(parvec, ocounts, osize, weight_vec, ploidy, p1geno, p
 #' @author David Gerard
 #'
 update_good <- function(parvec, ocounts, osize, weight_vec, ploidy,
+                        p1counts = NULL, p1size = NULL, p1weight = NULL,
+                        p2counts = NULL, p2size = NULL, p2weight = NULL,
                         p1geno = NULL, p2geno = NULL,
                         bound_bias = TRUE,
                         update_bias_val = TRUE,
@@ -126,7 +162,10 @@ update_good <- function(parvec, ocounts, osize, weight_vec, ploidy,
         }
         oout <- stats::optim(par = start_vec, fn = obj_wrapp_all, gr = grad_wrapp_all,
                              ocounts = ocounts, osize = osize, weight_vec = weight_vec,
-                             ploidy = ploidy, p1geno = p1geno, p2geno = p2geno, method = "BFGS",
+                             ploidy = ploidy, p1geno = p1geno, p2geno = p2geno,
+                             p1counts = p1counts, p1size = p1size, p1weight = p1weight,
+                             p2counts = p2counts, p2size = p2size, p2weight = p2weight,
+                             method = "BFGS",
                              control = list(fnscale = -1, maxit = 1000),
                              bound_bias = bound_bias,
                              update_bias_val = update_bias_val,
@@ -159,7 +198,10 @@ update_good <- function(parvec, ocounts, osize, weight_vec, ploidy,
     }
     oout <- stats::optim(par = start_vec, fn = obj_wrapp_all, gr = grad_wrapp_all,
                          ocounts = ocounts, osize = osize, weight_vec = weight_vec,
-                         ploidy = ploidy, p1geno = p1geno, p2geno = p2geno, method = "BFGS",
+                         ploidy = ploidy, p1geno = p1geno, p2geno = p2geno,
+                         p1counts = p1counts, p1size = p1size, p1weight = p1weight,
+                         p2counts = p2counts, p2size = p2size, p2weight = p2weight,
+                         method = "BFGS",
                          control = list(fnscale = -1, maxit = 1000),
                          bound_bias = bound_bias,
                          update_bias_val = update_bias_val,
@@ -268,6 +310,14 @@ updog_update_all <- function(ocounts, osize, ploidy,
                              out_disp = 1/3,
                              non_mono_max = 2,
                              bound_bias = TRUE) {
+  ## Check input ----------------------------------------------------
+  if (!is.null(p1counts) & !is.null(p1size)) {
+    assertthat::are_equal(length(p1counts), length(p1size), 1)
+  }
+  if (!is.null(p2counts) & !is.null(p2size)) {
+    assertthat::are_equal(length(p2counts), length(p2size), 1)
+  }
+
 
   if (!update_pgeno) {
     commit_num <- -1 ## parent_count is initialized at 0, so we just don't update parental genotypes if we set commit_num to be less than or equal to 0.
@@ -297,12 +347,36 @@ updog_update_all <- function(ocounts, osize, ploidy,
                                  eps = seq_error, tau = od_param,
                                  out_prop = out_prop, out_mean = out_mean,
                                  out_disp = out_disp)
+      if (!is.null(p1counts) & !is.null(p1size)) {
+        p1weight <- get_parent_outprop(pcounts = p1counts, psize = p1size,
+                                       ploidy = ploidy, pgeno = p1geno,
+                                       d = bias_val, eps = seq_error,
+                                       tau = od_param, out_prop = out_prop,
+                                       out_mean = out_mean, out_disp = out_disp)
+      }
+      if (!is.null(p2counts) & !is.null(p2size)) {
+        p2weight <- get_parent_outprop(pcounts = p2counts, psize = p2size,
+                                       ploidy = ploidy, pgeno = p2geno,
+                                       d = bias_val, eps = seq_error,
+                                       tau = od_param, out_prop = out_prop,
+                                       out_mean = out_mean, out_disp = out_disp)
+      }
     }
 
 
     ## Update out_prop -----------------------------------------------------------------
     if (update_outprop) {
-      out_prop <- mean(weight_vec)
+      weight_sum  <- sum(weight_vec)
+      weight_size <- length(weight_vec)
+      if (!is.null(p1counts) & !is.null(p1size)) {
+        weight_sum <- weight_sum + p1weight
+        weight_size <- weight_size + 1
+      }
+      if (!is.null(p2counts) & !is.null(p2size)) {
+        weight_sum <- weight_sum + p2weight
+        weight_size <- weight_size + 1
+      }
+      out_prop <- weight_sum / weight_size
     }
 
     ## reparameterization --------------------------------------------------------------

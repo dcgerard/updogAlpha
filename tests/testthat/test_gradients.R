@@ -609,3 +609,38 @@ test_that("grad_parent_reparam matches obj_parent_reparam", {
   expect_equal(c(attr(nout, "gradient")), cderiv, tol = 10 ^ -5)
 }
 )
+
+
+test_that("grad_wrapp_all matches obj_wrap_all", {
+  parvec <- c(1, 1, 1)
+  ocounts <- c(10, 11)
+  osize <- c(20, 21)
+  weight_vec <- c(0.5, 0.7)
+  p1counts <- 12
+  p1size <- 13
+  p1weight <- 0.9
+  p2counts <- 20
+  p2size <- 41
+  p2weight <- 0.4
+  ploidy <- 4
+  p1geno <- 4
+  p2geno <- 2
+
+  tempfunc <- function(parvec) {
+    obj_wrapp_all(parvec = parvec, ocounts = ocounts, osize = osize, weight_vec = weight_vec,
+                  ploidy = ploidy, p1geno = p1geno, p2geno = p2geno, p1counts = p1counts,
+                  p1size = p1size, p1weight = p1weight, p2counts = p2counts, p2size = p2size,
+                  p2weight = p2weight, bound_bias = FALSE)
+  }
+
+  myenv <- new.env()
+  assign("parvec", parvec, envir = myenv)
+  nout <- stats::numericDeriv(quote(tempfunc(parvec)), "parvec", myenv)
+  cderiv <- grad_wrapp_all(parvec = parvec, ocounts = ocounts, osize = osize, weight_vec = weight_vec,
+                           ploidy = ploidy, p1geno = p1geno, p2geno = p2geno, p1counts = p1counts,
+                           p1size = p1size, p1weight = p1weight, p2counts = p2counts, p2size = p2size,
+                           p2weight = p2weight, bound_bias = FALSE)
+  expect_equal(cderiv, c(attr(nout, "gradient")), tol = 10 ^ -6)
+
+}
+)
