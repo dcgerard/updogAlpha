@@ -38,6 +38,14 @@ rupdog <- function(obj) {
 
   ocounts <- rbetabinom_mu_rho(mu = mean_vec, rho = od_vec, size = obj$input$osize)
 
+  new_obj <- obj
+  new_obj$input$ocounts <- ocounts
+  new_obj$ogeno         <- ogeno
+  new_obj$prob_ok       <- prob_ok
+  new_obj$prob_out      <- prob_out
+  new_obj$num_iter      <- NULL
+  new_obj$convergence   <- NULL
+
   ## Now sample parents if have them ---
   if (!is.null(obj$input$p1counts) & !is.null(obj$input$p1size)) {
     p1_isout <- sample(x = c(TRUE, FALSE), prob = c(obj$out_prop, 1 - obj$out_prop), size = 1)
@@ -46,8 +54,9 @@ rupdog <- function(obj) {
     } else {
       p1counts <- rbetabinom_mu_rho(mu = pvec[obj$p1geno + 1], rho = obj$od_param, size = obj$input$p1size)
     }
-  } else {
-    p1counts <- NULL
+
+    new_obj$input$p1counts <- p1counts
+    new_obj$p1_prob_out    <- p1_isout * 1
   }
   if (!is.null(obj$input$p2counts) & !is.null(obj$input$p2size)) {
     p2_isout <- sample(x = c(TRUE, FALSE), prob = c(obj$out_prop, 1 - obj$out_prop), size = 1)
@@ -56,17 +65,11 @@ rupdog <- function(obj) {
     } else {
       p2counts <- rbetabinom_mu_rho(mu = pvec[obj$p2geno + 1], rho = obj$od_param, size = obj$input$p2size)
     }
-  } else {
-    p2counts <- NULL
+    new_obj$input$p2counts <- p2counts
+    new_obj$p2_prob_out    <- p2_isout * 1
   }
 
-  new_obj <- obj
-  new_obj$input$ocounts <- ocounts
-  new_obj$ogeno         <- ogeno
-  new_obj$prob_ok       <- prob_ok
-  new_obj$prob_out      <- prob_out
-  new_obj$num_iter      <- NULL
-  new_obj$convergence   <- NULL
+  new_obj$llike <- dupdog(new_obj)
 
   return(new_obj)
 }

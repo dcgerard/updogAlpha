@@ -5,7 +5,7 @@
 \title{Draw a genotype plot from the output of \code{\link{updog}}.}
 \usage{
 \method{plot}{updog}(x, gg = requireNamespace("ggplot2", quietly = TRUE),
-  plot_beta = TRUE, ask = TRUE, use_colorblind = TRUE,
+  plot_beta = TRUE, ask = TRUE, use_colorblind = FALSE,
   show_maxpostprob = FALSE, show_ogeno = TRUE, show_outlier = TRUE, ...)
 }
 \arguments{

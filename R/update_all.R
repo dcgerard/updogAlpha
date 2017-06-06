@@ -571,6 +571,12 @@ updog_update_all <- function(ocounts, osize, ploidy,
   return_list$out_mean    <- out_mean
   return_list$out_disp    <- out_disp
   return_list$prob_out    <- weight_vec
+  if (!is.null(p1counts) & !is.null(p1size)) {
+    return_list$p1_prob_out <- p1weight
+  }
+  if (!is.null(p2counts) & !is.null(p2size)) {
+    return_list$p2_prob_out <- p2weight
+  }
   return_list$num_iter    <- index
   return_list$convergence <- (index >= maxiter) * 1
   return_list$llike       <- llike_new

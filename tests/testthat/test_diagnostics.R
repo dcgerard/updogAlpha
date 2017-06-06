@@ -1,11 +1,6 @@
 context("diagnostics")
 
 test_that("rupdog works", {
-
-  dat <- readRDS(file = "dat.RDS")
-  uobj <- updog_vanilla(ocounts = dat[, 1], osize = rowSums(dat), ploidy = 6)
-  saveRDS(uobj, file = "updog_obj.RDS")
-
   uobj <- readRDS(file = "updog_obj.RDS")
   llike_me <- dupdog(uobj)
   expect_equal(uobj$llike, llike_me)
@@ -13,6 +8,7 @@ test_that("rupdog works", {
 
   plot(uobj, plot_beta = FALSE, use_colorblind = FALSE)
   samp_obj <- rupdog(obj = uobj)
+  samp_obj$llike
   plot(samp_obj, plot_beta = FALSE, use_colorblind = FALSE)
 }
 )
