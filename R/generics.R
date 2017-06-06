@@ -597,7 +597,7 @@ plot_geno <- function(ocounts, osize, ploidy, p1counts = NULL, p1size = NULL, p2
   maxcount <- max(max(dfdat$A, na.rm = TRUE), max(dfdat$a, na.rm = TRUE)) + 1
   if (!is.null(ogeno)) {
     assertthat::are_equal(length(ogeno), length(ocounts))
-    dfdat$genotype <- factor(ogeno, levels = 0:ploidy)
+    dfdat$genotype <- addNA(factor(ogeno, levels = 0:ploidy))
   }
 
   if (!is.null(prob_ok)) {
@@ -635,8 +635,6 @@ plot_geno <- function(ocounts, osize, ploidy, p1counts = NULL, p1size = NULL, p2
   } else {
     pl <- pl + ggplot2::geom_point()
   }
-
-
 
   pl <- pl + ggplot2::theme_bw() +
     ggplot2::xlim(0, maxcount) +
@@ -694,7 +692,8 @@ plot_geno <- function(ocounts, osize, ploidy, p1counts = NULL, p1size = NULL, p2
   ## Set color scale based on use_colorblind --------------------------------------
   if (!is.null(ogeno) | !is.null(p1geno) | !is.null(p2geno)) {
     if (use_colorblind & requireNamespace("ggthemes", quietly = TRUE)) {
-      pl <- pl + ggthemes::scale_color_colorblind(drop = FALSE)
+      possible_colors <- paste0(ggthemes::colorblind_pal()(ploidy + 1 + any(is.na(ogeno))))
+      pl <- pl + ggplot2::scale_color_manual(values = possible_colors)
     } else if (use_colorblind) {
       pl <- pl + ggplot2::scale_color_hue(drop = FALSE)
       warning("ggthemes needs to be installed to set use_colorblind = TRUE.")
