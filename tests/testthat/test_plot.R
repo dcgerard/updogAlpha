@@ -5,10 +5,10 @@ test_that("plot works", {
   osize   <- c(11, 26, 50, 72)
 
   p1counts <- c(11, 12)
-  p1size   <- c(20, 40)
+  p1size   <- c(1000, 40)
 
-  p2counts <- c(7, 13)
-  p2size   <- c(12, 13)
+  p2counts <- c(7, 900)
+  p2size   <- c(12, 1000)
 
   ploidy <- 6
   seq_error <- 0.01

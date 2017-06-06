@@ -13,6 +13,22 @@ test_that("rupdog works", {
 }
 )
 
+test_that("no NA in warn_dat.RDS", {
+  uobj <- readRDS(file = "warn_dat.RDS")
+  pl <- plot_geno(ocounts = uobj$input$ocounts, osize = uobj$input$osize,
+                  p1counts = uobj$input$p1counts, p1size = uobj$input$p1size,
+                  p2counts = uobj$input$p2counts, p2size = uobj$input$p2size,
+                  ploidy = uobj$input$ploidy, ogeno = uobj$ogeno,
+                  seq_error = uobj$seq_error,
+                  bias_val = uobj$bias_val,
+                  prob_ok = uobj$prob_ok, maxpostprob = uobj$maxpostprob,
+                  p1geno = uobj$p1geno, p2geno = uobj$p2geno,
+                  use_colorblind = FALSE)
+  print(pl)
+
+}
+)
+
 
 test_that("rbetabinom_mu_rho works", {
   set.seed(10)

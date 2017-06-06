@@ -566,7 +566,7 @@ plot_geno <- function(ocounts, osize, ploidy, p1counts = NULL, p1size = NULL, p2
   pk <- pk / (bias_val * (1 - pk) + pk)
 
   dfdat <- data.frame(A = ocounts, a = osize - ocounts)
-  maxcount <- max(max(dfdat$A, na.rm = TRUE), max(dfdat$a, na.rm = TRUE))
+  maxcount <- max(max(dfdat$A, na.rm = TRUE), max(dfdat$a, na.rm = TRUE)) + 1
   if (!is.null(ogeno)) {
     assertthat::are_equal(length(ogeno), length(ocounts))
     dfdat$genotype <- factor(ogeno, levels = 0:ploidy)
@@ -622,6 +622,14 @@ plot_geno <- function(ocounts, osize, ploidy, p1counts = NULL, p1size = NULL, p2
   if (!is.null(p1size) & !is.null(p1counts)) {
     assertthat::assert_that(all(p1counts >= 0, na.rm = TRUE))
     assertthat::assert_that(all(p1size >= p1counts, na.rm = TRUE))
+    if (any(p1counts > maxcount | p1size - p1counts > maxcount, na.rm = TRUE)) {
+      bad_parent_points <- p1counts > maxcount | p1size - p1counts > maxcount
+      bad_parent_points[is.na(bad_parent_points)] <- FALSE
+      parent_mult <- (maxcount - 1) / pmax(p1counts[bad_parent_points], p1size[bad_parent_points] - p1counts[bad_parent_points])
+      p1counts[bad_parent_points] <- parent_mult * p1counts[bad_parent_points]
+      p1size[bad_parent_points]   <- parent_mult * p1size[bad_parent_points]
+      pl <- pl + ggplot2::annotate("text", x = p1size[bad_parent_points] - p1counts[bad_parent_points], y = p1counts[bad_parent_points], label = "(scaled)", alpha = 0.3)
+    }
     p1dat <- data.frame(A = p1counts, a = p1size - p1counts)
     if (!is.null(p1geno)) {
       p1dat$genotype <- factor(p1geno, levels = 0:ploidy)
@@ -635,6 +643,14 @@ plot_geno <- function(ocounts, osize, ploidy, p1counts = NULL, p1size = NULL, p2
   if (!is.null(p2size) & !is.null(p2counts)) {
     assertthat::assert_that(all(p2counts >= 0, na.rm = TRUE))
     assertthat::assert_that(all(p2size >= p2counts, na.rm = TRUE))
+    if (any(p2counts > maxcount | p2size - p2counts > maxcount, na.rm = TRUE)) {
+      bad_parent_points <- p2counts > maxcount | p2size - p2counts > maxcount
+      bad_parent_points[is.na(bad_parent_points)] <- FALSE
+      parent_mult <- (maxcount - 1) / pmax(p2counts[bad_parent_points], p2size[bad_parent_points] - p2counts[bad_parent_points])
+      p2counts[bad_parent_points] <- parent_mult * p2counts[bad_parent_points]
+      p2size[bad_parent_points]   <- parent_mult * p2size[bad_parent_points]
+      pl <- pl + ggplot2::annotate("text", x = p2size[bad_parent_points] - p2counts[bad_parent_points], y = p2counts[bad_parent_points], label = "(scaled)", alpha = 0.3)
+    }
     p2dat <- data.frame(A = p2counts, a = p2size - p2counts)
     if (!is.null(p2geno)) {
       p2dat$genotype <- factor(p2geno, levels = 0:ploidy)
