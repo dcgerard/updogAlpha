@@ -41,10 +41,37 @@ or not (\code{FALSE})?}
 A plot object.
 }
 \description{
-Iff ggplot2 is installed, then this function will use it to make
+If ggplot2 is installed, then this function will use it to make
 the genotype plot.  Otherwise, "classic" R base graphics will be
 used. The ggplot2 version is made using the function
-\code{\link{plot_geno}}.
+\code{\link{plot_geno}}. The "classic" R base graphics version is made
+using the function \code{\link{plot_geno_base}}.
+}
+\details{
+The first plot is what we call a "genotype plot". On the x-axis is the
+number of "a" reads and on the y-axis is the number of "A" reads, where
+"a" and "A" are the possible alleles. If available, the observations are
+colorcoded by estimated genotype (via the maximum a posteriori
+classifier), their transparency is proportional to the the posterior
+probability that a point is an outlier, and their size is (possibly) scaled
+by their maximum posterior probability. The lines are defined by the
+equation
+\deqn{A / (A + a) = p,}
+where \eqn{A} is the number of "A" reads, \eqn{a} is the number of "a" reads,
+and \eqn{p} is the proportion of counts we would expect to observe on average
+given the genotype of an individual, the sequencing error rate, and the
+read-mapping bias.
+
+If there is parental data, these are also plotted with crosses and plusses.
+If the parents have larger counts than the offspring, then (at least
+when \code{gg = TRUE}) the parental
+counts are scaled until they just reach the plot. The scaled parental counts
+are labeled on the plot with a semi-transparent "(scaled)".
+
+The second plot is the distribution of outlying points.
+
+The third plot contains the underlying beta densities for the different
+genotypes.
 }
 \author{
 David Gerard
