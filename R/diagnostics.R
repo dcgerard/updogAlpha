@@ -21,11 +21,33 @@ rupdog <- function(obj) {
   seg_probs <- get_q_array_cpp(ploidy = obj$input$ploidy)[obj$p1geno + 1, obj$p2geno + 1, ]
 
   ## sample offspring genotypes --
-  rogeno <- sample(x = 0:obj$input$ploidy, size = length(obj$input$ocounts),
+  ogeno <- sample(x = 0:obj$input$ploidy, size = length(obj$input$ocounts),
                    prob = seg_probs, replace = TRUE)
 
 
+  ## Sample outliers ---
+  prob_out <- stats::rbinom(n = length(ogeno), size = 1, prob = obj$out_prop)
+  prob_ok  <- 1 - prob_out
 
+  ## Collate outlier and good infor ---
+  ogeno[prob_out == 1] <- NA
+  mean_vec <- pvec[ogeno + 1]
+  mean_vec[is.na(mean_vec)] <- obj$out_mean
+  od_vec   <- rep(obj$od_param, length(mean_vec))
+  od_vec[prob_out == 1] <- obj$out_disp
+
+  ocounts <- rbetabinom_mu_rho(mu = mean_vec, rho = od_vec, size = obj$input$osize)
+
+
+  new_obj <- obj
+  new_obj$input$ocounts <- ocounts
+  new_obj$ogeno         <- ogeno
+  new_obj$prob_ok       <- prob_ok
+  new_obj$prob_out      <- prob_out
+  new_obj$num_iter      <- NULL
+  new_obj$convergence   <- NULL
+
+  return(new_obj)
 }
 
 

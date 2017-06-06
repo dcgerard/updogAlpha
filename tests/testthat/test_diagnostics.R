@@ -2,10 +2,9 @@ context("diagnostics")
 
 test_that("rupdog works", {
   uobj <- readRDS(file = "updog_obj.RDS")
-
-  plot(uobj, plot_beta = FALSE)
-
-
+  ## plot(uobj, plot_beta = FALSE, use_colorblind = FALSE)
+  samp_obj <- rupdog(obj = uobj)
+  ## plot(samp_obj, plot_beta = FALSE, use_colorblind = FALSE)
 }
 )
 
