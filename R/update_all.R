@@ -573,6 +573,7 @@ updog_update_all <- function(ocounts, osize, ploidy,
   return_list$prob_out    <- weight_vec
   return_list$num_iter    <- index
   return_list$convergence <- (index >= maxiter) * 1
+  return_list$llike       <- llike_new
   return(return_list)
 }
 

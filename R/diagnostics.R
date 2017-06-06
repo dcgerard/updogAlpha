@@ -38,6 +38,27 @@ rupdog <- function(obj) {
 
   ocounts <- rbetabinom_mu_rho(mu = mean_vec, rho = od_vec, size = obj$input$osize)
 
+  ## Now sample parents if have them ---
+  if (!is.null(obj$input$p1counts) & !is.null(obj$input$p1size)) {
+    p1_isout <- sample(x = c(TRUE, FALSE), prob = c(obj$out_prop, 1 - obj$out_prop), size = 1)
+    if (p1_isout) {
+      p1counts <- rbetabinom_mu_rho(mu = obj$out_mean, rho = obj$out_disp, size = obj$input$p1size)
+    } else {
+      p1counts <- rbetabinom_mu_rho(mu = pvec[obj$p1geno + 1], rho = obj$od_param, size = obj$input$p1size)
+    }
+  } else {
+    p1counts <- NULL
+  }
+  if (!is.null(obj$input$p2counts) & !is.null(obj$input$p2size)) {
+    p2_isout <- sample(x = c(TRUE, FALSE), prob = c(obj$out_prop, 1 - obj$out_prop), size = 1)
+    if (p2_isout) {
+      p2counts <- rbetabinom_mu_rho(mu = obj$out_mean, rho = obj$out_disp, size = obj$input$p2size)
+    } else {
+      p2counts <- rbetabinom_mu_rho(mu = pvec[obj$p2geno + 1], rho = obj$od_param, size = obj$input$p2size)
+    }
+  } else {
+    p2counts <- NULL
+  }
 
   new_obj <- obj
   new_obj$input$ocounts <- ocounts
@@ -48,6 +69,56 @@ rupdog <- function(obj) {
   new_obj$convergence   <- NULL
 
   return(new_obj)
+}
+
+#' Returns log-likelihood of \code{updog} object.
+#'
+#' @inheritParams rupdog
+#'
+#' @author David Gerard
+#'
+#' @export
+#'
+dupdog <- function(obj) {
+  llike_new <- obj_offspring(ocounts   = obj$input$ocounts,
+                             osize     = obj$input$osize,
+                             ploidy    = obj$input$ploidy,
+                             p1geno    = obj$p1geno,
+                             p2geno    = obj$p2geno,
+                             bias_val  = obj$bias_val,
+                             seq_error = obj$seq_error,
+                             od_param  = obj$od_param,
+                             outlier   = TRUE,
+                             out_prop  = obj$out_prop,
+                             out_mean  = obj$out_mean,
+                             out_disp  = obj$out_disp)
+  if (!is.null(obj$input$p1counts) & !is.null(obj$input$p1size)) { ## add parent 1 if available
+    llike_new <- llike_new + obj_parent(pcounts   = obj$input$p1counts,
+                                        psize     = obj$input$p1size,
+                                        ploidy    = obj$input$ploidy,
+                                        pgeno     = obj$p1geno,
+                                        bias_val  = obj$bias_val,
+                                        seq_error = obj$seq_error,
+                                        od_param  = obj$od_param,
+                                        outlier   = TRUE,
+                                        out_prop  = obj$out_prop,
+                                        out_mean  = obj$out_mean,
+                                        out_disp  = obj$out_disp)
+  }
+  if (!is.null(obj$input$p2counts) & !is.null(obj$input$p2size)) { ## add parent 2 if available
+    llike_new <- llike_new + obj_parent(pcounts   = obj$input$p2counts,
+                                        psize     = obj$input$p2size,
+                                        ploidy    = obj$input$ploidy,
+                                        pgeno     = obj$p2geno,
+                                        bias_val  = obj$bias_val,
+                                        seq_error = obj$seq_error,
+                                        od_param  = obj$od_param,
+                                        outlier   = TRUE,
+                                        out_prop  = obj$out_prop,
+                                        out_mean  = obj$out_mean,
+                                        out_disp  = obj$out_disp)
+  }
+  return(llike_new)
 }
 
 
