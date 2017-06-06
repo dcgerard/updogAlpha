@@ -727,6 +727,14 @@ updog_vanilla <- function(ocounts, osize, ploidy,
   parout$input <- list()
   parout$input$ocounts <- ocounts
   parout$input$osize <- osize
+  if (!is.null(p1counts) & !is.null(p1size)) {
+    parout$input$p1counts <- p1counts
+    parout$input$p1size <- p1size
+  }
+  if (!is.null(p2counts) & !is.null(p2size)) {
+    parout$input$p2counts <- p2counts
+    parout$input$p2size <- p2size
+  }
   parout$input$ploidy <- ploidy
   class(parout) <- "updog"
   return(parout)
