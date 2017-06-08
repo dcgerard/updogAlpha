@@ -171,7 +171,11 @@ update_good <- function(parvec, ocounts, osize, weight_vec, ploidy,
                         bound_bias = TRUE,
                         update_bias_val = TRUE,
                         update_seq_error = TRUE,
-                        update_od_param = TRUE) {
+                        update_od_param = TRUE,
+                        seq_error_mean = -4.7,
+                        seq_error_sd = 1,
+                        bias_val_mean = 0,
+                        bias_val_sd = 1) {
   best_par <- parvec
   if (is.null(p1geno) | is.null(p2geno)) { ## try all p1geno/p2geno combos --
     best_p1 <- 0
@@ -202,7 +206,11 @@ update_good <- function(parvec, ocounts, osize, weight_vec, ploidy,
                              bound_bias = bound_bias,
                              update_bias_val = update_bias_val,
                              update_seq_error = update_seq_error,
-                             update_od_param = update_od_param)
+                             update_od_param = update_od_param,
+                             seq_error_mean = seq_error_mean,
+                             seq_error_sd = seq_error_sd,
+                             bias_val_mean = bias_val_mean,
+                             bias_val_sd = bias_val_sd)
         if (oout$convergence != 0) {
           warning(oout$message)
         }
@@ -238,7 +246,11 @@ update_good <- function(parvec, ocounts, osize, weight_vec, ploidy,
                          bound_bias = bound_bias,
                          update_bias_val = update_bias_val,
                          update_seq_error = update_seq_error,
-                         update_od_param = update_od_param)
+                         update_od_param = update_od_param,
+                         seq_error_mean = seq_error_mean,
+                         seq_error_sd = seq_error_sd,
+                         bias_val_mean = bias_val_mean,
+                         bias_val_sd = bias_val_sd)
     best_p1 <- p1geno
     best_p2 <- p2geno
     best_llike <- oout$value
@@ -358,6 +370,17 @@ out_grad_wrapp <- function(parvec, ocounts, osize, weight_vec,
 #' @param non_mono_max The maximum number of iterations to allow non-monotonicity of likelihood.
 #' @param bound_bias A logical. Should we bound \code{bias_val} by a somewhat arbitrary value
 #'     (\code{TRUE}) or not (\code{FALSE})?
+#' @param seq_error_mean The mean of the logit-normal prior on the sequencing error rate, which corresponds
+#'     to \code{parvec[2]}. Set \code{seq_error_sd = Inf} to have no penalty on the sequencing error rate.
+#'     The default is -4.7, which roughly corresponds to a mean sequencing error value of 0.009.
+#' @param seq_error_sd The standard deviation of the logit-normal prior on the sequencing error rate, which
+#'     corresponds to \code{parvec[2]}. The default is 1, which at three standard deviations is about a sequencing
+#'     error rate of 0.15.
+#' @param bias_val_mean The prior mean on the log of \code{bias_val} (corresponding to \code{parvec[1]}).
+#'     Set \code{bias_val_sd = Inf} to have no penalty on the bias parameter.
+#' @param bias_val_sd The prior standard deviation on the log of \code{bias_val}
+#'     (corresponding to \code{parvec[1]}).
+#'     Set \code{bias_val_sd = Inf} to have no penalty on the bias parameter.
 #'
 #' @author David Gerard
 #'
@@ -389,7 +412,11 @@ updog_update_all <- function(ocounts, osize, ploidy,
                              out_mean = 0.5,
                              out_disp = 1/3,
                              non_mono_max = 2,
-                             bound_bias = TRUE) {
+                             bound_bias = TRUE,
+                             seq_error_mean = -4.7,
+                             seq_error_sd = 1,
+                             bias_val_mean = 0,
+                             bias_val_sd = 1) {
   ## Check input ----------------------------------------------------
   if (!is.null(p1counts) & !is.null(p1size)) {
     assertthat::are_equal(length(p1counts), length(p1size), 1)
@@ -475,7 +502,11 @@ updog_update_all <- function(ocounts, osize, ploidy,
                           bound_bias = bound_bias,
                           update_bias_val = update_bias_val,
                           update_seq_error = update_seq_error,
-                          update_od_param = update_od_param)
+                          update_od_param = update_od_param,
+                          seq_error_mean = seq_error_mean,
+                          seq_error_sd = seq_error_sd,
+                          bias_val_mean = bias_val_mean,
+                          bias_val_sd = bias_val_sd)
     } else {
       gout <- update_good(parvec = parvec, ocounts = ocounts, osize = osize,
                           weight_vec = 1 - weight_vec, ploidy = ploidy,
@@ -484,7 +515,11 @@ updog_update_all <- function(ocounts, osize, ploidy,
                           bound_bias = bound_bias,
                           update_bias_val = update_bias_val,
                           update_seq_error = update_seq_error,
-                          update_od_param = update_od_param)
+                          update_od_param = update_od_param,
+                          seq_error_mean = seq_error_mean,
+                          seq_error_sd = seq_error_sd,
+                          bias_val_mean = bias_val_mean,
+                          bias_val_sd = bias_val_sd)
     }
 
     bias_val  <- gout$bias
@@ -502,18 +537,7 @@ updog_update_all <- function(ocounts, osize, ploidy,
     p2geno <- gout$p2geno
 
     ## update bad -------- ------------------------------------------------------------
-    # if (out_disp < min_disp) {
-    #   start_disp <- min_disp + 10 ^ -3
-    # } else if (out_disp > 1 - 10 ^ -8) {
-    #   start_disp <- 1 - 10 ^ -6
-    # } else {
-       start_disp <- out_disp
-    # }
-    # if (out_mean < 10 ^ -8) {
-    #   out_mean <- 10 ^ -6
-    # } else if (out_mean > 1 - 10 ^ -8) {
-    #   out_mean <- 1 - 10 ^ -6
-    # }
+    start_disp <- out_disp
     if (update_outmean & update_outdisp) {
       oout <- stats::optim(par = c(out_mean, start_disp),
                            fn = out_obj_wrapp, gr = out_grad_wrapp,
@@ -564,6 +588,13 @@ updog_update_all <- function(ocounts, osize, ploidy,
                                           out_mean = out_mean, out_disp = out_disp)
     }
 
+    ## Add sequencing error penalty ---
+    llike_new <- llike_new - (log(seq_error / (1 - seq_error)) - seq_error_mean) ^ 2 / (2 * seq_error_sd ^ 2)
+
+    ## add bias_val penalty ---
+    llike_new <- llike_new - (log(bias_val) - bias_val_mean) ^ 2 / (2 * bias_val_sd ^ 2)
+
+    ## Calculate error ----
     err <- abs(llike_new - llike_old)
 
     if (print_val) {
@@ -689,7 +720,11 @@ updog_vanilla <- function(ocounts, osize, ploidy,
                           out_mean = 0.5,
                           out_disp = 1/3,
                           non_mono_max = 2,
-                          bound_bias = TRUE) {
+                          bound_bias = TRUE,
+                          seq_error_mean = -4.7,
+                          seq_error_sd = 1,
+                          bias_val_mean = 0,
+                          bias_val_sd = 1) {
   ## Check input -----------------------------------------------------------------------
   assertthat::assert_that(is.logical(print_val))
   assertthat::assert_that(is.logical(update_outmean))
@@ -744,7 +779,11 @@ updog_vanilla <- function(ocounts, osize, ploidy,
                              out_mean = out_mean, out_disp = out_disp, non_mono_max = non_mono_max,
                              update_bias_val = update_bias_val,
                              update_seq_error = update_seq_error,
-                             update_od_param = update_od_param)
+                             update_od_param = update_od_param,
+                             seq_error_mean = seq_error_mean,
+                             seq_error_sd = seq_error_sd,
+                             bias_val_mean = bias_val_mean,
+                             bias_val_sd = bias_val_sd)
 
   if (parout$od_param < 10 ^ -13) { ## fix for getting some weird postmat's
     parout$od_param <- 0

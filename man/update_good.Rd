@@ -7,7 +7,9 @@
 update_good(parvec, ocounts, osize, weight_vec, ploidy, p1counts = NULL,
   p1size = NULL, p1weight = NULL, p2counts = NULL, p2size = NULL,
   p2weight = NULL, p1geno = NULL, p2geno = NULL, bound_bias = TRUE,
-  update_bias_val = TRUE, update_seq_error = TRUE, update_od_param = TRUE)
+  update_bias_val = TRUE, update_seq_error = TRUE, update_od_param = TRUE,
+  seq_error_mean = -4.7, seq_error_sd = 1, bias_val_mean = 0,
+  bias_val_sd = 1)
 }
 \arguments{
 \item{parvec}{A vector of three elements, s, ell, and r. We have s = log(bias_val) = log(d),
@@ -53,6 +55,21 @@ reference allele the second parent has.}
 
 \item{update_od_param}{A logical. Should we update the overdispersion parameter
 (the third position of \code{parvec})?}
+
+\item{seq_error_mean}{The mean of the logit-normal prior on the sequencing error rate, which corresponds
+to \code{parvec[2]}. Set \code{seq_error_sd = Inf} to have no penalty on the sequencing error rate.
+The default is -4.7, which roughly corresponds to a mean sequencing error value of 0.009.}
+
+\item{seq_error_sd}{The standard deviation of the logit-normal prior on the sequencing error rate, which
+corresponds to \code{parvec[2]}. The default is 1, which at three standard deviations is about a sequencing
+error rate of 0.15.}
+
+\item{bias_val_mean}{The prior mean on the log of \code{bias_val} (corresponding to \code{parvec[1]}).
+Set \code{bias_val_sd = Inf} to have no penalty on the bias parameter.}
+
+\item{bias_val_sd}{The prior standard deviation on the log of \code{bias_val}
+(corresponding to \code{parvec[1]}).
+Set \code{bias_val_sd = Inf} to have no penalty on the bias parameter.}
 }
 \description{
 Update the OK points

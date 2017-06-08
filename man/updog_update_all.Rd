@@ -11,7 +11,8 @@ updog_update_all(ocounts, osize, ploidy, p1counts = NULL, p1size = NULL,
   update_seq_error = TRUE, update_od_param = TRUE, update_pgeno = TRUE,
   p1geno = 3, p2geno = 3, seq_error = 0.01, od_param = 0.01,
   bias_val = 1, out_prop = 0.001, out_mean = 0.5, out_disp = 1/3,
-  non_mono_max = 2, bound_bias = TRUE)
+  non_mono_max = 2, bound_bias = TRUE, seq_error_mean = -4.7,
+  seq_error_sd = 1, bias_val_mean = 0, bias_val_sd = 1)
 }
 \arguments{
 \item{ocounts}{A vector of non-negative integers. The ith element
@@ -97,6 +98,21 @@ points being outliers.}
 
 \item{bound_bias}{A logical. Should we bound \code{bias_val} by a somewhat arbitrary value
 (\code{TRUE}) or not (\code{FALSE})?}
+
+\item{seq_error_mean}{The mean of the logit-normal prior on the sequencing error rate, which corresponds
+to \code{parvec[2]}. Set \code{seq_error_sd = Inf} to have no penalty on the sequencing error rate.
+The default is -4.7, which roughly corresponds to a mean sequencing error value of 0.009.}
+
+\item{seq_error_sd}{The standard deviation of the logit-normal prior on the sequencing error rate, which
+corresponds to \code{parvec[2]}. The default is 1, which at three standard deviations is about a sequencing
+error rate of 0.15.}
+
+\item{bias_val_mean}{The prior mean on the log of \code{bias_val} (corresponding to \code{parvec[1]}).
+Set \code{bias_val_sd = Inf} to have no penalty on the bias parameter.}
+
+\item{bias_val_sd}{The prior standard deviation on the log of \code{bias_val}
+(corresponding to \code{parvec[1]}).
+Set \code{bias_val_sd = Inf} to have no penalty on the bias parameter.}
 }
 \description{
 This is the main optimization function for updog.
