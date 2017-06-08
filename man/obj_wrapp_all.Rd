@@ -8,8 +8,7 @@ obj_wrapp_all(parvec, ocounts, osize, weight_vec, ploidy, p1geno, p2geno,
   p1counts = NULL, p1size = NULL, p1weight = NULL, p2counts = NULL,
   p2size = NULL, p2weight = NULL, bound_bias = TRUE, bound_od = TRUE,
   update_bias_val = TRUE, update_seq_error = TRUE, update_od_param = TRUE,
-  seq_error_mean = 0.005, seq_error_od = 0.02, bias_val_mean = 0,
-  bias_val_sd = 1)
+  bias_val_mean = 0, bias_val_sd = 1)
 }
 \arguments{
 \item{parvec}{A vector of three elements, s, ell, and r. We have s = log(bias_val) = log(d),
@@ -60,13 +59,6 @@ with \code{\link{grad_wrapp_all}}.}
 
 \item{update_od_param}{A logical. Not used. Here for compatability
 with \code{\link{grad_wrapp_all}}.}
-
-\item{seq_error_mean}{The mean of the prior on the sequencing error rate. Set this to 1/2
-and set \code{seq_error_od} to 1/3 to not have a penalty on the sequencing error rate.}
-
-\item{seq_error_od}{The overdispersion parameter on the prior of the sequencing error rate.
-Set this to 1/3 and \code{seq_error_mean} to 1/2 to not have a penalty on the sequencing
-error rate.}
 
 \item{bias_val_mean}{The prior mean on the log of \code{bias_val} (corresponding to \code{parvec[1]}).
 Set \code{bias_val_sd = Inf} to have no penalty on the bias parameter.}
