@@ -27,6 +27,11 @@
 #' @param seq_error_od The overdispersion parameter on the prior of the sequencing error rate.
 #'     Set this to 1/3 and \code{seq_error_mean} to 1/2 to not have a penalty on the sequencing
 #'     error rate.
+#' @param bias_val_mean The prior mean on the log of \code{bias_val} (corresponding to \code{parvec[1]}).
+#'     Set \code{bias_val_sd = Inf} to have no penalty on the bias parameter.
+#' @param bias_val_sd The prior standard deviation on the log of \code{bias_val}
+#'     (corresponding to \code{parvec[1]}).
+#'     Set \code{bias_val_sd = Inf} to have no penalty on the bias parameter.
 #'
 #' @author David Gerard
 #'
@@ -40,7 +45,9 @@ obj_wrapp_all <- function(parvec, ocounts, osize, weight_vec,
                           update_seq_error = TRUE,
                           update_od_param = TRUE,
                           seq_error_mean = 0.005,
-                          seq_error_od = 0.02) {
+                          seq_error_od = 0.02,
+                          bias_val_mean = 0,
+                          bias_val_sd = 1) {
   ## Check if second to last pk is too large -----------------------------------------
   eps <- expit(parvec[2])
   if (bound_bias) {
@@ -78,6 +85,9 @@ obj_wrapp_all <- function(parvec, ocounts, osize, weight_vec,
   seq_pen <- (seq_alpha - 1) * log(eps) + (seq_beta - 1) * log(1- eps)
   val <- val + seq_pen
 
+  ## bias_val penalty ---
+  val <- val - (parvec[1] - bias_val_mean) ^ 2 / (2 * bias_val_sd ^ 2)
+
   return(val)
 }
 
@@ -102,7 +112,9 @@ grad_wrapp_all <- function(parvec, ocounts, osize, weight_vec, ploidy, p1geno, p
                            update_seq_error = TRUE,
                            update_od_param = TRUE,
                            seq_error_mean = 0.005,
-                           seq_error_od = 0.02) {
+                           seq_error_od = 0.02,
+                           bias_val_mean = 0,
+                           bias_val_sd = 1) {
   gout <- grad_offspring_weights(ocounts = ocounts, osize = osize, weight_vec = weight_vec,
                                  ploidy = ploidy, p1geno = p1geno, p2geno = p2geno, s = parvec[1],
                                  ell = parvec[2], r = parvec[3])
@@ -125,6 +137,9 @@ grad_wrapp_all <- function(parvec, ocounts, osize, weight_vec, ploidy, p1geno, p
   seq_alpha <- seq_error_mean * (1 - seq_error_od) / seq_error_od
   seq_beta  <- (1 - seq_error_mean) * (1 - seq_error_od) / seq_error_od
   gout[2] <- gout[2] + ((seq_alpha - 1) / eps - (seq_beta - 1) / (1 - eps)) * deps_dell(parvec[2])
+
+  ## Bias parameter penalty -------------------------------
+  gout[1] <- gout[1] - (parvec[1] - bias_val_mean) / (bias_val_sd ^ 2)
 
   ## set to 0 if not to be updated -------------------------
   if (!update_bias_val) {
