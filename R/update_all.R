@@ -22,6 +22,11 @@
 #' @param p2counts The number of reference alleles observed from parent 2.
 #' @param p2size The number of reads observed from parent 2.
 #' @param p2weight The posterior probability that parent 2 is not an outlier.
+#' @param seq_error_mean The mean of the prior on the sequencing error rate. Set this to 1/2
+#'     and set \code{seq_error_od} to 1/3 to not have a penalty on the sequencing error rate.
+#' @param seq_error_od The overdispersion parameter on the prior of the sequencing error rate.
+#'     Set this to 1/3 and \code{seq_error_mean} to 1/2 to not have a penalty on the sequencing
+#'     error rate.
 #'
 #' @author David Gerard
 #'
@@ -33,10 +38,12 @@ obj_wrapp_all <- function(parvec, ocounts, osize, weight_vec,
                           bound_od = TRUE,
                           update_bias_val = TRUE,
                           update_seq_error = TRUE,
-                          update_od_param = TRUE) {
+                          update_od_param = TRUE,
+                          seq_error_mean = 0.005,
+                          seq_error_od = 0.02) {
   ## Check if second to last pk is too large -----------------------------------------
+  eps <- expit(parvec[2])
   if (bound_bias) {
-    eps <- expit(parvec[2])
     mind <- eps / (1 - eps) + 0.05 ## ad hoc bound
     if (exp(parvec[1]) < mind) {
       return(-Inf)
@@ -47,7 +54,6 @@ obj_wrapp_all <- function(parvec, ocounts, osize, weight_vec,
       return(-Inf)
     }
   }
-
 
   ## Normal value ------------------------------------------------------------------------
   val <- obj_offspring_weights_reparam(ocounts = ocounts, osize = osize, weight_vec = weight_vec,
@@ -65,6 +71,12 @@ obj_wrapp_all <- function(parvec, ocounts, osize, weight_vec,
                                     pgeno = p2geno, s = parvec[1], ell = parvec[2],
                                     r = parvec[3], weight = p2weight)
   }
+
+  ## sequencing error rate penalty ----
+  seq_alpha <- seq_error_mean * (1 - seq_error_od) / seq_error_od
+  seq_beta  <- (1 - seq_error_mean) * (1 - seq_error_od) / seq_error_od
+  seq_pen <- (seq_alpha - 1) * log(eps) + (seq_beta - 1) * log(1- eps)
+  val <- val + seq_pen
 
   return(val)
 }
@@ -88,7 +100,9 @@ grad_wrapp_all <- function(parvec, ocounts, osize, weight_vec, ploidy, p1geno, p
                            bound_bias = TRUE,
                            update_bias_val = TRUE,
                            update_seq_error = TRUE,
-                           update_od_param = TRUE) {
+                           update_od_param = TRUE,
+                           seq_error_mean = 0.005,
+                           seq_error_od = 0.02) {
   gout <- grad_offspring_weights(ocounts = ocounts, osize = osize, weight_vec = weight_vec,
                                  ploidy = ploidy, p1geno = p1geno, p2geno = p2geno, s = parvec[1],
                                  ell = parvec[2], r = parvec[3])
@@ -105,6 +119,14 @@ grad_wrapp_all <- function(parvec, ocounts, osize, weight_vec, ploidy, p1geno, p
                                        s = parvec[1], ell = parvec[2],
                                        r = parvec[3], weight = p2weight)
   }
+
+  ## Sequencing error rate penalty -------------------------
+  eps <- expit(parvec[2])
+  seq_alpha <- seq_error_mean * (1 - seq_error_od) / seq_error_od
+  seq_beta  <- (1 - seq_error_mean) * (1 - seq_error_od) / seq_error_od
+  gout[2] <- gout[2] + ((seq_alpha - 1) / eps - (seq_beta - 1) / (1 - eps)) * deps_dell(parvec[2])
+
+  ## set to 0 if not to be updated -------------------------
   if (!update_bias_val) {
     gout[1] <- 0
   }
