@@ -22,8 +22,8 @@ plot_problines <- function(seq_error, bias_val, ploidy) {
   yend <- pmin(rep(1, ploidy + 1), 1 * slopevec)
   df_lines <- data.frame(x = rep(0, ploidy + 1), y = rep(0, ploidy + 1),
                          xend = xend, yend = yend, porig = porig)
-  df_lines$bias <- bias_val
-  df_lines$seq_error <- seq_error
+  df_lines$bias <- paste0("Bias = ", format(bias_val, digits = 2))
+  df_lines$seq_error <- paste0("Sequencing Error = ", format(seq_error, digits = 2))
 
   ## now plot ----
   pl <- ggplot2::ggplot(data = df_lines, mapping = ggplot2::aes_string(x = "x", y = "y",
@@ -34,7 +34,9 @@ plot_problines <- function(seq_error, bias_val, ploidy) {
     ggplot2::theme(axis.text = ggplot2::element_blank(),
                    axis.ticks = ggplot2::element_blank(),
                    strip.background = ggplot2::element_rect(fill = "white")) +
-    ggplot2::facet_grid(seq_error ~ bias) +
+    ggplot2::facet_grid(. ~ seq_error + bias) +
+    ggplot2::xlab("counts a") +
+    ggplot2::ylab("counts A") +
     ggthemes::scale_color_colorblind(name = "Original\nProbabilities")
   return(pl)
 }
