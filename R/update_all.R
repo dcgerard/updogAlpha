@@ -22,6 +22,12 @@
 #' @param p2counts The number of reference alleles observed from parent 2.
 #' @param p2size The number of reads observed from parent 2.
 #' @param p2weight The posterior probability that parent 2 is not an outlier.
+#' @param seq_error_mean The mean of the logit-normal prior on the sequencing error rate, which corresponds
+#'     to \code{parvec[2]}. Set \code{seq_error_sd = Inf} to have no penalty on the sequencing error rate.
+#'     The default is -4.7, which roughly corresponds to a mean sequencing error value of 0.009.
+#' @param seq_error_sd The standard deviation of the logit-normal prior on the sequencing error rate, which
+#'     corresponds to \code{parvec[2]}. The default is 1, which at three standard deviations is about a sequencing
+#'     error rate of 0.15.
 #' @param bias_val_mean The prior mean on the log of \code{bias_val} (corresponding to \code{parvec[1]}).
 #'     Set \code{bias_val_sd = Inf} to have no penalty on the bias parameter.
 #' @param bias_val_sd The prior standard deviation on the log of \code{bias_val}
@@ -39,6 +45,8 @@ obj_wrapp_all <- function(parvec, ocounts, osize, weight_vec,
                           update_bias_val = TRUE,
                           update_seq_error = TRUE,
                           update_od_param = TRUE,
+                          seq_error_mean = -4.7,
+                          seq_error_sd = 1,
                           bias_val_mean = 0,
                           bias_val_sd = 1) {
   ## Check if second to last pk is too large -----------------------------------------
@@ -72,6 +80,9 @@ obj_wrapp_all <- function(parvec, ocounts, osize, weight_vec,
                                     r = parvec[3], weight = p2weight)
   }
 
+  ## seq_error penalty ---
+  val <- val - (parvec[2] - seq_error_mean) ^ 2 / (2 * seq_error_sd ^ 2)
+
   ## bias_val penalty ---
   val <- val - (parvec[1] - bias_val_mean) ^ 2 / (2 * bias_val_sd ^ 2)
 
@@ -98,6 +109,8 @@ grad_wrapp_all <- function(parvec, ocounts, osize, weight_vec, ploidy, p1geno, p
                            update_bias_val = TRUE,
                            update_seq_error = TRUE,
                            update_od_param = TRUE,
+                           seq_error_mean = -4.7,
+                           seq_error_sd = 1,
                            bias_val_mean = 0,
                            bias_val_sd = 1) {
   gout <- grad_offspring_weights(ocounts = ocounts, osize = osize, weight_vec = weight_vec,
@@ -116,6 +129,9 @@ grad_wrapp_all <- function(parvec, ocounts, osize, weight_vec, ploidy, p1geno, p
                                        s = parvec[1], ell = parvec[2],
                                        r = parvec[3], weight = p2weight)
   }
+
+  ## sequencing error penalty -----------------------------
+  gout[2] <- gout[2] - (parvec[2] - seq_error_mean) / (seq_error_sd ^ 2)
 
   ## Bias parameter penalty -------------------------------
   gout[1] <- gout[1] - (parvec[1] - bias_val_mean) / (bias_val_sd ^ 2)
