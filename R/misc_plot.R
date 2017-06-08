@@ -11,7 +11,7 @@
 #' @export
 #'
 plot_problines <- function(seq_error, bias_val, ploidy) {
-  if (!requireNamespace(quietly = TRUE)) {
+  if (!requireNamespace(ggplot2, quietly = TRUE)) {
     stop("ggplot2 needs to be installed to run plot_problines.")
   }
   porig <- as.factor(paste0(0:ploidy, "/", ploidy))
