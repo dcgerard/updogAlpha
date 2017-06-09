@@ -7,8 +7,7 @@
 #' @param x The observed number of reference alleles.
 #' @param n The total number of reads.
 #' @param ploidy The ploidy of the species
-#' @param p1geno The first parental genotype (number of reference alleles parent 1 has).
-#' @param p2geno The second parental genotype (number of reference alleles parent 2 has).
+#' @param prob_geno The distribution of genotypes.
 #' @param seq_error The sequencing error rate.
 #' @param bias_val The bias parameter. A value of 1 indicates no bias.
 #' @param od_param The over-dispersion parameter. Should be in [0, 1). A value of 0 reduces to the
@@ -22,8 +21,8 @@
 #'
 #' @export
 #'
-bbpost_double <- function(x, n, ploidy, p1geno, p2geno, seq_error, bias_val, od_param, outlier = FALSE, out_prop = 0.1, out_mean = 0.5, out_disp = 1/3) {
-    .Call('updog_bbpost_double', PACKAGE = 'updog', x, n, ploidy, p1geno, p2geno, seq_error, bias_val, od_param, outlier, out_prop, out_mean, out_disp)
+bbpost_double <- function(x, n, ploidy, prob_geno, seq_error, bias_val, od_param, outlier = FALSE, out_prop = 0.1, out_mean = 0.5, out_disp = 1/3) {
+    .Call('updog_bbpost_double', PACKAGE = 'updog', x, n, ploidy, prob_geno, seq_error, bias_val, od_param, outlier, out_prop, out_mean, out_disp)
 }
 
 #' Posterior inference for each individual.
@@ -36,8 +35,8 @@ bbpost_double <- function(x, n, ploidy, p1geno, p2geno, seq_error, bias_val, od_
 #'
 #' @export
 #'
-bbpost_tot <- function(ocounts, osize, ploidy, p1geno, p2geno, seq_error, bias_val, od_param, outlier = FALSE, out_prop = 0.1, out_mean = 0.5, out_disp = 1/3) {
-    .Call('updog_bbpost_tot', PACKAGE = 'updog', ocounts, osize, ploidy, p1geno, p2geno, seq_error, bias_val, od_param, outlier, out_prop, out_mean, out_disp)
+bbpost_tot <- function(ocounts, osize, ploidy, prob_geno, seq_error, bias_val, od_param, outlier = FALSE, out_prop = 0.1, out_mean = 0.5, out_disp = 1/3) {
+    .Call('updog_bbpost_tot', PACKAGE = 'updog', ocounts, osize, ploidy, prob_geno, seq_error, bias_val, od_param, outlier, out_prop, out_mean, out_disp)
 }
 
 #' E step in EM algorithm for a single individual.
@@ -48,8 +47,8 @@ bbpost_tot <- function(ocounts, osize, ploidy, p1geno, p2geno, seq_error, bias_v
 #'
 #' @author David Gerard
 #'
-get_out_prop <- function(ocounts, osize, ploidy, p1geno, p2geno, d, eps, tau, out_prop, out_mean, out_disp) {
-    .Call('updog_get_out_prop', PACKAGE = 'updog', ocounts, osize, ploidy, p1geno, p2geno, d, eps, tau, out_prop, out_mean, out_disp)
+get_out_prop <- function(ocounts, osize, ploidy, prob_geno, d, eps, tau, out_prop, out_mean, out_disp) {
+    .Call('updog_get_out_prop', PACKAGE = 'updog', ocounts, osize, ploidy, prob_geno, d, eps, tau, out_prop, out_mean, out_disp)
 }
 
 #' Derivative of mean of beta density.
@@ -215,8 +214,8 @@ dbeta_dr_ell <- function(x, n, d, ell, p, r) {
 #'
 #' @author David Gerard
 #'
-grad_offspring_mat <- function(ocounts, osize, ploidy, p1geno, p2geno, s, ell, r) {
-    .Call('updog_grad_offspring_mat', PACKAGE = 'updog', ocounts, osize, ploidy, p1geno, p2geno, s, ell, r)
+grad_offspring_mat <- function(ocounts, osize, ploidy, prob_geno, s, ell, r) {
+    .Call('updog_grad_offspring_mat', PACKAGE = 'updog', ocounts, osize, ploidy, prob_geno, s, ell, r)
 }
 
 #' Gradient of \code{\link{obj_offspring_reparam}}.
@@ -228,8 +227,8 @@ grad_offspring_mat <- function(ocounts, osize, ploidy, p1geno, p2geno, s, ell, r
 #'
 #' @export
 #'
-grad_offspring <- function(ocounts, osize, ploidy, p1geno, p2geno, s, ell, r) {
-    .Call('updog_grad_offspring', PACKAGE = 'updog', ocounts, osize, ploidy, p1geno, p2geno, s, ell, r)
+grad_offspring <- function(ocounts, osize, ploidy, prob_geno, s, ell, r) {
+    .Call('updog_grad_offspring', PACKAGE = 'updog', ocounts, osize, ploidy, prob_geno, s, ell, r)
 }
 
 #' Gradient of \code{\link{obj_offspring_weights_reparam}}
@@ -237,8 +236,8 @@ grad_offspring <- function(ocounts, osize, ploidy, p1geno, p2geno, s, ell, r) {
 #' @inheritParams grad_offspring
 #' @param weight_vec A vector of weights between 0 and 1 (do not need to add up to 1).
 #'
-grad_offspring_weights <- function(ocounts, osize, weight_vec, ploidy, p1geno, p2geno, s, ell, r) {
-    .Call('updog_grad_offspring_weights', PACKAGE = 'updog', ocounts, osize, weight_vec, ploidy, p1geno, p2geno, s, ell, r)
+grad_offspring_weights <- function(ocounts, osize, weight_vec, ploidy, prob_geno, s, ell, r) {
+    .Call('updog_grad_offspring_weights', PACKAGE = 'updog', ocounts, osize, weight_vec, ploidy, prob_geno, s, ell, r)
 }
 
 #' Derivative of beta density w.r.t. sequencing error rate.
@@ -303,8 +302,8 @@ dbeta_dtau <- function(x, n, d, eps, p, tau) {
 #'
 #' @author David Gerard
 #'
-grad_offspring_mat_original <- function(ocounts, osize, ploidy, p1geno, p2geno, d, eps, tau) {
-    .Call('updog_grad_offspring_mat_original', PACKAGE = 'updog', ocounts, osize, ploidy, p1geno, p2geno, d, eps, tau)
+grad_offspring_mat_original <- function(ocounts, osize, ploidy, prob_geno, d, eps, tau) {
+    .Call('updog_grad_offspring_mat_original', PACKAGE = 'updog', ocounts, osize, ploidy, prob_geno, d, eps, tau)
 }
 
 #' Gradient of \code{\link{obj_offspring}} using the original parameterization.
@@ -319,8 +318,8 @@ grad_offspring_mat_original <- function(ocounts, osize, ploidy, p1geno, p2geno, 
 #'
 #' @export
 #'
-grad_offspring_original <- function(ocounts, osize, ploidy, p1geno, p2geno, d, eps, tau) {
-    .Call('updog_grad_offspring_original', PACKAGE = 'updog', ocounts, osize, ploidy, p1geno, p2geno, d, eps, tau)
+grad_offspring_original <- function(ocounts, osize, ploidy, prob_geno, d, eps, tau) {
+    .Call('updog_grad_offspring_original', PACKAGE = 'updog', ocounts, osize, ploidy, prob_geno, d, eps, tau)
 }
 
 #' Gradient of \code{\link{obj_offspring_weights}} using original parameterization
@@ -332,8 +331,8 @@ grad_offspring_original <- function(ocounts, osize, ploidy, p1geno, p2geno, d, e
 #' @return A NumericVector of length three with the partial derivatives of
 #'     \code{d}, \code{eps}, and \code{tau}, in that order.
 #'
-grad_offspring_weights_original <- function(ocounts, osize, weight_vec, ploidy, p1geno, p2geno, d, eps, tau) {
-    .Call('updog_grad_offspring_weights_original', PACKAGE = 'updog', ocounts, osize, weight_vec, ploidy, p1geno, p2geno, d, eps, tau)
+grad_offspring_weights_original <- function(ocounts, osize, weight_vec, ploidy, prob_geno, d, eps, tau) {
+    .Call('updog_grad_offspring_weights_original', PACKAGE = 'updog', ocounts, osize, weight_vec, ploidy, prob_geno, d, eps, tau)
 }
 
 #' Vector of objective functions for offspring.
@@ -344,10 +343,7 @@ grad_offspring_weights_original <- function(ocounts, osize, weight_vec, ploidy, 
 #'     individuals.
 #' @param ploidy An integer. The ploidy of the species. This is assumed
 #'     to be the same for each individual.
-#' @param p1geno The first parental genotype. The number of copies of the
-#'     reference allele the first parent has.
-#' @param p2geno The second parental genotype. The number of copies of the
-#'     reference allele the second parent has.
+#' @param prob_geno The allele frequencies of the genotypes. See \code{\link{get_prob_geno}}.
 #' @param bias_val The bias parameter. A value of 1 means there is no bias
 #'     toward one allele or the other. A value less than one indicates a bias
 #'     toward the reference allele. A value greater than one indicates a bias
@@ -371,8 +367,8 @@ grad_offspring_weights_original <- function(ocounts, osize, weight_vec, ploidy, 
 #'
 #' @seealso \code{\link{up_bb_obj}}.
 #'
-obj_offspring_vec <- function(ocounts, osize, ploidy, p1geno, p2geno, bias_val = 1, seq_error = 0, od_param = 0, outlier = FALSE, out_prop = 0.01, out_mean = 0.5, out_disp = 1.0 / 3.0) {
-    .Call('updog_obj_offspring_vec', PACKAGE = 'updog', ocounts, osize, ploidy, p1geno, p2geno, bias_val, seq_error, od_param, outlier, out_prop, out_mean, out_disp)
+obj_offspring_vec <- function(ocounts, osize, ploidy, prob_geno, bias_val = 1, seq_error = 0, od_param = 0, outlier = FALSE, out_prop = 0.01, out_mean = 0.5, out_disp = 1.0 / 3.0) {
+    .Call('updog_obj_offspring_vec', PACKAGE = 'updog', ocounts, osize, ploidy, prob_geno, bias_val, seq_error, od_param, outlier, out_prop, out_mean, out_disp)
 }
 
 #' Objective function for the offspring.
@@ -383,8 +379,8 @@ obj_offspring_vec <- function(ocounts, osize, ploidy, p1geno, p2geno, bias_val =
 #'
 #' @export
 #'
-obj_offspring <- function(ocounts, osize, ploidy, p1geno, p2geno, bias_val = 1, seq_error = 0, od_param = 0, outlier = FALSE, out_prop = 0.01, out_mean = 0.5, out_disp = 1.0 / 3.0) {
-    .Call('updog_obj_offspring', PACKAGE = 'updog', ocounts, osize, ploidy, p1geno, p2geno, bias_val, seq_error, od_param, outlier, out_prop, out_mean, out_disp)
+obj_offspring <- function(ocounts, osize, ploidy, prob_geno, bias_val = 1, seq_error = 0, od_param = 0, outlier = FALSE, out_prop = 0.01, out_mean = 0.5, out_disp = 1.0 / 3.0) {
+    .Call('updog_obj_offspring', PACKAGE = 'updog', ocounts, osize, ploidy, prob_geno, bias_val, seq_error, od_param, outlier, out_prop, out_mean, out_disp)
 }
 
 #' Just a reparameterization of \code{\link{obj_offspring}}.
@@ -396,8 +392,8 @@ obj_offspring <- function(ocounts, osize, ploidy, p1geno, p2geno, bias_val = 1, 
 #'
 #' @author David Gerard
 #'
-obj_offspring_reparam <- function(ocounts, osize, ploidy, p1geno, p2geno, s, ell, r) {
-    .Call('updog_obj_offspring_reparam', PACKAGE = 'updog', ocounts, osize, ploidy, p1geno, p2geno, s, ell, r)
+obj_offspring_reparam <- function(ocounts, osize, ploidy, prob_geno, s, ell, r) {
+    .Call('updog_obj_offspring_reparam', PACKAGE = 'updog', ocounts, osize, ploidy, prob_geno, s, ell, r)
 }
 
 #' Same thing as \code{\link{obj_offspring}}, but each sample's log-density has a weight.
@@ -411,8 +407,8 @@ obj_offspring_reparam <- function(ocounts, osize, ploidy, p1geno, p2geno, s, ell
 #'
 #' @export
 #'
-obj_offspring_weights <- function(ocounts, osize, weight_vec, ploidy, p1geno, p2geno, bias_val = 1, seq_error = 0, od_param = 0, outlier = FALSE, out_prop = 0.01, out_mean = 0.5, out_disp = 1.0 / 3.0) {
-    .Call('updog_obj_offspring_weights', PACKAGE = 'updog', ocounts, osize, weight_vec, ploidy, p1geno, p2geno, bias_val, seq_error, od_param, outlier, out_prop, out_mean, out_disp)
+obj_offspring_weights <- function(ocounts, osize, weight_vec, ploidy, prob_geno, bias_val = 1, seq_error = 0, od_param = 0, outlier = FALSE, out_prop = 0.01, out_mean = 0.5, out_disp = 1.0 / 3.0) {
+    .Call('updog_obj_offspring_weights', PACKAGE = 'updog', ocounts, osize, weight_vec, ploidy, prob_geno, bias_val, seq_error, od_param, outlier, out_prop, out_mean, out_disp)
 }
 
 #' Reparameterization of \code{\link{obj_offspring_weights}}.
@@ -424,8 +420,8 @@ obj_offspring_weights <- function(ocounts, osize, weight_vec, ploidy, p1geno, p2
 #'
 #' @author David Gerard
 #'
-obj_offspring_weights_reparam <- function(ocounts, osize, weight_vec, ploidy, p1geno, p2geno, s, ell, r) {
-    .Call('updog_obj_offspring_weights_reparam', PACKAGE = 'updog', ocounts, osize, weight_vec, ploidy, p1geno, p2geno, s, ell, r)
+obj_offspring_weights_reparam <- function(ocounts, osize, weight_vec, ploidy, prob_geno, s, ell, r) {
+    .Call('updog_obj_offspring_weights_reparam', PACKAGE = 'updog', ocounts, osize, weight_vec, ploidy, prob_geno, s, ell, r)
 }
 
 #' Objective function of outlier part in EM step
@@ -648,6 +644,24 @@ dbetabinom_mu_rho_cpp_double <- function(x, size, mu, rho, return_log) {
 #'
 dhyper_cpp <- function(x, m, n, k) {
     .Call('updog_dhyper_cpp', PACKAGE = 'updog', x, m, n, k)
+}
+
+#' Rcpp function to get genotype probabilities assuming either
+#' F1 population given parental genotypes, the allele frequencies assuming
+#' Hardy-Weinberg equilibrium, or just a uniform distribution.
+#'
+#' @param ploidy The ploidy of the species.
+#' @param model Do we assume the genotypes are distributed from an F1 population (\code{"f1"}),
+#'     according to Hardy-Weinberg (\code{hw}), or uniformly (\code{"uniform"})?
+#' @param p1geno The first parental genotype if \code{model = "f1"}.
+#' @param p2geno The second parental genotype if \code{model = "f1"}.
+#' @param allele_freq The allele-frequency if \code{model = "hw"}.
+#'
+#' @author David Gerard
+#' @export
+#'
+get_prob_geno <- function(ploidy, model, p1geno, p2geno, allele_freq) {
+    .Call('updog_get_prob_geno', PACKAGE = 'updog', ploidy, model, p1geno, p2geno, allele_freq)
 }
 
 #' Rcpp implementation of \code{\link{get_q_array}}.

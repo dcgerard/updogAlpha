@@ -4,7 +4,7 @@
 \alias{grad_offspring_mat}
 \title{Gradient of \code{\link{obj_offspring_reparam}} for each individual.}
 \usage{
-grad_offspring_mat(ocounts, osize, ploidy, p1geno, p2geno, s, ell, r)
+grad_offspring_mat(ocounts, osize, ploidy, prob_geno, s, ell, r)
 }
 \arguments{
 \item{ocounts}{The observed counts of the refernce
@@ -16,11 +16,7 @@ individuals.}
 \item{ploidy}{An integer. The ploidy of the species. This is assumed
 to be the same for each individual.}
 
-\item{p1geno}{The first parental genotype. The number of copies of the
-reference allele the first parent has.}
-
-\item{p2geno}{The second parental genotype. The number of copies of the
-reference allele the second parent has.}
+\item{prob_geno}{The allele frequencies of the genotypes. See \code{\link{get_prob_geno}}.}
 
 \item{s}{We have \code{s = exp(d)}, where \code{exp(d)} is the bias term.}
 

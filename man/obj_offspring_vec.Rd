@@ -4,7 +4,7 @@
 \alias{obj_offspring_vec}
 \title{Vector of objective functions for offspring.}
 \usage{
-obj_offspring_vec(ocounts, osize, ploidy, p1geno, p2geno, bias_val = 1,
+obj_offspring_vec(ocounts, osize, ploidy, prob_geno, bias_val = 1,
   seq_error = 0, od_param = 0, outlier = FALSE, out_prop = 0.01,
   out_mean = 0.5, out_disp = 1/3)
 }
@@ -18,11 +18,7 @@ individuals.}
 \item{ploidy}{An integer. The ploidy of the species. This is assumed
 to be the same for each individual.}
 
-\item{p1geno}{The first parental genotype. The number of copies of the
-reference allele the first parent has.}
-
-\item{p2geno}{The second parental genotype. The number of copies of the
-reference allele the second parent has.}
+\item{prob_geno}{The allele frequencies of the genotypes. See \code{\link{get_prob_geno}}.}
 
 \item{bias_val}{The bias parameter. A value of 1 means there is no bias
 toward one allele or the other. A value less than one indicates a bias

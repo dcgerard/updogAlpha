@@ -38,11 +38,9 @@ to be the same for each individual.}
 
 \item{p2weight}{The posterior probability that parent 2 is not an outlier.}
 
-\item{p1geno}{The first parental genotype. The number of copies of the
-reference allele the first parent has.}
+\item{p1geno}{The genotype of parent 1.}
 
-\item{p2geno}{The second parental genotype. The number of copies of the
-reference allele the second parent has.}
+\item{p2geno}{The genotype of parent 2.}
 
 \item{bound_bias}{A logical. Should we bound the bias parameter \code{parvec[1]} by a somewhat arbitrary value
 (\code{TRUE}) or not (\code{FALSE})?}

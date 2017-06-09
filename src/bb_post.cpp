@@ -9,8 +9,7 @@
 //' @param x The observed number of reference alleles.
 //' @param n The total number of reads.
 //' @param ploidy The ploidy of the species
-//' @param p1geno The first parental genotype (number of reference alleles parent 1 has).
-//' @param p2geno The second parental genotype (number of reference alleles parent 2 has).
+//' @param prob_geno The distribution of genotypes.
 //' @param seq_error The sequencing error rate.
 //' @param bias_val The bias parameter. A value of 1 indicates no bias.
 //' @param od_param The over-dispersion parameter. Should be in [0, 1). A value of 0 reduces to the
@@ -25,7 +24,7 @@
 //' @export
 //'
 // [[Rcpp::export]]
-Rcpp::NumericVector bbpost_double(double x, double n, int ploidy, int p1geno, int p2geno,
+Rcpp::NumericVector bbpost_double(double x, double n, int ploidy, Rcpp::NumericVector prob_geno,
                                   double seq_error, double bias_val, double od_param,
                                   bool outlier = false, double out_prop = 0.1,
                                   double out_mean = 0.5, double out_disp = 1/3) {
@@ -33,12 +32,6 @@ Rcpp::NumericVector bbpost_double(double x, double n, int ploidy, int p1geno, in
   // Check input ------------------------------------------------------------------------
   if ((x < 0) | (x > n)) {
     Rcpp::stop("x must be between 0 and n");
-  }
-  if ((p1geno < 0) | (p1geno > ploidy)) {
-    Rcpp::stop("p1geno must be between 0 and ploidy");
-  }
-  if ((p2geno < 0) + (p2geno > ploidy)) {
-    Rcpp::stop("p2geno must be between 0 and ploidy");
   }
   if (ploidy % 2 != 0) {
     Rcpp::stop("ploidy must be even.");
@@ -67,17 +60,15 @@ Rcpp::NumericVector bbpost_double(double x, double n, int ploidy, int p1geno, in
 
   // get unnormalized probabilities -----------------------------------------------------
   Rcpp::NumericVector pvec = get_pvec(ploidy, bias_val, seq_error);
-  arma::Cube<double> qarray = get_q_array_cpp(ploidy);
 
   Rcpp::NumericVector prob_vec(ploidy + 1);
   for (int i = 0; i < ploidy + 1; i++) {
-    if (qarray(p1geno, p2geno, i) > tol) {
+    if (prob_geno(i) > tol) {
       prob_vec(i) = dbetabinom_mu_rho_cpp_double(x, n, pvec(i), od_param, true) +
-        log(qarray(p1geno, p2geno, i));
+        log(prob_geno(i));
     } else {
       prob_vec(i) = R_NegInf;
     }
-
   }
 
   // outlier model if outlier = true by point-wise log-sum-exp --------------------------
@@ -108,7 +99,7 @@ Rcpp::NumericVector bbpost_double(double x, double n, int ploidy, int p1geno, in
 //'
 // [[Rcpp::export]]
 Rcpp::NumericMatrix bbpost_tot(Rcpp::NumericVector ocounts, Rcpp::NumericVector osize,
-                               int ploidy, int p1geno, int p2geno,
+                               int ploidy, Rcpp::NumericVector prob_geno,
                                double seq_error, double bias_val, double od_param,
                                bool outlier = false, double out_prop = 0.1,
                                double out_mean = 0.5, double out_disp = 1/3) {
@@ -118,7 +109,7 @@ Rcpp::NumericMatrix bbpost_tot(Rcpp::NumericVector ocounts, Rcpp::NumericVector 
 
   Rcpp::NumericMatrix prob_mat(ocounts.size(), ploidy + 1);
   for (int i = 0; i < ocounts.size(); i++) {
-    prob_mat(i, Rcpp::_) = bbpost_double(ocounts(i), osize(i), ploidy, p1geno, p2geno,
+    prob_mat(i, Rcpp::_) = bbpost_double(ocounts(i), osize(i), ploidy, prob_geno,
              seq_error, bias_val, od_param,
              outlier, out_prop, out_mean, out_disp);
   }

@@ -14,9 +14,10 @@ test_that("obj_offspring works", {
   p1geno <- 1
   p2geno <- 2
 
+  prob_geno <- get_prob_geno(ploidy = ploidy, model = "f1", p1geno = p1geno, p2geno = p2geno, allele_freq = 0.5)
+
   obj_offspring(ocounts = ocounts, osize = osize,
-                ploidy = ploidy, p1geno = p1geno,
-                p2geno = p2geno, outlier = TRUE)
+                ploidy = ploidy, prob_geno = prob_geno, outlier = TRUE)
 
 
 }
@@ -49,8 +50,9 @@ test_that("up_bb_obj and up_obj and obj_offspring can be reconciled", {
   rout <- up_bb_obj(pival = 1, p1geno = p1geno, p2geno = p2geno, rho = rho, out_mu = 1/2, out_rho = 1/3,
                     ocounts = ocounts, osize = osize, qarray = qarray, r1vec = r1vec, r2vec = r2vec,
                     pk = pk) - log(r1vec[p1geno + 1]) - log(r2vec[p2geno + 1])
-  cppout <- obj_offspring(ocounts = ocounts, osize = osize, ploidy = ploidy, p1geno = p1geno,
-                          p2geno = p2geno, bias_val = 1, seq_error = 0, od_param = rho,
+  prob_geno <- get_prob_geno(ploidy = ploidy, model = "f1", p1geno = p1geno, p2geno = p2geno, allele_freq = 0.5)
+  cppout <- obj_offspring(ocounts = ocounts, osize = osize, ploidy = ploidy, prob_geno = prob_geno,
+                          bias_val = 1, seq_error = 0, od_param = rho,
                           outlier = FALSE, out_prop = 0, out_mean = 1/2, out_disp = 1/3)
   expect_equal(rout, cppout)
 
@@ -58,8 +60,8 @@ test_that("up_bb_obj and up_obj and obj_offspring can be reconciled", {
   rout <- up_bb_obj(pival = 1/2, p1geno = p1geno, p2geno = p2geno, rho = rho, out_mu = 1/2, out_rho = 1/3,
                     ocounts = ocounts, osize = osize, qarray = qarray, r1vec = r1vec, r2vec = r2vec,
                     pk = pk) - log(r1vec[p1geno + 1]) - log(r2vec[p2geno + 1])
-  cppout <- obj_offspring(ocounts = ocounts, osize = osize, ploidy = ploidy, p1geno = p1geno,
-                          p2geno = p2geno, bias_val = 1, seq_error = 0, od_param = rho,
+  cppout <- obj_offspring(ocounts = ocounts, osize = osize, ploidy = ploidy, prob_geno = prob_geno,
+                          bias_val = 1, seq_error = 0, od_param = rho,
                           outlier = TRUE, out_prop = 1/2, out_mean = 1/2, out_disp = 1/3)
   expect_equal(rout, cppout)
 
@@ -80,11 +82,12 @@ test_that("obj_offspring_weights works ok.", {
   seq_error <- 0.01
   weight_vec <- rep(1, 2)
 
-  cppout <- obj_offspring(ocounts = ocounts, osize = osize, ploidy = ploidy, p1geno = p1geno,
-                          p2geno = p2geno, bias_val = bias_val, seq_error = seq_error, od_param = rho,
+  prob_geno <- get_prob_geno(ploidy = ploidy, model = "f1", p1geno = p1geno, p2geno = p2geno, allele_freq = 0.5)
+  cppout <- obj_offspring(ocounts = ocounts, osize = osize, ploidy = ploidy, prob_geno = prob_geno,
+                          bias_val = bias_val, seq_error = seq_error, od_param = rho,
                           outlier = FALSE)
-  cppout2 <- obj_offspring_weights(ocounts = ocounts, osize = osize, ploidy = ploidy, p1geno = p1geno,
-                           p2geno = p2geno, bias_val = bias_val, seq_error = seq_error, od_param = rho,
+  cppout2 <- obj_offspring_weights(ocounts = ocounts, osize = osize, ploidy = ploidy,
+                                   prob_geno = prob_geno, bias_val = bias_val, seq_error = seq_error, od_param = rho,
                            outlier = FALSE, weight_vec = weight_vec)
   expect_equal(cppout, cppout2)
 
@@ -93,8 +96,8 @@ test_that("obj_offspring_weights works ok.", {
   r <- log(h)
   ell <- log(seq_error / (1 - seq_error))
   s <- log(bias_val)
-  cppout3 <- obj_offspring_reparam(ocounts = ocounts, osize = osize, ploidy = ploidy, p1geno = p1geno,
-                                   p2geno = p2geno, s = s, ell = ell, r = r)
+  cppout3 <- obj_offspring_reparam(ocounts = ocounts, osize = osize, ploidy = ploidy, prob_geno = prob_geno,
+                                   s = s, ell = ell, r = r)
   expect_equal(cppout, cppout3)
 
 }

@@ -26,11 +26,9 @@ individuals.}
 \item{ploidy}{An integer. The ploidy of the species. This is assumed
 to be the same for each individual.}
 
-\item{p1geno}{The first parental genotype. The number of copies of the
-reference allele the first parent has.}
+\item{p1geno}{The genotype of parent 1.}
 
-\item{p2geno}{The second parental genotype. The number of copies of the
-reference allele the second parent has.}
+\item{p2geno}{The genotype of parent 2.}
 
 \item{p1counts}{The number of reference alleles observed from parent 1.}
 

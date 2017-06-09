@@ -232,6 +232,43 @@ Rcpp::NumericVector dhyper_cpp(Rcpp::NumericVector x,
 
 
 
+//' Rcpp function to get genotype probabilities assuming either
+//' F1 population given parental genotypes, the allele frequencies assuming
+//' Hardy-Weinberg equilibrium, or just a uniform distribution.
+//'
+//' @param ploidy The ploidy of the species.
+//' @param model Do we assume the genotypes are distributed from an F1 population (\code{"f1"}),
+//'     according to Hardy-Weinberg (\code{hw}), or uniformly (\code{"uniform"})?
+//' @param p1geno The first parental genotype if \code{model = "f1"}.
+//' @param p2geno The second parental genotype if \code{model = "f1"}.
+//' @param allele_freq The allele-frequency if \code{model = "hw"}.
+//'
+//' @author David Gerard
+//' @export
+//'
+// [[Rcpp::export]]
+Rcpp::NumericVector get_prob_geno(int ploidy, std::string model, int p1geno, int p2geno, double allele_freq) {
+
+  Rcpp::NumericVector prob_vec(ploidy + 1);
+
+  if (model == "f1") {
+    arma::Cube<double> q_array = get_q_array_cpp(ploidy);
+    for (int i = 0; i <= ploidy; i++) {
+      prob_vec(i) = q_array(p1geno, p2geno, i);
+    }
+  } else if (model == "hw") {
+    for (int i = 0; i <= ploidy; i++) {
+      prob_vec(i) = R::dbinom(i, ploidy, allele_freq, false);
+    }
+  } else if (model == "uniform") {
+    for (int i = 0; i <= ploidy; i++) {
+      prob_vec(i) = 1.0 / ((double)ploidy + 1.0);
+    }
+  } else {
+    Rcpp::stop("model needs to be one of 'f1', 'hw', or 'uniform'");
+  }
+  return prob_vec;
+}
 
 
 
@@ -294,6 +331,3 @@ arma::Cube<double> get_q_array_cpp(int ploidy) {
   }
   return qarray;
 }
-
-
-

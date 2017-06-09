@@ -292,7 +292,7 @@ double dbeta_dr_ell(double x, double n, double d, double ell, double p, double r
 //'
 // [[Rcpp::export]]
 Rcpp::NumericMatrix grad_offspring_mat(Rcpp::NumericVector ocounts, Rcpp::NumericVector osize,
-                                       int ploidy, int p1geno, int p2geno,
+                                       int ploidy, Rcpp::NumericVector prob_geno,
                                        double s, double ell,
                                        double r) {
   double tol = 2.0 * DBL_EPSILON;
@@ -305,7 +305,7 @@ Rcpp::NumericMatrix grad_offspring_mat(Rcpp::NumericVector ocounts, Rcpp::Numeri
 
   // Get the log of the denominator for each individual ----------------------------
   Rcpp::NumericVector ldenom_vec = obj_offspring_vec(ocounts, osize,
-                                                     ploidy, p1geno, p2geno,
+                                                     ploidy, prob_geno,
                                                      d, eps, tau, false, 0, 1.0 / 2.0, 1.0 / 3.0);
 
   // Get possible probabilities ----------------------------------------------------
@@ -314,19 +314,16 @@ Rcpp::NumericMatrix grad_offspring_mat(Rcpp::NumericVector ocounts, Rcpp::Numeri
     probs(i) = (double)i / ploidy;
   }
 
-  // Get segregation probabilities --- probably faster to have this as argument ----
-  arma::Cube<double> qarray = get_q_array_cpp(ploidy);
-
   Rcpp::NumericMatrix grad_ind(ocounts.size(), 3); // goes d, ell, h
   for (int i = 0; i < ocounts.size(); i++) {
     for (int j = 0; j < ploidy + 1; j++) {
-      if (qarray(p1geno, p2geno, j) > tol) {
+      if (prob_geno(j) > tol) {
         grad_ind(i, 0) = grad_ind(i, 0) + dbeta_ds(ocounts(i), osize(i), s, ell, probs(j), h) *
-          qarray(p1geno, p2geno, j);
+          prob_geno(j);
         grad_ind(i, 1) = grad_ind(i, 1) + dbeta_dl(ocounts(i), osize(i), d, ell, probs(j), h) *
-          qarray(p1geno, p2geno, j);
+          prob_geno(j);
         grad_ind(i, 2) = grad_ind(i, 2) + dbeta_dr_ell(ocounts(i), osize(i), d, ell, probs(j), r) *
-          qarray(p1geno, p2geno, j);
+          prob_geno(j);
       }
     }
     grad_ind(i, 0) = grad_ind(i, 0) * std::exp(-1.0 * ldenom_vec(i));
@@ -348,10 +345,10 @@ Rcpp::NumericMatrix grad_offspring_mat(Rcpp::NumericVector ocounts, Rcpp::Numeri
 //'
 // [[Rcpp::export]]
 Rcpp::NumericVector grad_offspring(Rcpp::NumericVector ocounts, Rcpp::NumericVector osize,
-                                   int ploidy, int p1geno, int p2geno,
+                                   int ploidy, Rcpp::NumericVector prob_geno,
                                    double s, double ell,
                                    double r) {
-  Rcpp::NumericMatrix gb_mat = grad_offspring_mat(ocounts, osize, ploidy, p1geno, p2geno,
+  Rcpp::NumericMatrix gb_mat = grad_offspring_mat(ocounts, osize, ploidy, prob_geno,
                                                   s, ell, r);
   Rcpp::NumericVector grad = colSums_cpp(gb_mat);
   return(grad);
@@ -365,7 +362,7 @@ Rcpp::NumericVector grad_offspring(Rcpp::NumericVector ocounts, Rcpp::NumericVec
 // [[Rcpp::export]]
 Rcpp::NumericVector grad_offspring_weights(Rcpp::NumericVector ocounts, Rcpp::NumericVector osize,
                                            Rcpp::NumericVector weight_vec,
-                                           int ploidy, int p1geno, int p2geno,
+                                           int ploidy, Rcpp::NumericVector prob_geno,
                                            double s, double ell,
                                            double r) {
   // Check input --------------------------------------------------------------
@@ -377,7 +374,7 @@ Rcpp::NumericVector grad_offspring_weights(Rcpp::NumericVector ocounts, Rcpp::Nu
       Rcpp::stop("weight_vec should all be between 0 and 1 (inclusive).");
     }
   }
-  Rcpp::NumericMatrix gb_mat = grad_offspring_mat(ocounts, osize, ploidy, p1geno, p2geno,
+  Rcpp::NumericMatrix gb_mat = grad_offspring_mat(ocounts, osize, ploidy, prob_geno,
                                                   s, ell, r);
   Rcpp::NumericVector grad(3);
   Rcpp::NumericMatrix::Column zzcol = gb_mat(Rcpp::_, 0);
@@ -493,14 +490,14 @@ double dbeta_dtau(double x, double n, double d, double eps, double p, double tau
 // [[Rcpp::export]]
 Rcpp::NumericMatrix grad_offspring_mat_original(Rcpp::NumericVector ocounts,
                                                 Rcpp::NumericVector osize,
-                                                int ploidy, int p1geno, int p2geno,
+                                                int ploidy, Rcpp::NumericVector prob_geno,
                                                 double d, double eps,
                                                 double tau) {
   double tol = 2.0 * DBL_EPSILON;
 
   // Get the log of the denominator for each individual ----------------------------
   Rcpp::NumericVector ldenom_vec = obj_offspring_vec(ocounts, osize,
-                                                     ploidy, p1geno, p2geno,
+                                                     ploidy, prob_geno,
                                                      d, eps, tau, false, 0, 1.0 / 2.0, 1.0 / 3.0);
 
   // Get possible probabilities ----------------------------------------------------
@@ -510,18 +507,16 @@ Rcpp::NumericMatrix grad_offspring_mat_original(Rcpp::NumericVector ocounts,
   }
 
   // Get segregation probabilities --- probably faster to have this as argument ----
-  arma::Cube<double> qarray = get_q_array_cpp(ploidy);
-
   Rcpp::NumericMatrix grad_ind(ocounts.size(), 3); // goes d, ell, h
   for (int i = 0; i < ocounts.size(); i++) {
     for (int j = 0; j < ploidy + 1; j++) {
-      if (qarray(p1geno, p2geno, j) > tol) {
+      if (prob_geno(j) > tol) {
         grad_ind(i, 0) = grad_ind(i, 0) + dbeta_dd(ocounts(i), osize(i), d, eps, probs(j), tau) *
-          qarray(p1geno, p2geno, j);
+          prob_geno(j);
         grad_ind(i, 1) = grad_ind(i, 1) + dbeta_deps(ocounts(i), osize(i), d, eps, probs(j), tau) *
-          qarray(p1geno, p2geno, j);
+          prob_geno(j);
         grad_ind(i, 2) = grad_ind(i, 2) + dbeta_dtau(ocounts(i), osize(i), d, eps, probs(j), tau) *
-          qarray(p1geno, p2geno, j);
+          prob_geno(j);
       }
     }
     grad_ind(i, 0) = grad_ind(i, 0) * std::exp(-1.0 * ldenom_vec(i));
@@ -547,10 +542,10 @@ Rcpp::NumericMatrix grad_offspring_mat_original(Rcpp::NumericVector ocounts,
 // [[Rcpp::export]]
 Rcpp::NumericVector grad_offspring_original(Rcpp::NumericVector ocounts,
                                             Rcpp::NumericVector osize,
-                                            int ploidy, int p1geno, int p2geno,
+                                            int ploidy, Rcpp::NumericVector prob_geno,
                                             double d, double eps,
                                             double tau) {
-  Rcpp::NumericMatrix gb_mat = grad_offspring_mat_original(ocounts, osize, ploidy, p1geno, p2geno,
+  Rcpp::NumericMatrix gb_mat = grad_offspring_mat_original(ocounts, osize, ploidy, prob_geno,
                                                            d, eps, tau);
   Rcpp::NumericVector grad = colSums_cpp(gb_mat);
   return(grad);
@@ -571,7 +566,7 @@ Rcpp::NumericVector grad_offspring_original(Rcpp::NumericVector ocounts,
 Rcpp::NumericVector grad_offspring_weights_original(Rcpp::NumericVector ocounts,
                                                     Rcpp::NumericVector osize,
                                                     Rcpp::NumericVector weight_vec,
-                                                    int ploidy, int p1geno, int p2geno,
+                                                    int ploidy, Rcpp::NumericVector prob_geno,
                                                     double d, double eps,
                                                     double tau) {
   // Check input --------------------------------------------------------------
@@ -583,7 +578,7 @@ Rcpp::NumericVector grad_offspring_weights_original(Rcpp::NumericVector ocounts,
       Rcpp::stop("weight_vec should all be between 0 and 1 (inclusive).");
     }
   }
-  Rcpp::NumericMatrix gb_mat = grad_offspring_mat_original(ocounts, osize, ploidy, p1geno, p2geno,
+  Rcpp::NumericMatrix gb_mat = grad_offspring_mat_original(ocounts, osize, ploidy, prob_geno,
                                                            d, eps, tau);
   Rcpp::NumericVector grad(3);
   Rcpp::NumericMatrix::Column zzcol = gb_mat(Rcpp::_, 0);
@@ -594,5 +589,3 @@ Rcpp::NumericVector grad_offspring_weights_original(Rcpp::NumericVector ocounts,
   grad(2) = Rcpp::sum(zzcol * weight_vec);
   return(grad);
 }
-
-

@@ -54,16 +54,11 @@ test_that("up_bb_fix increases likelihood", {
 
         expect_true(objnew - objold >= -10^-8)
     }
-
-
-    plot(objvec)
-
 }
 )
 
 
 test_that("bb_post works", {
-
   set.seed(1238)
   ploidy  <- 6
   ncounts <- rbinom(n = 11, size = 10, prob = 0.5)
@@ -75,8 +70,6 @@ test_that("bb_post works", {
   rho <- 0.01
 
   bbout <- bb_post(ncounts = ncounts, ssize = ssize, prior = prior, seq_error = 0.01)
-
-
 }
 )
 
@@ -103,13 +96,14 @@ test_that("bbpost_double and bb_simple_post give same results", {
   bias_val <- 0.9
   od_param <- 0.01
 
-  bbout <- bbpost_double(x = x, n = n, ploidy = ploidy, p1geno = p1geno, p2geno = p2geno,
+  prob_geno <- get_prob_geno(ploidy = ploidy, model = "f1", p1geno = p1geno, p2geno = p2geno, allele_freq = 0.5)
+  bbout <- bbpost_double(x = x, n = n, ploidy = ploidy, prob_geno = prob_geno,
                          seq_error = seq_error, bias_val = bias_val, od_param = od_param,
                          outlier = FALSE)
   bbout_r <- bb_simple_post(ncounts = x, ssize = n, ploidy = ploidy, p1geno = p1geno, p2geno = p2geno,
                             seq_error = seq_error, bias_val = bias_val, od_param = od_param)
 
-  bbvec <- bbpost_tot(c(x, x), c(n, n), ploidy = ploidy, p1geno = p1geno, p2geno = p2geno,
+  bbvec <- bbpost_tot(c(x, x), c(n, n), ploidy = ploidy, prob_geno = prob_geno,
                       seq_error = seq_error, bias_val = bias_val, od_param = od_param,
                       outlier = FALSE)
 
@@ -118,8 +112,8 @@ test_that("bbpost_double and bb_simple_post give same results", {
   expect_equal(bbout, bbvec[2, , drop = TRUE])
 
   ## Test outlier prob
-  temp <- get_out_prop(ocounts = c(x, x), osize = c(n, n), ploidy = ploidy, p1geno = p1geno,
-                       p2geno = p2geno, d = bias_val, eps = seq_error, tau = od_param,
+  temp <- get_out_prop(ocounts = c(x, x), osize = c(n, n), ploidy = ploidy, prob_geno = prob_geno,
+                       d = bias_val, eps = seq_error, tau = od_param,
                        out_prop = 0.1, out_mean = 0.5,
                        out_disp = 1/3)
   expect_equal(temp[1], temp[2])

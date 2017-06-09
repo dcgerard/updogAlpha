@@ -33,6 +33,8 @@
 #' @param bias_val_sd The prior standard deviation on the log of \code{bias_val}
 #'     (corresponding to \code{parvec[1]}).
 #'     Set \code{bias_val_sd = Inf} to have no penalty on the bias parameter.
+#' @param p1geno The genotype of parent 1.
+#' @param p2geno The genotype of parent 2.
 #'
 #' @author David Gerard
 #'
@@ -63,10 +65,12 @@ obj_wrapp_all <- function(parvec, ocounts, osize, weight_vec,
     }
   }
 
+  ## get genotype frequencies --------------------------------------------------------
+  prob_geno <- get_prob_geno(ploidy = ploidy, model = "f1", p1geno = p1geno, p2geno = p2geno, allele_freq = -9)
+
   ## Normal value ------------------------------------------------------------------------
   val <- obj_offspring_weights_reparam(ocounts = ocounts, osize = osize, weight_vec = weight_vec,
-                                        ploidy = ploidy, p1geno = p1geno,
-                                        p2geno = p2geno,
+                                        ploidy = ploidy, prob_geno = prob_geno,
                                         s = parvec[1], ell = parvec[2], r = parvec[3])
 
   if (!is.null(p1counts) & !is.null(p1size) & !is.null(p1weight)) { ## add contribution from parent 1
@@ -113,8 +117,12 @@ grad_wrapp_all <- function(parvec, ocounts, osize, weight_vec, ploidy, p1geno, p
                            seq_error_sd = 1,
                            bias_val_mean = 0,
                            bias_val_sd = 1) {
+
+  ## get genotype frequencies --------------------------------------------------------
+  prob_geno <- get_prob_geno(ploidy = ploidy, model = "f1", p1geno = p1geno, p2geno = p2geno, allele_freq = -9)
+
   gout <- grad_offspring_weights(ocounts = ocounts, osize = osize, weight_vec = weight_vec,
-                                 ploidy = ploidy, p1geno = p1geno, p2geno = p2geno, s = parvec[1],
+                                 ploidy = ploidy, prob_geno = prob_geno, s = parvec[1],
                                  ell = parvec[2], r = parvec[3])
 
   if (!is.null(p1counts) & !is.null(p1size) & !is.null(p1weight)) {
@@ -184,11 +192,13 @@ update_good <- function(parvec, ocounts, osize, weight_vec, ploidy,
 
     for (p1geno in 0:ploidy) {
       for (p2geno in 0:p1geno) {
+        ## get genotype frequencies --------------------------------------------------------
+        prob_geno <- get_prob_geno(ploidy = ploidy, model = "f1", p1geno = p1geno, p2geno = p2geno, allele_freq = -9)
+
         ## If start position has -Inf, start somewhere else
         val <- obj_offspring_weights_reparam(ocounts = ocounts, osize = osize,
                                              weight_vec = weight_vec,
-                                             ploidy = ploidy, p1geno = p1geno,
-                                             p2geno = p2geno,
+                                             ploidy = ploidy, prob_geno = prob_geno,
                                              s = parvec[1], ell = parvec[2],
                                              r = parvec[3])
         if (val == -Inf) {
@@ -224,11 +234,13 @@ update_good <- function(parvec, ocounts, osize, weight_vec, ploidy,
       }
     }
   } else { ## run only user-provided parental genotypes ----
+    ## get genotype frequencies --------------------------------------------------------
+    prob_geno <- get_prob_geno(ploidy = ploidy, model = "f1", p1geno = p1geno, p2geno = p2geno, allele_freq = -9)
+
     ## If start position has -Inf, start somewhere else
     val <- obj_offspring_weights_reparam(ocounts = ocounts, osize = osize,
                                          weight_vec = weight_vec,
-                                         ploidy = ploidy, p1geno = p1geno,
-                                         p2geno = p2geno,
+                                         ploidy = ploidy, prob_geno = prob_geno,
                                          s = parvec[1], ell = parvec[2],
                                          r = parvec[3])
     if (val == -Inf) {
@@ -448,9 +460,11 @@ updog_update_all <- function(ocounts, osize, ploidy,
     ## E-step ----------------------------------------------------------------------------
     ## Skip first iteration to get good estimates of other paramters before getting outlier weights.
     if (index > 1) {
+      ## get genotype frequencies --------------------------------------------------------
+      prob_geno <- get_prob_geno(ploidy = ploidy, model = "f1", p1geno = p1geno, p2geno = p2geno, allele_freq = -9)
       weight_vec <- get_out_prop(ocounts = ocounts, osize = osize,
-                                 ploidy = ploidy, p1geno = p1geno,
-                                 p2geno = p2geno, d = bias_val,
+                                 ploidy = ploidy, prob_geno = prob_geno,
+                                 d = bias_val,
                                  eps = seq_error, tau = od_param,
                                  out_prop = out_prop, out_mean = out_mean,
                                  out_disp = out_disp)
@@ -571,8 +585,10 @@ updog_update_all <- function(ocounts, osize, ploidy,
 
 
     ## Calculate log-likelihood and update err and index -------
+    ## get genotype frequencies --------------------------------------------------------
+    prob_geno <- get_prob_geno(ploidy = ploidy, model = "f1", p1geno = p1geno, p2geno = p2geno, allele_freq = -9)
     llike_new <- obj_offspring(ocounts = ocounts, osize = osize, ploidy = ploidy,
-                               p1geno = p1geno, p2geno = p2geno, bias_val = bias_val,
+                               prob_geno = prob_geno, bias_val = bias_val,
                                seq_error = seq_error, od_param = od_param, outlier = TRUE,
                                out_prop = out_prop, out_mean = out_mean, out_disp = out_disp)
     if (!is.null(p1counts) & !is.null(p1size)) { ## add parent 1 if available
@@ -789,9 +805,11 @@ updog_vanilla <- function(ocounts, osize, ploidy,
     parout$od_param <- 0
   }
 
+  ## get genotype frequencies --------------------------------------------------------
+  prob_geno <- get_prob_geno(ploidy = ploidy, model = "f1", p1geno = parout$p1geno, p2geno = parout$p2geno, allele_freq = -9)
+
   parout$postmat <- bbpost_tot(ocounts = ocounts, osize = osize,
-                               ploidy = ploidy, p1geno = parout$p1geno,
-                               p2geno = parout$p2geno,
+                               ploidy = ploidy, prob_geno = prob_geno,
                                seq_error = parout$seq_error,
                                bias_val = parout$bias_val,
                                od_param = parout$od_param,

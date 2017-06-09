@@ -2,9 +2,10 @@ context("diagnostics")
 
 test_that("rupdog works", {
   uobj <- readRDS(file = "updog_obj.RDS")
-  llike_me <- dupdog(uobj)
-  expect_equal(uobj$llike, llike_me)
-
+  uold <- readRDS(file = "old_updog_result.RDS")
+  unew <- readRDS(file = "new_updog_result.RDS")
+  expect_equal(uold$maxpostprob, unew$maxpostprob)
+  llike_me <- dupdog(unew)
 
   plot(uobj, plot_beta = FALSE, use_colorblind = FALSE)
   samp_obj <- rupdog(obj = uobj)

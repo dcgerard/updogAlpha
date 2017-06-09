@@ -4,9 +4,8 @@
 \alias{bbpost_tot}
 \title{Posterior inference for each individual.}
 \usage{
-bbpost_tot(ocounts, osize, ploidy, p1geno, p2geno, seq_error, bias_val,
-  od_param, outlier = FALSE, out_prop = 0.1, out_mean = 0.5,
-  out_disp = 1/3)
+bbpost_tot(ocounts, osize, ploidy, prob_geno, seq_error, bias_val, od_param,
+  outlier = FALSE, out_prop = 0.1, out_mean = 0.5, out_disp = 1/3)
 }
 \arguments{
 \item{ocounts}{The vector of counts of the reference allele of the offspring.}
@@ -15,9 +14,7 @@ bbpost_tot(ocounts, osize, ploidy, p1geno, p2geno, seq_error, bias_val,
 
 \item{ploidy}{The ploidy of the species}
 
-\item{p1geno}{The first parental genotype (number of reference alleles parent 1 has).}
-
-\item{p2geno}{The second parental genotype (number of reference alleles parent 2 has).}
+\item{prob_geno}{The distribution of genotypes.}
 
 \item{seq_error}{The sequencing error rate.}
 

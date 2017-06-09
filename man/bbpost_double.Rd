@@ -5,7 +5,7 @@
 \title{Posterior inference under the beta-binomial model with outliers. If \code{od_param = 0}, then
 this reduces to the binomial model with outliers.}
 \usage{
-bbpost_double(x, n, ploidy, p1geno, p2geno, seq_error, bias_val, od_param,
+bbpost_double(x, n, ploidy, prob_geno, seq_error, bias_val, od_param,
   outlier = FALSE, out_prop = 0.1, out_mean = 0.5, out_disp = 1/3)
 }
 \arguments{
@@ -15,9 +15,7 @@ bbpost_double(x, n, ploidy, p1geno, p2geno, seq_error, bias_val, od_param,
 
 \item{ploidy}{The ploidy of the species}
 
-\item{p1geno}{The first parental genotype (number of reference alleles parent 1 has).}
-
-\item{p2geno}{The second parental genotype (number of reference alleles parent 2 has).}
+\item{prob_geno}{The distribution of genotypes.}
 
 \item{seq_error}{The sequencing error rate.}
 

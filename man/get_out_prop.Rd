@@ -4,8 +4,8 @@
 \alias{get_out_prop}
 \title{E step in EM algorithm for a single individual.}
 \usage{
-get_out_prop(ocounts, osize, ploidy, p1geno, p2geno, d, eps, tau, out_prop,
-  out_mean, out_disp)
+get_out_prop(ocounts, osize, ploidy, prob_geno, d, eps, tau, out_prop, out_mean,
+  out_disp)
 }
 \arguments{
 \item{ocounts}{The observed counts of the refernce
@@ -17,11 +17,7 @@ individuals.}
 \item{ploidy}{An integer. The ploidy of the species. This is assumed
 to be the same for each individual.}
 
-\item{p1geno}{The first parental genotype. The number of copies of the
-reference allele the first parent has.}
-
-\item{p2geno}{The second parental genotype. The number of copies of the
-reference allele the second parent has.}
+\item{prob_geno}{The allele frequencies of the genotypes. See \code{\link{get_prob_geno}}.}
 
 \item{d}{The sequencing bias parameter.}
 

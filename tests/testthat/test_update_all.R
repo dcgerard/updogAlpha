@@ -15,9 +15,10 @@ test_that("updog_update_all works ok", {
 
 test_that("bad_dat.RDS will not return NaN", {
   obj <- readRDS("bad_dat.RDS")
+  prob_geno <- get_prob_geno(ploidy = obj$ploidy, model = "f1", p1geno = obj$p1geno, p2geno = obj$p2geno, allele_freq = 0.5)
   val <- obj_offspring_weights_reparam(ocounts = obj$ocounts, osize = obj$osize,
                                        weight_vec = obj$weight_vec,
-                                       ploidy = obj$ploidy, p1geno = obj$p1geno, p2geno = obj$p2geno,
+                                       ploidy = obj$ploidy, prob_geno = prob_geno,
                                        s = obj$parvec[1], ell = obj$parvec[2], r = obj$parvec[3])
   expect_equal(val, -Inf)
 }

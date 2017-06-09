@@ -12,10 +12,7 @@
 //'     individuals.
 //' @param ploidy An integer. The ploidy of the species. This is assumed
 //'     to be the same for each individual.
-//' @param p1geno The first parental genotype. The number of copies of the
-//'     reference allele the first parent has.
-//' @param p2geno The second parental genotype. The number of copies of the
-//'     reference allele the second parent has.
+//' @param prob_geno The allele frequencies of the genotypes. See \code{\link{get_prob_geno}}.
 //' @param bias_val The bias parameter. A value of 1 means there is no bias
 //'     toward one allele or the other. A value less than one indicates a bias
 //'     toward the reference allele. A value greater than one indicates a bias
@@ -41,7 +38,7 @@
 //'
 // [[Rcpp::export]]
 Rcpp::NumericVector obj_offspring_vec(Rcpp::NumericVector ocounts, Rcpp::NumericVector osize,
-                                      int ploidy, int p1geno, int p2geno,
+                                      int ploidy, Rcpp::NumericVector prob_geno,
                                       double bias_val = 1, double seq_error = 0,
                                       double od_param = 0,
                                       bool outlier = false, double out_prop = 0.01,
@@ -51,12 +48,6 @@ Rcpp::NumericVector obj_offspring_vec(Rcpp::NumericVector ocounts, Rcpp::Numeric
   // check input ---------------------------------------------------
   if (ocounts.size() != osize.size()) {
     Rcpp::stop("ocounts and osize must have the same length.");
-  }
-  if ((p1geno < 0) | (p1geno > ploidy)) {
-    Rcpp::stop("p1geno must be between 0 and ploidy");
-  }
-  if ((p2geno < 0) + (p2geno > ploidy)) {
-    Rcpp::stop("p2geno must be between 0 and ploidy");
   }
   if (ploidy % 2 != 0) {
     Rcpp::stop("ploidy must be even.");
@@ -87,17 +78,13 @@ Rcpp::NumericVector obj_offspring_vec(Rcpp::NumericVector ocounts, Rcpp::Numeric
   // seq_error, and bias_val.
   Rcpp::NumericVector prob = get_pvec(ploidy, bias_val, seq_error);
 
-  // calculate segregation probabilities
-  // might be faster to compute this just once and pass it.
-  arma::Cube<double> qarray = get_q_array_cpp(ploidy);
-
   // Calculate probabilities for OK points --------------------------
   // only need last column if outlier = true ------------------------
 
-  // count how many non-zero values in qarray(p1geno, p2geno, ) there are
+  // count how many non-zero values in prob_geno values there are
   int colnum = 0;
   for (int i = 0; i < ploidy + 1; i++) {
-    if (qarray(p1geno, p2geno, i) > tol) {
+    if (prob_geno(i) > tol) {
       colnum++;
     }
   }
@@ -111,10 +98,10 @@ Rcpp::NumericVector obj_offspring_vec(Rcpp::NumericVector ocounts, Rcpp::Numeric
   // calcluate log mixture component probabilities -----------------
   int colindex = 0;
   for (int i = 0; i < ploidy + 1; i++) {
-    if (qarray(p1geno, p2geno, i) > tol) {
+    if (prob_geno(i) > tol) {
       Rcpp::NumericMatrix::Column zzcol = logprobs(Rcpp::_, colindex); // reference to colindexth column
       zzcol = dbetabinom_mu_rho_cpp(ocounts, osize, prob(i), od_param, true) +
-                                      log(qarray(p1geno, p2geno, i));
+	log(prob_geno(i));
       if (outlier) {
         zzcol = zzcol + log(1 - out_prop);
       }
@@ -145,12 +132,12 @@ Rcpp::NumericVector obj_offspring_vec(Rcpp::NumericVector ocounts, Rcpp::Numeric
 //'
 // [[Rcpp::export]]
 double obj_offspring(Rcpp::NumericVector ocounts, Rcpp::NumericVector osize,
-                     int ploidy, int p1geno, int p2geno,
+                     int ploidy, Rcpp::NumericVector prob_geno,
                      double bias_val = 1, double seq_error = 0,
                      double od_param = 0,
                      bool outlier = false, double out_prop = 0.01,
                      double out_mean = 0.5, double out_disp = 1.0 / 3.0) {
-  Rcpp::NumericVector ldensevec = obj_offspring_vec(ocounts, osize, ploidy, p1geno, p2geno,
+  Rcpp::NumericVector ldensevec = obj_offspring_vec(ocounts, osize, ploidy, prob_geno,
                                                     bias_val, seq_error, od_param,
                                                     outlier, out_prop, out_mean, out_disp);
   return Rcpp::sum(ldensevec);
@@ -167,7 +154,7 @@ double obj_offspring(Rcpp::NumericVector ocounts, Rcpp::NumericVector osize,
 //'
 // [[Rcpp::export]]
 double obj_offspring_reparam(Rcpp::NumericVector ocounts, Rcpp::NumericVector osize,
-                             int ploidy, int p1geno, int p2geno,
+                             int ploidy, Rcpp::NumericVector prob_geno,
                              double s, double ell,
                              double r) {
   double tol = 2.0 * DBL_EPSILON;
@@ -179,7 +166,7 @@ double obj_offspring_reparam(Rcpp::NumericVector ocounts, Rcpp::NumericVector os
   if (tau > (1.0 - tol)) {
     tau = 1.0 - 2.0 * tol;
   }
-  return obj_offspring(ocounts, osize, ploidy, p1geno, p2geno, d, eps, tau, false, 0.01, 0.5, 1.0 / 3.0);
+  return obj_offspring(ocounts, osize, ploidy, prob_geno, d, eps, tau, false, 0.01, 0.5, 1.0 / 3.0);
 }
 
 //' Same thing as \code{\link{obj_offspring}}, but each sample's log-density has a weight.
@@ -196,7 +183,7 @@ double obj_offspring_reparam(Rcpp::NumericVector ocounts, Rcpp::NumericVector os
 // [[Rcpp::export]]
 double obj_offspring_weights(Rcpp::NumericVector ocounts, Rcpp::NumericVector osize,
                              Rcpp::NumericVector weight_vec,
-                             int ploidy, int p1geno, int p2geno,
+                             int ploidy, Rcpp::NumericVector prob_geno,
                              double bias_val = 1, double seq_error = 0,
                              double od_param = 0,
                              bool outlier = false, double out_prop = 0.01,
@@ -216,7 +203,7 @@ double obj_offspring_weights(Rcpp::NumericVector ocounts, Rcpp::NumericVector os
   }
 
   // Calculate log of densities for each observations -------------------------
-  Rcpp::NumericVector ldensevec = obj_offspring_vec(ocounts, osize, ploidy, p1geno, p2geno,
+  Rcpp::NumericVector ldensevec = obj_offspring_vec(ocounts, osize, ploidy, prob_geno,
                                                     bias_val, seq_error, od_param,
                                                     outlier, out_prop, out_mean, out_disp);
   // return weighted sum of log-densities --------------------------------------
@@ -236,15 +223,13 @@ double obj_offspring_weights(Rcpp::NumericVector ocounts, Rcpp::NumericVector os
 double obj_offspring_weights_reparam(Rcpp::NumericVector ocounts,
                                      Rcpp::NumericVector osize,
                                      Rcpp::NumericVector weight_vec,
-                                     int ploidy, int p1geno, int p2geno,
+                                     int ploidy, Rcpp::NumericVector prob_geno,
                                      double s, double ell,
                                      double r) {
   double eps = expit(ell); // sequencing error rate
   double tau = 1.0 / (std::exp(r) + 1.0); // over-dispersion parameter
   double d = std::exp(s); // bias parameter
   return obj_offspring_weights(ocounts, osize, weight_vec,
-                               ploidy, p1geno, p2geno, d, eps,
+                               ploidy, prob_geno, d, eps,
                                tau, false, 0.01, 0.5, 1.0 / 3.0);
 }
-
-

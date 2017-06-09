@@ -4,8 +4,8 @@
 \alias{grad_offspring_weights_original}
 \title{Gradient of \code{\link{obj_offspring_weights}} using original parameterization}
 \usage{
-grad_offspring_weights_original(ocounts, osize, weight_vec, ploidy, p1geno,
-  p2geno, d, eps, tau)
+grad_offspring_weights_original(ocounts, osize, weight_vec, ploidy, prob_geno,
+  d, eps, tau)
 }
 \arguments{
 \item{ocounts}{The observed counts of the refernce
@@ -19,11 +19,7 @@ individuals.}
 \item{ploidy}{An integer. The ploidy of the species. This is assumed
 to be the same for each individual.}
 
-\item{p1geno}{The first parental genotype. The number of copies of the
-reference allele the first parent has.}
-
-\item{p2geno}{The second parental genotype. The number of copies of the
-reference allele the second parent has.}
+\item{prob_geno}{The allele frequencies of the genotypes. See \code{\link{get_prob_geno}}.}
 
 \item{d}{The sequencing bias parameter.}
 

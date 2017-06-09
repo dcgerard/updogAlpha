@@ -22,13 +22,14 @@ Rcpp::NumericVector dhyper_cpp(Rcpp::NumericVector x,
                                int m, int n, int k);
 
 arma::Cube<double> get_q_array_cpp(int ploidy);
+Rcpp::NumericVector get_prob_geno(int ploidy, std::string model, int p1geno, int p2geno, double allele_freq);
 
 double dbetabinom_mu_rho_cpp_double(double x, double size, double mu,
                                     double rho, bool return_log);
 
 // Functions from objectives.cpp --------------------------
 Rcpp::NumericVector obj_offspring_vec(Rcpp::NumericVector ocounts, Rcpp::NumericVector osize,
-                                      int ploidy, int p1geno, int p2geno,
+                                      int ploidy, Rcpp::NumericVector prob_geno,
                                       double bias_val, double seq_error,
                                       double od_param,
                                       bool outlier, double out_prop,
@@ -50,4 +51,3 @@ double dbeta_dtau(double x, double n, double d, double eps, double p, double tau
 double dbeta_ds(double x, double n, double s, double ell, double p, double h);
 double dbeta_dl(double x, double n, double d, double ell, double p, double h);
 double dbeta_dr_ell(double x, double n, double d, double ell, double p, double r);
-

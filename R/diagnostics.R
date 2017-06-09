@@ -83,11 +83,13 @@ rupdog <- function(obj) {
 #' @export
 #'
 dupdog <- function(obj) {
+  ## get genotype frequencies --------------------------------------------------------
+  prob_geno <- get_prob_geno(ploidy = obj$input$ploidy, model = "f1", p1geno = obj$p1geno, p2geno = obj$p2geno, allele_freq = -9)
+
   llike_new <- obj_offspring(ocounts   = obj$input$ocounts,
                              osize     = obj$input$osize,
                              ploidy    = obj$input$ploidy,
-                             p1geno    = obj$p1geno,
-                             p2geno    = obj$p2geno,
+                             prob_geno = prob_geno,
                              bias_val  = obj$bias_val,
                              seq_error = obj$seq_error,
                              od_param  = obj$od_param,

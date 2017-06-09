@@ -270,8 +270,10 @@ test_that("the grad_offspring_mat works", {
   h <- (1 - tau) / (tau)
   r = log(h)
 
-  gdmat <- grad_offspring_mat(ocounts = ocounts, osize = osize, ploidy = ploidy, p1geno = p1geno,
-                              p2geno = p2geno, s = s, ell = ell, r = r)
+  prob_geno <- get_prob_geno(ploidy = ploidy, model = "f1", p1geno = p1geno, p2geno = p2geno, allele_freq = 0.5)
+
+  gdmat <- grad_offspring_mat(ocounts = ocounts, osize = osize, ploidy = ploidy, prob_geno,
+                              s = s, ell = ell, r = r)
 
   pvec <- 0:ploidy / ploidy
   qout <- get_q_array(ploidy)
@@ -282,7 +284,7 @@ test_that("the grad_offspring_mat works", {
   }
 
   ldenom_vec = obj_offspring_vec(ocounts, osize,
-                                 ploidy, p1geno, p2geno,
+                                 ploidy, prob_geno = prob_geno,
                                  d, eps, tau, FALSE, 0, 1.0 / 2.0, 1.0 / 3.0)
 
   expect_equal(tempsum * exp(-1 * ldenom_vec[1]), gdmat[1,1])
@@ -305,10 +307,12 @@ test_that("the grad_offspring works", {
   h <- (1 - tau) / (tau)
   r <- log(h)
 
+  prob_geno <- get_prob_geno(ploidy = ploidy, model = "f1", p1geno = p1geno, p2geno = p2geno, allele_freq = 0.5)
+
   ## Numerical implementation ---------------------------------------
   tempfunc <- function(s, ell, r) {
-    obj_offspring_reparam(ocounts = ocounts, osize = osize, ploidy = ploidy, p1geno = p1geno,
-                          p2geno = p2geno, s = s, ell = ell, r = r)
+    obj_offspring_reparam(ocounts = ocounts, osize = osize, ploidy = ploidy, prob_geno = prob_geno,
+                          s = s, ell = ell, r = r)
   }
 
   myenv <- new.env()
@@ -318,8 +322,8 @@ test_that("the grad_offspring works", {
   nout <- stats::numericDeriv(quote(tempfunc(s, ell, r)), c("s", "ell", "r"), myenv)
 
   ## Rcpp version ---------------------------------------------------
-  cderiv <- grad_offspring(ocounts = ocounts, osize = osize, ploidy = ploidy, p1geno = p1geno,
-                           p2geno = p2geno, s = s, ell = ell, r = r)
+  cderiv <- grad_offspring(ocounts = ocounts, osize = osize, ploidy = ploidy,
+                           prob_geno = prob_geno, s = s, ell = ell, r = r)
 
   expect_equal(c(attr(nout, "gradient")), c(cderiv), tol = 10 ^ -5)
 }
@@ -342,12 +346,15 @@ test_that("the grad_offspring_weights works", {
   r <- log(h)
   weight_vec <- stats::runif(nsamp)
 
+  prob_geno <- get_prob_geno(ploidy = ploidy, model = "f1", p1geno = p1geno, p2geno = p2geno, allele_freq = 0.5)
+
   ## Numerical implementation ---------------------------------------
   tempfunc <- function(s, ell, r) {
     obj_offspring_weights_reparam(ocounts = ocounts, osize = osize,
                                   weight_vec = weight_vec,
-                                  ploidy = ploidy, p1geno = p1geno,
-                                  p2geno = p2geno, s = s, ell = ell, r = r)
+                                  ploidy = ploidy,
+                                  prob_geno = prob_geno,
+                                  s = s, ell = ell, r = r)
   }
 
   myenv <- new.env()
@@ -359,8 +366,9 @@ test_that("the grad_offspring_weights works", {
   ## Rcpp version ---------------------------------------------------
   cderiv <- grad_offspring_weights(ocounts = ocounts, osize = osize,
                                    weight_vec = weight_vec,
-                                   ploidy = ploidy, p1geno = p1geno,
-                                   p2geno = p2geno, s = s, ell = ell, r = r)
+                                   ploidy = ploidy,
+                                   prob_geno = prob_geno,
+                                   s = s, ell = ell, r = r)
 
   expect_equal(c(attr(nout, "gradient")), c(cderiv), tol = 10 ^ -6)
 }
@@ -455,10 +463,12 @@ test_that("the grad_offspring_original works", {
   eps <- 0.01
   tau <- 0.1
 
+  prob_geno <- get_prob_geno(ploidy = ploidy, model = "f1", p1geno = p1geno, p2geno = p2geno, allele_freq = 0.5)
+
   ## Numerical implementation ---------------------------------------
   tempfunc <- function(d, eps, tau) {
-    obj_offspring(ocounts = ocounts, osize = osize, ploidy = ploidy, p1geno = p1geno,
-                  p2geno = p2geno, bias_val = d, seq_error = eps, od_param = tau,
+    obj_offspring(ocounts = ocounts, osize = osize, ploidy = ploidy,
+                  prob_geno = prob_geno, bias_val = d, seq_error = eps, od_param = tau,
                   outlier = FALSE)
   }
 
@@ -470,7 +480,7 @@ test_that("the grad_offspring_original works", {
 
   ## Rcpp version ---------------------------------------------------
   cderiv <- grad_offspring_original(ocounts = ocounts, osize = osize, ploidy = ploidy,
-                                    p1geno = p1geno, p2geno = p2geno,
+                                    prob_geno = prob_geno,
                                     d = d, eps = eps, tau = tau)
 
   expect_equal(c(attr(nout, "gradient")), c(cderiv), tol = 10 ^ -5)
@@ -490,11 +500,13 @@ test_that("the grad_offspring_weights_original works", {
   tau <- 0.1
   weight_vec <- stats::runif(2)
 
+  prob_geno <- get_prob_geno(ploidy = ploidy, model = "f1", p1geno = p1geno, p2geno = p2geno, allele_freq = 0.5)
+
   ## Numerical implementation ---------------------------------------
   tempfunc <- function(d, eps, tau) {
     obj_offspring_weights(ocounts = ocounts, weight_vec = weight_vec,
-                          osize = osize, ploidy = ploidy, p1geno = p1geno,
-                          p2geno = p2geno, bias_val = d, seq_error = eps, od_param = tau,
+                          osize = osize, ploidy = ploidy,
+                          prob_geno = prob_geno, bias_val = d, seq_error = eps, od_param = tau,
                           outlier = FALSE)
   }
 
@@ -507,7 +519,7 @@ test_that("the grad_offspring_weights_original works", {
   ## Rcpp version ---------------------------------------------------
   cderiv <- grad_offspring_weights_original(ocounts = ocounts, osize = osize,
                                             weight_vec = weight_vec, ploidy = ploidy,
-                                            p1geno = p1geno, p2geno = p2geno,
+                                            prob_geno = prob_geno,
                                             d = d, eps = eps, tau = tau)
 
   expect_equal(c(attr(nout, "gradient")), c(cderiv), tol = 10 ^ -4)
@@ -612,7 +624,7 @@ test_that("grad_parent_reparam matches obj_parent_reparam", {
 
 
 test_that("grad_wrapp_all matches obj_wrap_all", {
-  parvec <- c(1, 1, 1)
+  parvec <- c(1, 0, 1)
   ocounts <- c(10, 11)
   osize <- c(20, 21)
   weight_vec <- c(0.5, 0.7)
