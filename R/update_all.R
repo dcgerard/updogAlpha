@@ -664,7 +664,7 @@ updog_update_all <- function(ocounts, osize, ploidy,
 
     ## Calculate log-likelihood and update err and index -------
     ## get genotype frequencies --------------------------------------------------------
-    prob_geno <- get_prob_geno(ploidy = ploidy, model = "f1", p1geno = p1geno, p2geno = p2geno, allele_freq = -9)
+    prob_geno <- get_prob_geno(ploidy = ploidy, model = model, p1geno = p1geno, p2geno = p2geno, allele_freq = allele_freq)
     llike_new <- obj_offspring(ocounts = ocounts, osize = osize, ploidy = ploidy,
                                prob_geno = prob_geno, bias_val = bias_val,
                                seq_error = seq_error, od_param = od_param, outlier = TRUE,
