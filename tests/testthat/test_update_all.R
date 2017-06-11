@@ -9,6 +9,9 @@ test_that("updog_update_all works ok", {
   maxiter      <- 500
   print_update <- TRUE
 
+  uout <- updog_vanilla(ocounts = dat$ocounts, osize = dat$osize,
+                        ploidy = 6, model = "hw", print_val = TRUE)
+
 }
 )
 

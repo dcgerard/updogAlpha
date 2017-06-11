@@ -5,11 +5,11 @@
 \title{wrapper for \code{\link{grad_offspring_weights}}}
 \usage{
 grad_wrapp_all(parvec, ocounts, osize, weight_vec, ploidy, p1geno, p2geno,
-  p1counts = NULL, p1size = NULL, p1weight = NULL, p2counts = NULL,
-  p2size = NULL, p2weight = NULL, bound_bias = TRUE,
+  allele_freq = 0.5, p1counts = NULL, p1size = NULL, p1weight = NULL,
+  p2counts = NULL, p2size = NULL, p2weight = NULL, bound_bias = TRUE,
   update_bias_val = TRUE, update_seq_error = TRUE, update_od_param = TRUE,
   seq_error_mean = -4.7, seq_error_sd = 1, bias_val_mean = 0,
-  bias_val_sd = 1)
+  bias_val_sd = 1, model = c("f1", "hw", "uniform"))
 }
 \arguments{
 \item{parvec}{A vector of three elements, s, ell, and r. We have s = log(bias_val) = log(d),
@@ -26,9 +26,11 @@ individuals.}
 \item{ploidy}{An integer. The ploidy of the species. This is assumed
 to be the same for each individual.}
 
-\item{p1geno}{The genotype of parent 1.}
+\item{p1geno}{The genotype of parent 1 if \code{model = "f1"}.}
 
-\item{p2geno}{The genotype of parent 2.}
+\item{p2geno}{The genotype of parent 2 if \code{model = "f1"}.}
+
+\item{allele_freq}{The allele-frequency if \code{model = "hw"}}
 
 \item{p1counts}{The number of reference alleles observed from parent 1.}
 
@@ -68,6 +70,9 @@ Set \code{bias_val_sd = Inf} to have no penalty on the bias parameter.}
 \item{bias_val_sd}{The prior standard deviation on the log of \code{bias_val}
 (corresponding to \code{parvec[1]}).
 Set \code{bias_val_sd = Inf} to have no penalty on the bias parameter.}
+
+\item{model}{The model for the genotype distribution. Should we assume an F1 population (\code{"f1"}),
+Hardy-Weinberg equilibrium (\code{"hw"}), or a uniform distribution (\code{"uniform"})?}
 }
 \description{
 wrapper for \code{\link{grad_offspring_weights}}

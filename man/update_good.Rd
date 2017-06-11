@@ -6,10 +6,10 @@
 \usage{
 update_good(parvec, ocounts, osize, weight_vec, ploidy, p1counts = NULL,
   p1size = NULL, p1weight = NULL, p2counts = NULL, p2size = NULL,
-  p2weight = NULL, p1geno = NULL, p2geno = NULL, bound_bias = TRUE,
-  update_bias_val = TRUE, update_seq_error = TRUE, update_od_param = TRUE,
-  seq_error_mean = -4.7, seq_error_sd = 1, bias_val_mean = 0,
-  bias_val_sd = 1)
+  p2weight = NULL, p1geno = NULL, p2geno = NULL, allele_freq = 0.5,
+  bound_bias = TRUE, update_bias_val = TRUE, update_seq_error = TRUE,
+  update_od_param = TRUE, seq_error_mean = -4.7, seq_error_sd = 1,
+  bias_val_mean = 0, bias_val_sd = 1, model = c("f1", "hw", "uniform"))
 }
 \arguments{
 \item{parvec}{A vector of three elements, s, ell, and r. We have s = log(bias_val) = log(d),
@@ -38,9 +38,11 @@ to be the same for each individual.}
 
 \item{p2weight}{The posterior probability that parent 2 is not an outlier.}
 
-\item{p1geno}{The genotype of parent 1.}
+\item{p1geno}{The genotype of parent 1 if \code{model = "f1"}.}
 
-\item{p2geno}{The genotype of parent 2.}
+\item{p2geno}{The genotype of parent 2 if \code{model = "f1"}.}
+
+\item{allele_freq}{The allele-frequency if \code{model = "hw"}}
 
 \item{bound_bias}{A logical. Should we bound the bias parameter \code{parvec[1]} by a somewhat arbitrary value
 (\code{TRUE}) or not (\code{FALSE})?}
@@ -68,6 +70,9 @@ Set \code{bias_val_sd = Inf} to have no penalty on the bias parameter.}
 \item{bias_val_sd}{The prior standard deviation on the log of \code{bias_val}
 (corresponding to \code{parvec[1]}).
 Set \code{bias_val_sd = Inf} to have no penalty on the bias parameter.}
+
+\item{model}{The model for the genotype distribution. Should we assume an F1 population (\code{"f1"}),
+Hardy-Weinberg equilibrium (\code{"hw"}), or a uniform distribution (\code{"uniform"})?}
 }
 \description{
 Update the OK points

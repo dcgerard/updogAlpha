@@ -9,10 +9,11 @@ updog_update_all(ocounts, osize, ploidy, p1counts = NULL, p1size = NULL,
   maxiter = 500, commit_num = 4, min_disp = 0, update_outmean = FALSE,
   update_outdisp = FALSE, update_outprop = TRUE, update_bias_val = TRUE,
   update_seq_error = TRUE, update_od_param = TRUE, update_pgeno = TRUE,
-  p1geno = 3, p2geno = 3, seq_error = 0.01, od_param = 0.01,
-  bias_val = 1, out_prop = 0.001, out_mean = 0.5, out_disp = 1/3,
-  non_mono_max = 2, bound_bias = TRUE, seq_error_mean = -4.7,
-  seq_error_sd = 1, bias_val_mean = 0, bias_val_sd = 1)
+  p1geno = round(ploidy/2), p2geno = round(ploidy/2), seq_error = 0.01,
+  od_param = 0.01, bias_val = 1, out_prop = 0.001, out_mean = 0.5,
+  out_disp = 1/3, non_mono_max = 2, bound_bias = TRUE,
+  seq_error_mean = -4.7, seq_error_sd = 1, bias_val_mean = 0,
+  bias_val_sd = 1, allele_freq = 0.5, model = c("f1", "hw", "uniform"))
 }
 \arguments{
 \item{ocounts}{A vector of non-negative integers. The ith element
@@ -113,6 +114,12 @@ Set \code{bias_val_sd = Inf} to have no penalty on the bias parameter.}
 \item{bias_val_sd}{The prior standard deviation on the log of \code{bias_val}
 (corresponding to \code{parvec[1]}).
 Set \code{bias_val_sd = Inf} to have no penalty on the bias parameter.}
+
+\item{allele_freq}{The allele frequency if \code{model = "hw"}.}
+
+\item{model}{The model for the genotype distribution. Do we assume an
+F1 population (\code{"f1"}), Hardy-Weinberg equilibrium (\code{"hw"}),
+or a uniform distribution (\code{"uniform"}).}
 }
 \description{
 This is the main optimization function for updog.
