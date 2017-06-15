@@ -238,6 +238,7 @@ Rcpp::NumericVector dhyper_cpp(Rcpp::NumericVector x,
 //'
 //' @param ploidy The ploidy of the species.
 //' @param model Do we assume the genotypes are distributed from an F1 population (\code{"f1"}),
+//'     an S1 population (\code{"s1"}),
 //'     according to Hardy-Weinberg (\code{hw}), or uniformly (\code{"uniform"})?
 //' @param p1geno The first parental genotype if \code{model = "f1"}.
 //' @param p2geno The second parental genotype if \code{model = "f1"}.
@@ -252,6 +253,14 @@ Rcpp::NumericVector get_prob_geno(int ploidy, std::string model, int p1geno, int
   Rcpp::NumericVector prob_vec(ploidy + 1);
 
   if (model == "f1") {
+    arma::Cube<double> q_array = get_q_array_cpp(ploidy);
+    for (int i = 0; i <= ploidy; i++) {
+      prob_vec(i) = q_array(p1geno, p2geno, i);
+    }
+  } else if (model == "s1") {
+    if (p1geno != p2geno)  {
+      Rcpp::stop("if `model = 's1'`, then it must be that `p1geno == p2geno`");
+    }
     arma::Cube<double> q_array = get_q_array_cpp(ploidy);
     for (int i = 0; i <= ploidy; i++) {
       prob_vec(i) = q_array(p1geno, p2geno, i);

@@ -13,7 +13,8 @@ updog_vanilla(ocounts, osize, ploidy, p1counts = NULL, p1size = NULL,
   seq_error = 0.01, od_param = 0.01, bias_val = 1, out_prop = 0.001,
   out_mean = 0.5, out_disp = 1/3, non_mono_max = 2, bound_bias = TRUE,
   seq_error_mean = -4.7, seq_error_sd = 1, bias_val_mean = 0,
-  bias_val_sd = 1, allele_freq = 0.5, model = c("f1", "hw", "uniform"))
+  bias_val_sd = 1, allele_freq = 0.5, model = c("f1", "s1", "hw",
+  "uniform"))
 }
 \arguments{
 \item{ocounts}{A vector of non-negative integers. The ith element
@@ -116,7 +117,7 @@ Set \code{bias_val_sd = Inf} to have no penalty on the bias parameter.}
 \item{allele_freq}{The allele frequency if \code{model = "hw"}.}
 
 \item{model}{The model for the genotype distribution. Do we assume an
-F1 population (\code{"f1"}), Hardy-Weinberg equilibrium (\code{"hw"}),
+F1 population (\code{"f1"}), an S1 population (\code{"s1"}), Hardy-Weinberg equilibrium (\code{"hw"}),
 or a uniform distribution (\code{"uniform"}).}
 }
 \description{

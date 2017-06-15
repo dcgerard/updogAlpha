@@ -652,6 +652,7 @@ dhyper_cpp <- function(x, m, n, k) {
 #'
 #' @param ploidy The ploidy of the species.
 #' @param model Do we assume the genotypes are distributed from an F1 population (\code{"f1"}),
+#'     an S1 population (\code{"s1"}),
 #'     according to Hardy-Weinberg (\code{hw}), or uniformly (\code{"uniform"})?
 #' @param p1geno The first parental genotype if \code{model = "f1"}.
 #' @param p2geno The second parental genotype if \code{model = "f1"}.

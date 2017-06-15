@@ -9,7 +9,7 @@ grad_wrapp_all(parvec, ocounts, osize, weight_vec, ploidy, p1geno, p2geno,
   p2counts = NULL, p2size = NULL, p2weight = NULL, bound_bias = TRUE,
   update_bias_val = TRUE, update_seq_error = TRUE, update_od_param = TRUE,
   seq_error_mean = -4.7, seq_error_sd = 1, bias_val_mean = 0,
-  bias_val_sd = 1, model = c("f1", "hw", "uniform"))
+  bias_val_sd = 1, model = c("f1", "s1", "hw", "uniform"))
 }
 \arguments{
 \item{parvec}{A vector of three elements, s, ell, and r. We have s = log(bias_val) = log(d),
@@ -26,9 +26,9 @@ individuals.}
 \item{ploidy}{An integer. The ploidy of the species. This is assumed
 to be the same for each individual.}
 
-\item{p1geno}{The genotype of parent 1 if \code{model = "f1"}.}
+\item{p1geno}{The genotype of parent 1 if \code{model = "f1"} or \code{model = "s1"}.}
 
-\item{p2geno}{The genotype of parent 2 if \code{model = "f1"}.}
+\item{p2geno}{The genotype of parent 2 if \code{model = "f1"}. This needs to be null if \code{model = "s1"}}
 
 \item{allele_freq}{The allele-frequency if \code{model = "hw"}}
 
@@ -72,6 +72,7 @@ Set \code{bias_val_sd = Inf} to have no penalty on the bias parameter.}
 Set \code{bias_val_sd = Inf} to have no penalty on the bias parameter.}
 
 \item{model}{The model for the genotype distribution. Should we assume an F1 population (\code{"f1"}),
+an S1 population (\code{"s1"}),
 Hardy-Weinberg equilibrium (\code{"hw"}), or a uniform distribution (\code{"uniform"})?}
 }
 \description{

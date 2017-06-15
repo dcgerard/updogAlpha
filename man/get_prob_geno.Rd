@@ -12,6 +12,7 @@ get_prob_geno(ploidy, model, p1geno, p2geno, allele_freq)
 \item{ploidy}{The ploidy of the species.}
 
 \item{model}{Do we assume the genotypes are distributed from an F1 population (\code{"f1"}),
+an S1 population (\code{"s1"}),
 according to Hardy-Weinberg (\code{hw}), or uniformly (\code{"uniform"})?}
 
 \item{p1geno}{The first parental genotype if \code{model = "f1"}.}
