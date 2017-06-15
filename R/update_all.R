@@ -419,7 +419,7 @@ out_grad_wrapp <- function(parvec, ocounts, osize, weight_vec,
 #' This is the main optimization function for updog.
 #'
 #'
-#' @inheritParams updog
+#' @inheritParams updog_old
 #' @param print_val A logical. Should we print the updates (\code{TRUE}) or not (\code{FALSE})?
 #' @param tol The stopping criterion
 #' @param maxiter The maximum number of iterations
@@ -799,10 +799,19 @@ bb_simple_post <- function(ncounts, ssize, ploidy, p1geno, p2geno, seq_error = 0
 }
 
 
-#' This is a vanilla version of updog that will optimize everything, assuming a uniform prior on the parental
-#' genotypes and not assuming that we have parental sequence data, and then return the posterior summaries.
+#' Using Parental Data for Offspring Genotyping.
 #'
-#' @inheritParams updog
+#' This function fits a hierarchical model to sequence counts from
+#' collection of siblings --- or a population of individuals
+#' in Hardy-Weinberg equilibrium --- and returns genotyped information. The
+#' hierarchy comes from either the fact that they share the same parents or they come
+#' from a population in Hardy-Weinberg equilibrium. If
+#' you also have parental sequencing data, then you can include this
+#' to improve estimates.
+#'
+#' @seealso \code{\link{plot.updog}} For plotting the output of \code{\link{updog_vanilla}}.
+#'
+#' @inheritParams updog_old
 #' @inheritParams updog_update_all
 #'
 #' @author David Gerard

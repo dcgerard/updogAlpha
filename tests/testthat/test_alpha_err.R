@@ -11,8 +11,6 @@ test_that("alpha_err_dat.RDS data will fit", {
   expect_equal(dbetabinom(x = 1, size = 10, alpha = 0, beta = 1), 0)
   expect_error(dbetabinom(x = 1, size = 10, alpha = 0, beta = 0))
 
-  uout <- updog(ocounts = obj$ocounts, osize = obj$osize, ploidy = obj$ploidy, seq_error = 0,
-                update_rho = TRUE, update_pi = FALSE, overdispersion = TRUE, update_geno = FALSE)
 }
 )
 

@@ -1,7 +1,7 @@
 
 #' Iterate between indiividual level estimates and joint averaging.
 #'
-#' @inheritParams updog
+#' @inheritParams updog_old
 #' @inheritParams updog_mcmc
 #' @param itermax The number of times to iterate between the two approaches.
 #' @param tol A positive numeric. The tolderance for the stopping criteria.
@@ -60,7 +60,7 @@ updog_iterate <- function(ocounts, osize, qarray, r1vec, r2vec, seq_error = 0.01
 
 #' The updog Gibbs sampler to jointly estimate the parental and offspring genotypes.
 #'
-#' @inheritParams updog
+#' @inheritParams updog_old
 #' @param qarray An array of proportions. Each dimension size is equal to the ploidy plus 1.
 #' @param r1vec The posterior probabilities of the genotypes of parent 1 conditional only
 #'   on the sequence data from parent 1.

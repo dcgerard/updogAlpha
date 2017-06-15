@@ -2,8 +2,7 @@
 % Please edit documentation in R/update_all.R
 \name{updog_vanilla}
 \alias{updog_vanilla}
-\title{This is a vanilla version of updog that will optimize everything, assuming a uniform prior on the parental
-genotypes and not assuming that we have parental sequence data, and then return the posterior summaries.}
+\title{Using Parental Data for Offspring Genotyping.}
 \usage{
 updog_vanilla(ocounts, osize, ploidy, p1counts = NULL, p1size = NULL,
   p2counts = NULL, p2size = NULL, commit_num = 4, min_disp = 0,
@@ -121,8 +120,16 @@ F1 population (\code{"f1"}), an S1 population (\code{"s1"}), Hardy-Weinberg equi
 or a uniform distribution (\code{"uniform"}).}
 }
 \description{
-This is a vanilla version of updog that will optimize everything, assuming a uniform prior on the parental
-genotypes and not assuming that we have parental sequence data, and then return the posterior summaries.
+This function fits a hierarchical model to sequence counts from
+collection of siblings --- or a population of individuals
+in Hardy-Weinberg equilibrium --- and returns genotyped information. The
+hierarchy comes from either the fact that they share the same parents or they come
+from a population in Hardy-Weinberg equilibrium. If
+you also have parental sequencing data, then you can include this
+to improve estimates.
+}
+\seealso{
+\code{\link{plot.updog}} For plotting the output of \code{\link{updog_vanilla}}.
 }
 \author{
 David Gerard

@@ -2,6 +2,29 @@
 #' @importFrom Rcpp sourceCpp
 NULL
 
+
+#' @inherit updog_vanilla
+#'
+#' @description This function fits a hierarchical model to sequence counts from
+#' collection of siblings --- or a population of individuals
+#' in Hardy-Weinberg equilibrium --- and returns genotyped information. The
+#' hierarchy comes from either the fact that they share the same parents or they come
+#' from a population in Hardy-Weinberg equilibrium. If
+#' you also have parental sequencing data, then you can include this
+#' to improve estimates. This is the simple version of \code{updog} with only a limited number of parameters.
+#' To see the full list of options, see \code{\link{updog_vanilla}}.
+#'
+#' @param ... Additional arguments to pass to \code{\link{updog_vanilla}}.
+#'
+#' @author David Gerard
+#'
+#' @seealso \code{\link{updog_vanilla}} for more parameter options.
+updog <- function(ocounts, osize, ploidy,
+                  model = c("f1", "s1", "hw", "uniform"),
+                  ...) {
+  updog_vanilla(ocounts = ocounts, osize = osize, ploidy = ploidy, ...)
+}
+
 #' Using Parental Data for Offspring Genotyping.
 #'
 #' This function fits a hierarchical model to sequence counts from a
@@ -112,7 +135,7 @@ NULL
 #'
 #' @export
 #'
-updog <- function(ocounts, osize,  ploidy, p1counts = NULL,
+updog_old <- function(ocounts, osize,  ploidy, p1counts = NULL,
                   p1size = NULL, p2counts = NULL, p2size = NULL,
                   seq_error = NULL, integrate = FALSE, do_eb = TRUE, overdispersion = TRUE,
                   update_geno = TRUE, update_pi = TRUE, update_outlier = TRUE,
