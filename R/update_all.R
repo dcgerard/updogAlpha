@@ -627,7 +627,8 @@ updog_update_all <- function(ocounts, osize, ploidy,
                           seq_error_mean = seq_error_mean,
                           seq_error_sd = seq_error_sd,
                           bias_val_mean = bias_val_mean,
-                          bias_val_sd = bias_val_sd)
+                          bias_val_sd = bias_val_sd,
+                          model = model)
     }
 
     bias_val    <- gout$bias
@@ -637,6 +638,9 @@ updog_update_all <- function(ocounts, osize, ploidy,
 
 
     ## update parental_count if no change ---------------------------------------------
+    if (model == "s1") {
+      stopifnot(gout$p1geno == gout$p2geno)
+    }
     if (p1geno == gout$p1geno & p2geno == gout$p2geno) {
       parental_count <- parental_count + 1
     } else {
@@ -945,6 +949,7 @@ updog_vanilla <- function(ocounts, osize, ploidy,
     parout$input$p2size <- p2size
   }
   parout$input$ploidy <- ploidy
+  parout$input$model  <- model
   class(parout) <- "updog"
   return(parout)
 }

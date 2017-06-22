@@ -22,7 +22,8 @@ NULL
 updog <- function(ocounts, osize, ploidy,
                   model = c("f1", "s1", "hw", "uniform"),
                   ...) {
-  updog_vanilla(ocounts = ocounts, osize = osize, ploidy = ploidy, ...)
+  model <- match.arg(model)
+  updog_vanilla(ocounts = ocounts, osize = osize, ploidy = ploidy, model = model, ...)
 }
 
 #' Using Parental Data for Offspring Genotyping.
