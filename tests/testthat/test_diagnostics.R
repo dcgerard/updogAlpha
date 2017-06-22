@@ -5,7 +5,12 @@ test_that("rupdog works", {
   uold <- readRDS(file = "old_updog_result.RDS")
   unew <- readRDS(file = "new_updog_result.RDS")
   expect_equal(uold$maxpostprob, unew$maxpostprob)
+  unew$input$model <- "f1"
+  unew$allele_freq <- -1
   llike_me <- dupdog(unew)
+
+  uobj$allele_freq <- -1
+  uobj$input$model <- "f1"
 
   plot(uobj, plot_beta = FALSE, use_colorblind = FALSE)
   samp_obj <- rupdog(obj = uobj)

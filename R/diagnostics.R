@@ -18,12 +18,12 @@ rupdog <- function(obj) {
                    seq_error = obj$seq_error)
 
   ## segregation probabilities ---
-  seg_probs <- get_q_array_cpp(ploidy = obj$input$ploidy)[obj$p1geno + 1, obj$p2geno + 1, ]
+  seg_probs <- get_prob_geno(ploidy = obj$input$ploidy, model = obj$input$model, p1geno = obj$p1geno,
+                p2geno = obj$p2geno, allele_freq = obj$allele_freq)
 
   ## sample offspring genotypes --
   ogeno <- sample(x = 0:obj$input$ploidy, size = length(obj$input$ocounts),
                    prob = seg_probs, replace = TRUE)
-
 
   ## Sample outliers ---
   prob_out <- stats::rbinom(n = length(ogeno), size = 1, prob = obj$out_prop)
@@ -47,7 +47,7 @@ rupdog <- function(obj) {
   new_obj$convergence   <- NULL
 
   ## Now sample parents if have them ---
-  if (!is.null(obj$input$p1counts) & !is.null(obj$input$p1size)) {
+  if (!is.null(obj$input$p1counts) & !is.null(obj$input$p1size) & (obj$input$model == "f1" | obj$input$model == "s1")) {
     p1_isout <- sample(x = c(TRUE, FALSE), prob = c(obj$out_prop, 1 - obj$out_prop), size = 1)
     if (p1_isout) {
       p1counts <- rbetabinom_mu_rho(mu = obj$out_mean, rho = obj$out_disp, size = obj$input$p1size)
@@ -58,7 +58,7 @@ rupdog <- function(obj) {
     new_obj$input$p1counts <- p1counts
     new_obj$p1_prob_out    <- p1_isout * 1
   }
-  if (!is.null(obj$input$p2counts) & !is.null(obj$input$p2size)) {
+  if (!is.null(obj$input$p2counts) & !is.null(obj$input$p2size) & obj$input$model == "f1") {
     p2_isout <- sample(x = c(TRUE, FALSE), prob = c(obj$out_prop, 1 - obj$out_prop), size = 1)
     if (p2_isout) {
       p2counts <- rbetabinom_mu_rho(mu = obj$out_mean, rho = obj$out_disp, size = obj$input$p2size)
@@ -84,7 +84,7 @@ rupdog <- function(obj) {
 #'
 dupdog <- function(obj) {
   ## get genotype frequencies --------------------------------------------------------
-  prob_geno <- get_prob_geno(ploidy = obj$input$ploidy, model = "f1", p1geno = obj$p1geno, p2geno = obj$p2geno, allele_freq = -9)
+  prob_geno <- get_prob_geno(ploidy = obj$input$ploidy, model = obj$input$model, p1geno = obj$p1geno, p2geno = obj$p2geno, allele_freq = obj$allele_freq)
 
   llike_new <- obj_offspring(ocounts   = obj$input$ocounts,
                              osize     = obj$input$osize,
@@ -97,7 +97,7 @@ dupdog <- function(obj) {
                              out_prop  = obj$out_prop,
                              out_mean  = obj$out_mean,
                              out_disp  = obj$out_disp)
-  if (!is.null(obj$input$p1counts) & !is.null(obj$input$p1size)) { ## add parent 1 if available
+  if (!is.null(obj$input$p1counts) & !is.null(obj$input$p1size) & (obj$input$model == "f1" | obj$input$model == "s1")) { ## add parent 1 if available
     llike_new <- llike_new + obj_parent(pcounts   = obj$input$p1counts,
                                         psize     = obj$input$p1size,
                                         ploidy    = obj$input$ploidy,
@@ -110,7 +110,7 @@ dupdog <- function(obj) {
                                         out_mean  = obj$out_mean,
                                         out_disp  = obj$out_disp)
   }
-  if (!is.null(obj$input$p2counts) & !is.null(obj$input$p2size)) { ## add parent 2 if available
+  if (!is.null(obj$input$p2counts) & !is.null(obj$input$p2size) & (obj$input$model == "f1")) { ## add parent 2 if available
     llike_new <- llike_new + obj_parent(pcounts   = obj$input$p2counts,
                                         psize     = obj$input$p2size,
                                         ploidy    = obj$input$ploidy,

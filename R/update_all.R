@@ -950,6 +950,22 @@ updog_vanilla <- function(ocounts, osize, ploidy,
   }
   parout$input$ploidy <- ploidy
   parout$input$model  <- model
+
+  ## Fix output according to model
+  if (model == "hw") {
+    parout$p1geno <- -1
+    parout$p2geno <- -1
+  } else if (model == "s1") {
+    parout$p2geno <- -1
+    parout$allele_freq <- -1
+  } else if (model == "f1") {
+    parout$allele_freq <- -1
+  } else if (model == "uniform") {
+    parout$allele_freq <- -1
+    parout$p1geno <- -1
+    parout$p2geno <- -1
+  }
+
   class(parout) <- "updog"
   return(parout)
 }
