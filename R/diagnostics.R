@@ -22,7 +22,7 @@ rupdog <- function(obj) {
                 p2geno = obj$p2geno, allele_freq = obj$allele_freq)
 
   ## sample offspring genotypes --
-  ogeno <- sample(x = 0:obj$input$ploidy, size = length(obj$input$ocounts),
+  ogeno <- sample(x = 0:obj$input$ploidy, size = length(obj$input$osize),
                    prob = seg_probs, replace = TRUE)
 
   ## Sample outliers ---
