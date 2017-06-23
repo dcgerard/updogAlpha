@@ -148,7 +148,7 @@ Rcpp::NumericVector dbetabinom_mu_rho_cpp(Rcpp::NumericVector x,
 // [[Rcpp::export]]
 double dbetabinom_mu_rho_cpp_double(double x, double size, double mu,
                                     double rho, bool return_log) {
-  double tol = 2 * DBL_EPSILON; // tolerance from 0.
+  double tol = 10 * DBL_EPSILON; // tolerance from 0.
 
   // Check input -------------------------------------------------------------
   if (rho > (1.0 - tol)) {

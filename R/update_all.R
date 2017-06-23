@@ -549,6 +549,9 @@ updog_update_all <- function(ocounts, osize, ploidy,
   while ((index <= maxiter) & (err > tol)) {
     llike_old <- llike_new
 
+
+
+
     ## E-step ----------------------------------------------------------------------------
     ## Skip first iteration to get good estimates of other paramters before getting outlier weights.
     if (index > 1) {

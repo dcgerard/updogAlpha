@@ -43,7 +43,7 @@ Rcpp::NumericVector obj_offspring_vec(Rcpp::NumericVector ocounts, Rcpp::Numeric
                                       double od_param = 0,
                                       bool outlier = false, double out_prop = 0.01,
                                       double out_mean = 0.5, double out_disp = 1.0 / 3.0) {
-  double tol = 2 * DBL_EPSILON;
+  double tol = 100 * DBL_EPSILON;
 
   // check input ---------------------------------------------------
   if (ocounts.size() != osize.size()) {
@@ -89,7 +89,7 @@ Rcpp::NumericVector obj_offspring_vec(Rcpp::NumericVector ocounts, Rcpp::Numeric
     }
   }
   // add one for outlier
-  if (outlier) {
+  if (outlier & (out_prop > tol)) {
     colnum++;
   }
 
@@ -102,7 +102,7 @@ Rcpp::NumericVector obj_offspring_vec(Rcpp::NumericVector ocounts, Rcpp::Numeric
       Rcpp::NumericMatrix::Column zzcol = logprobs(Rcpp::_, colindex); // reference to colindexth column
       zzcol = dbetabinom_mu_rho_cpp(ocounts, osize, prob(i), od_param, true) +
 	log(prob_geno(i));
-      if (outlier) {
+      if (outlier & (out_prop > tol)) {
         zzcol = zzcol + log(1 - out_prop);
       }
       colindex++;
