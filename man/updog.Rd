@@ -59,6 +59,10 @@ you also have parental sequencing data, then you can include this
 to improve estimates. This is the simple version of \code{updog} with only a limited number of parameters.
 To see the full list of options, see \code{\link{updog_vanilla}}.
 }
+\details{
+The key improvements in \code{updog} are its abilities to account for common features in
+GBS data: sequencing error rate, read-mapping bias, overdispersion, and outlying points.
+}
 \seealso{
 \code{\link{updog_vanilla}} for more parameter options.
 }

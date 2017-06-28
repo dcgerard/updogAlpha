@@ -833,13 +833,16 @@ bb_simple_post <- function(ncounts, ssize, ploidy, p1geno, p2geno, seq_error = 0
 
 #' Using Parental Data for Offspring Genotyping.
 #'
-#' This function fits a hierarchical model to sequence counts from
+#' This function fits a hierarchical model to sequence counts from a
 #' collection of siblings --- or a population of individuals
 #' in Hardy-Weinberg equilibrium --- and returns genotyped information. The
 #' hierarchy comes from either the fact that they share the same parents or they come
 #' from a population in Hardy-Weinberg equilibrium. If
 #' you also have parental sequencing data, then you can include this
 #' to improve estimates.
+#'
+#' The key improvements in \code{updog} are its abilities to account for common features in
+#' GBS data: sequencing error rate, read-mapping bias, overdispersion, and outlying points.
 #'
 #' @seealso \code{\link{plot.updog}} For plotting the output of \code{\link{updog_vanilla}}.
 #'
