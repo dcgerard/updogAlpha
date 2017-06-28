@@ -184,6 +184,50 @@ rbetabinom_mu_rho <- function(mu, rho, size) {
 }
 
 
+#' Returns the distribution of proportion of individuals genotyped correctly using an the oracle estimator
+#' when the parameter values equal the estimated values.
+#'
+#' @param obj An object of class \code{updog}.
+#' @param itermax The number of repetitions to draw.
+#'
+#' @return A vector of length \code{itermax} which contains samples from the distribution of proportion of
+#'     individuals genotyped correctly by an oracle estimator.
+#'
+#' @export
+#'
+#' @author David Gerard
+screen_oracle <- function(obj, itermax = 1000) {
+  if (obj$input$model != "hw") {
+    obj$allele_freq <- 0.5
+  }
+  if (obj$input$model == "s1") {
+    obj$p2geno <- obj$p1geno
+  } else if (obj$model == "uniform") {
+    obj$p1geno <- 0
+    obj$p2geno <- 0
+  }
+
+  prop_correct_vec <- rep(NA, length = itermax)
+  for (index in 1:itermax) {
+    robj <- rupdog(obj)
+    prob_geno <- get_prob_geno(ploidy = robj$input$ploidy, model = robj$input$model,
+                               p1geno = robj$p1geno, p2geno = robj$p2geno,
+                               allele_freq = robj$allele_freq)
+    postmat <- bbpost_tot(ocounts = robj$input$ocounts, osize = robj$input$osize,
+                          ploidy = robj$input$ploidy, prob_geno = prob_geno,
+                          seq_error = robj$seq_error,
+                          bias_val = robj$bias_val,
+                          od_param = robj$od_param,
+                          outlier = TRUE, out_prop = robj$out_prop,
+                          out_mean = robj$out_mean,
+                          out_disp = robj$out_disp)
+    ogeno <- apply(postmat, 1, which.max) - 1
+    prop_correct_vec[index] <- mean(ogeno == robj$ogeno)
+  }
+  return(prop_correct_vec)
+}
+
+
 
 
 
