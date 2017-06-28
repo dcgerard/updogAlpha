@@ -19,6 +19,27 @@ NULL
 #' @author David Gerard
 #'
 #' @seealso \code{\link{updog_vanilla}} for more parameter options.
+#'
+#' @export
+#'
+#' @examples
+#' ## Read in data and format it for SNP1 -------------------------------------
+#' data(snpdat)
+#' ploidy <- 6
+#' snp1 <- snpdat[snpdat$snp == "SNP1", ]
+#' ocounts <- snp1$counts[-1]
+#' osize   <- snp1$size[-1]
+#' pcounts <- snp1$counts[1]
+#' psize   <- snp1$size[1]
+#'
+#' ## Fit updog ---------------------------------------------------------------
+#' ## Here, I don't update the parental genotype, but you should use the
+#' ## default setting, `update_pgeno = TRUE`, in practice.
+#' uout <- updog(ocounts = ocounts, osize = osize, p1counts = pcounts,
+#'               p1size = psize, ploidy = 6, model = "s1", p1geno = 5,
+#'               p2geno = 5, update_pgeno = FALSE)
+#' plot(uout)
+#'
 updog <- function(ocounts, osize, ploidy,
                   model = c("f1", "s1", "hw", "uniform"),
                   ...) {

@@ -62,7 +62,7 @@
 #' @export
 #'
 plot.updog <- function(x, gg = requireNamespace("ggplot2", quietly = TRUE),
-                       plot_beta = TRUE, ask = TRUE,
+                       plot_beta = FALSE, ask = TRUE,
                        use_colorblind = FALSE,
                        show_maxpostprob = FALSE,
                        show_ogeno = TRUE,
