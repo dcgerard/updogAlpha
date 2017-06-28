@@ -202,7 +202,7 @@ screen_oracle <- function(obj, itermax = 1000) {
   }
   if (obj$input$model == "s1") {
     obj$p2geno <- obj$p1geno
-  } else if (obj$model == "uniform") {
+  } else if (obj$input$model == "uniform") {
     obj$p1geno <- 0
     obj$p2geno <- 0
   }
