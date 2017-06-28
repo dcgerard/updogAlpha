@@ -2,7 +2,7 @@
 #' wrapper for \code{\link{obj_offspring_weights_reparam}}
 #' @inheritParams obj_offspring_vec
 #' @param parvec A vector of three elements, s, ell, and r. We have s = log(bias_val) = log(d),
-#' ell = logit(seq_error) = logit(eps), and r = 1 / logit(od_param) = 1 / logit(tau).
+#' ell = logit(seq_error) = logit(eps), and r = - logit(od_param) = - logit(tau).
 #' @param weight_vec A vector of weights obtained via the E-step.
 #' @param bound_bias A logical. Should we bound the bias parameter \code{parvec[1]} by a somewhat arbitrary value
 #'     (\code{TRUE}) or not (\code{FALSE})?
@@ -490,7 +490,7 @@ out_grad_wrapp <- function(parvec, ocounts, osize, weight_vec,
 #'         \item{\code{convergence}:}{ 1 is we reached \code{maxiter} and 0 otherwise.}
 #'         \item{\code{llike}:}{ The final log-likelihood of the estimates.}
 #'         \item{\code{hessian}:}{ The Fisher information under the parameterization (s, ell, r), where s = log(bias_val) = log(d),
-#' ell = logit(seq_error) = logit(eps), and r = 1 / logit(od_param) = 1 / logit(tau).}
+#' ell = logit(seq_error) = logit(eps), and r = - logit(od_param) =  - logit(tau).}
 #'     }
 #'
 #' @author David Gerard
@@ -864,7 +864,7 @@ bb_simple_post <- function(ncounts, ssize, ploidy, p1geno, p2geno, seq_error = 0
 #'         \item{\code{convergence}:}{ 1 is we reached \code{maxiter} and 0 otherwise.}
 #'         \item{\code{llike}:}{ The final log-likelihood of the estimates.}
 #'         \item{\code{hessian}:}{ The Fisher information under the parameterization (s, ell, r), where s = log(bias_val) = log(d),
-#' ell = logit(seq_error) = logit(eps), and r = 1 / logit(od_param) = 1 / logit(tau).}
+#' ell = logit(seq_error) = logit(eps), and r = - logit(od_param) = - logit(tau).}
 #'         \item{\code{ogeno}:}{ A vector. Each element of which is the maximum a posteriori estimate of each individual genotype.}
 #'         \item{\code{maxpostprob}:} {The maximum posterior probability of a genotype for each individual.}
 #'         \item{\code{postmean}:}{ The posterior mean genotype for each individual.}

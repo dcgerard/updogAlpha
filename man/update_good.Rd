@@ -14,7 +14,7 @@ update_good(parvec, ocounts, osize, weight_vec, ploidy, p1counts = NULL,
 }
 \arguments{
 \item{parvec}{A vector of three elements, s, ell, and r. We have s = log(bias_val) = log(d),
-ell = logit(seq_error) = logit(eps), and r = 1 / logit(od_param) = 1 / logit(tau).}
+ell = logit(seq_error) = logit(eps), and r = - logit(od_param) = - logit(tau).}
 
 \item{ocounts}{The observed counts of the refernce
 allele for each individual.}

@@ -141,7 +141,7 @@ A list of the following elements
         \item{\code{convergence}:}{ 1 is we reached \code{maxiter} and 0 otherwise.}
         \item{\code{llike}:}{ The final log-likelihood of the estimates.}
         \item{\code{hessian}:}{ The Fisher information under the parameterization (s, ell, r), where s = log(bias_val) = log(d),
-ell = logit(seq_error) = logit(eps), and r = 1 / logit(od_param) = 1 / logit(tau).}
+ell = logit(seq_error) = logit(eps), and r = - logit(od_param) =  - logit(tau).}
     }
 }
 \description{
