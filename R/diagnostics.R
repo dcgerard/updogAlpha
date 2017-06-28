@@ -1,7 +1,7 @@
 ## Diagnostic functions
 
 
-#' Sample counts using the parameter values in an \code{updog} object.
+#' Samples counts using the parameter values in an \code{updog} object.
 #'
 #' @param obj An object of class \code{updog} returned from \code{\link{updog}}.
 #'
@@ -89,6 +89,14 @@ rupdog <- function(obj) {
 #' @export
 #'
 dupdog <- function(obj) {
+  assertthat::are_equal(class(obj), "updog")
+
+  if (obj$input$model == "s1") {
+    if (obj$p1geno != obj$p2geno & obj$p2geno >= 0) {
+      warning("p2geno != p1geno and model = s1. Setting p2geno <- p1geno.")
+    }
+    obj$p2geno <- obj$p1geno
+  }
   ## get genotype frequencies --------------------------------------------------------
   prob_geno <- get_prob_geno(ploidy = obj$input$ploidy, model = obj$input$model, p1geno = obj$p1geno, p2geno = obj$p2geno, allele_freq = obj$allele_freq)
 

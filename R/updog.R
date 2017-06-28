@@ -19,6 +19,8 @@ NULL
 #' @author David Gerard
 #'
 #' @seealso \code{\link{updog_vanilla}} for more parameter options.
+#' \code{\link{plot.updog}} For plotting the results of \code{updog}.
+#' \code{\link{summary.updog}} For some summary capabilities of \code{updog}.
 #'
 #' @export
 #'
@@ -39,6 +41,7 @@ NULL
 #'               p1size = psize, ploidy = 6, model = "s1", p1geno = 5,
 #'               p2geno = 5, update_pgeno = FALSE)
 #' plot(uout)
+#' summary(uout)
 #'
 updog <- function(ocounts, osize, ploidy,
                   model = c("f1", "s1", "hw", "uniform"),

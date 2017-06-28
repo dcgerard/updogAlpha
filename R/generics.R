@@ -162,10 +162,11 @@ plot.updog <- function(x, gg = requireNamespace("ggplot2", quietly = TRUE),
 #'
 #' @param object An \code{updog} object. Usually what has been returned from \code{\link{updog}}.
 #' @param ... Not used.
+#' @param use_discrete_geno How should we get the empirical distribution for the GOF test?
+#'     By a table of the counts of MAP estimate (\code{TRUE}) or by the sum of the posterior
+#'     probabilities (\code{FALSE})? I am currently just experimenting with this.
 #'
 #' @return A list with three elements:
-#'
-#'     \code{prop_ok}: The estimated proportion of observations that are outliers.
 #'
 #'     \code{genotypes}: Counts for how many of each estimated genotype are observed.
 #'
@@ -173,14 +174,16 @@ plot.updog <- function(x, gg = requireNamespace("ggplot2", quietly = TRUE),
 #'     probability of a genotype that each observation has (\code{maxpostprob}), and the posterior probability
 #'     of not being an outlier (\code{prob_ok})
 #'
+#'     \code{gof_pvalue}: A Pearson goodness of fit p-value testing if the empirically estimated genotypes
+#'     are close in frequency to the theoretical genotype distribution.
+#'
 #' @author David Gerard
 #'
 #' @export
 #'
-summary.updog <- function(object, ...) {
+summary.updog <- function(object, ..., use_discrete_geno = TRUE) {
   genotypes <- table(c(object$ogeno, 0:object$input$ploidy)) - 1
-  maxpostprob_all <- apply(object$opostprob, 2, max)
-  maxpostprob <- summary(maxpostprob_all)
+  maxpostprob <- summary(object$maxpostprob)
   prob_ok <- summary(object$prob_ok)
 
   summ_prob <- cbind(maxpostprob, prob_ok)
@@ -192,14 +195,31 @@ summary.updog <- function(object, ...) {
 
   ## beta density if provided and txtplot installed --------------------------
   if (!is.null(object$out_mu) & !is.null(object$out_rho) & requireNamespace("txtplot", quietly = TRUE)) {
-    alpha <- object$out_mu * (1 - object$out_rho) / object$out_rho
-    beta  <- (1 - object$out_mu) * (1 - object$out_rho) / object$out_rho
+    alpha <- object$out_mean * (1 - object$out_disp) / object$out_disp
+    beta  <- (1 - object$out_mean) * (1 - object$out_disp) / object$out_disp
     x <- seq(0.015, 0.985, length = 100)
     y <- stats::dbeta(x = x, shape1 = alpha, shape2 = beta)
     cat("Outlier Distribution:\n")
     txtplot::txtplot(x = x, y = y)
   }
 
+  ## Chi-square test --------------------------------------------------------
+  if (!use_discrete_geno) {
+    object$postmat[object$postmat < 10^-5] <- 0
+    genotypes <- colSums(object$postmat)
+  }
+
+  if (object$input$model == "s1") {
+    if (object$p1geno != object$p2geno & object$p2geno >= 0) {
+      warning("p2geno != p1geno and model = s1. Setting p2geno <- p1geno.")
+    }
+    object$p2geno <- object$p1geno
+  }
+  prob_geno <- get_prob_geno(ploidy = object$input$ploidy, model = object$input$model, p1geno = object$p1geno, p2geno = object$p2geno, allele_freq = object$allele_freq)
+  test_stat <- sum(genotypes) * sum((genotypes[prob_geno != 0] / sum(genotypes) - prob_geno[prob_geno != 0]) ^ 2 / prob_geno[prob_geno != 0])
+  degrees_freedom <- sum(prob_geno != 0) - 1
+  pvalue <- stats::pchisq(q = test_stat, df = degrees_freedom, lower.tail = FALSE)
+  return_list$gof_pvalue <- pvalue
 
   return(return_list)
 }

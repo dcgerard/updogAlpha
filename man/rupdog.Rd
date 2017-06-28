@@ -2,7 +2,7 @@
 % Please edit documentation in R/diagnostics.R
 \name{rupdog}
 \alias{rupdog}
-\title{Sample counts using the parameter values in an \code{updog} object.}
+\title{Samples counts using the parameter values in an \code{updog} object.}
 \usage{
 rupdog(obj)
 }
@@ -10,7 +10,7 @@ rupdog(obj)
 \item{obj}{An object of class \code{updog} returned from \code{\link{updog}}.}
 }
 \description{
-Sample counts using the parameter values in an \code{updog} object.
+Samples counts using the parameter values in an \code{updog} object.
 }
 \author{
 David Gerard

@@ -4,23 +4,28 @@
 \alias{summary.updog}
 \title{Summary method for class "\code{updog}".}
 \usage{
-\method{summary}{updog}(object, ...)
+\method{summary}{updog}(object, ..., use_discrete_geno = TRUE)
 }
 \arguments{
 \item{object}{An \code{updog} object. Usually what has been returned from \code{\link{updog}}.}
 
 \item{...}{Not used.}
+
+\item{use_discrete_geno}{How should we get the empirical distribution for the GOF test?
+By a table of the counts of MAP estimate (\code{TRUE}) or by the sum of the posterior
+probabilities (\code{FALSE})? I am currently just experimenting with this.}
 }
 \value{
 A list with three elements:
-
-    \code{prop_ok}: The estimated proportion of observations that are outliers.
 
     \code{genotypes}: Counts for how many of each estimated genotype are observed.
 
     \code{summ_prob}: A data frame with summaries on two variables: The maximum posterior
     probability of a genotype that each observation has (\code{maxpostprob}), and the posterior probability
     of not being an outlier (\code{prob_ok})
+
+    \code{gof_pvalue}: A Pearson goodness of fit p-value testing if the empirically estimated genotypes
+    are close in frequency to the theoretical genotype distribution.
 }
 \description{
 Summary method for class "\code{updog}".
