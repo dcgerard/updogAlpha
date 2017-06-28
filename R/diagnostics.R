@@ -11,6 +11,12 @@
 #'
 rupdog <- function(obj) {
   assertthat::are_equal(class(obj), "updog")
+  if (obj$input$model == "s1") {
+    if (obj$p1geno != obj$p2geno & obj$p2geno >= 0) {
+      warning("p2geno != p1geno and model = s1. Setting p2geno <- p1geno.")
+    }
+    obj$p2geno <- obj$p1geno
+  }
 
   ## Possible mean probabilities ---
   pvec <- get_pvec(ploidy = obj$input$ploidy,
