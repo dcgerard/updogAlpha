@@ -224,6 +224,7 @@ update_good <- function(parvec, ocounts, osize, weight_vec, ploidy,
           start_vec <- parvec
         }
         oout <- stats::optim(par = start_vec, fn = obj_wrapp_all, gr = grad_wrapp_all,
+                             hessian = TRUE,
                              ocounts = ocounts, osize = osize, weight_vec = weight_vec,
                              ploidy = ploidy, p1geno = p1geno, p2geno = p2geno,
                              p1counts = p1counts, p1size = p1size, p1weight = p1weight,
@@ -268,6 +269,7 @@ update_good <- function(parvec, ocounts, osize, weight_vec, ploidy,
       start_vec <- parvec
     }
     oout <- stats::optim(par = start_vec, fn = obj_wrapp_all, gr = grad_wrapp_all,
+                         hessian = TRUE,
                          ocounts = ocounts, osize = osize, weight_vec = weight_vec,
                          ploidy = ploidy, p1geno = p1geno, p2geno = p2geno,
                          p1counts = p1counts, p1size = p1size, p1weight = p1weight,
@@ -313,6 +315,7 @@ update_good <- function(parvec, ocounts, osize, weight_vec, ploidy,
       allele_freq <- oaf_out$par ## new allele_freq
 
       oout <- stats::optim(par = start_vec, fn = obj_wrapp_all, gr = grad_wrapp_all,
+                           hessian = TRUE,
                            ocounts = ocounts, osize = osize, weight_vec = weight_vec,
                            ploidy = ploidy, p1geno = 0, p2geno = 0,
                            allele_freq = allele_freq,
@@ -339,7 +342,6 @@ update_good <- function(parvec, ocounts, osize, weight_vec, ploidy,
     stop("check update_good because corner case observed.")
   }
 
-
   return_list             <- list()
   return_list$p1geno      <- best_p1
   return_list$p2geno      <- best_p2
@@ -348,6 +350,7 @@ update_good <- function(parvec, ocounts, osize, weight_vec, ploidy,
   return_list$od          <- 1 / (1 + exp(best_par[3]))
   return_list$allele_freq <- allele_freq
   return_list$llike       <- best_llike
+  return_list$hessian     <- oout$hessian
   return(return_list)
 }
 
@@ -468,6 +471,27 @@ out_grad_wrapp <- function(parvec, ocounts, osize, weight_vec,
 #' @param model The model for the genotype distribution. Do we assume an
 #'    F1 population (\code{"f1"}), an S1 population (\code{"s1"}), Hardy-Weinberg equilibrium (\code{"hw"}),
 #'    or a uniform distribution (\code{"uniform"}).
+#'
+#' @return A list of the following elements
+#'     \itemize{
+#'         \item{\code{bias_val}:}{ The estimated bias parameter.}
+#'         \item{\code{seq_error}:}{ The estimated sequencing error rate.}
+#'         \item{\code{od_param}:}{ The estimated overdispersion parameter.}
+#'         \item{\code{p1geno}:}{ The estimated genotype of one parent.}
+#'         \item{\code{p1geno}:}{ The estimated genotype of the other parent.}
+#'         \item{\code{out_prop}:}{ The estimated proportion of points that are outliers.}
+#'         \item{\code{out_mean}:}{ The estimated mean of the outlier distribution.}
+#'         \item{\code{out_disp}:}{ The estimated overdispersion parameter of the outlier distribution.}
+#'         \item{\code{prob_out}:}{ A vector. Each element of which is the posterior probability that a point is an outlier.}
+#'         \item{\code{allele_freq}:}{ The estimated allele-frequency of the reference allele.}
+#'         \item{\code{p1_prob_out}:}{ The posterior probability that parent 1 is an outlier.}
+#'         \item{\code{p2_prob_out}:}{ The posterior probability that parent 2 is an outlier.}
+#'         \item{\code{num_iter}:}{ The number of iterations the optimization program was run.}
+#'         \item{\code{convergence}:}{ 1 is we reached \code{maxiter} and 0 otherwise.}
+#'         \item{\code{llike}:}{ The final log-likelihood of the estimates.}
+#'         \item{\code{hessian}:}{ The Fisher information under the parameterization (s, ell, r), where s = log(bias_val) = log(d),
+#' ell = logit(seq_error) = logit(eps), and r = 1 / logit(od_param) = 1 / logit(tau).}
+#'     }
 #'
 #' @author David Gerard
 #'
@@ -763,6 +787,7 @@ updog_update_all <- function(ocounts, osize, ploidy,
   return_list$num_iter    <- index
   return_list$convergence <- (index >= maxiter) * 1
   return_list$llike       <- llike_new
+  return_list$hessian     <- gout$hessian
   return(return_list)
 }
 
@@ -821,6 +846,31 @@ bb_simple_post <- function(ncounts, ssize, ploidy, p1geno, p2geno, seq_error = 0
 #' @inheritParams updog_old
 #' @inheritParams updog_update_all
 #'
+#' @return A list of class \code{updog} with some or all of the following elements:
+#'     \itemize{
+#'         \item{\code{bias_val}:}{ The estimated bias parameter.}
+#'         \item{\code{seq_error}:}{ The estimated sequencing error rate.}
+#'         \item{\code{od_param}:}{ The estimated overdispersion parameter.}
+#'         \item{\code{p1geno}:}{ The estimated genotype of one parent.}
+#'         \item{\code{p1geno}:}{ The estimated genotype of the other parent.}
+#'         \item{\code{out_prop}:}{ The estimated proportion of points that are outliers.}
+#'         \item{\code{out_mean}:}{ The estimated mean of the outlier distribution.}
+#'         \item{\code{out_disp}:}{ The estimated overdispersion parameter of the outlier distribution.}
+#'         \item{\code{prob_out}:}{ A vector. Each element of which is the posterior probability that a point is an outlier.}
+#'         \item{\code{allele_freq}:}{ The estimated allele-frequency of the reference allele.}
+#'         \item{\code{p1_prob_out}:}{ The posterior probability that parent 1 is an outlier.}
+#'         \item{\code{p2_prob_out}:}{ The posterior probability that parent 2 is an outlier.}
+#'         \item{\code{num_iter}:}{ The number of iterations the optimization program was run.}
+#'         \item{\code{convergence}:}{ 1 is we reached \code{maxiter} and 0 otherwise.}
+#'         \item{\code{llike}:}{ The final log-likelihood of the estimates.}
+#'         \item{\code{hessian}:}{ The Fisher information under the parameterization (s, ell, r), where s = log(bias_val) = log(d),
+#' ell = logit(seq_error) = logit(eps), and r = 1 / logit(od_param) = 1 / logit(tau).}
+#'         \item{\code{ogeno}:}{ A vector. Each element of which is the maximum a posteriori estimate of each individual genotype.}
+#'         \item{\code{maxpostprob}:} {The maximum posterior probability of a genotype for each individual.}
+#'         \item{\code{postmean}:}{ The posterior mean genotype for each individual.}
+#'         \item{\code{prob_ok}:}{ The posterior probability that a point is a non-outlier.}
+#'         \item{\code{input}:}{ A list with the input counts (\code{ocounts}), the input sizes (\code{osize}), input parental counts (\code{p1counts} and \code{p2counts}), input parental sizes (\code{p2size} and \code{p1size}), the ploidy (\code{ploidy}) and the model (\code{model}).}
+#'     }
 #' @author David Gerard
 #'
 #' @export
