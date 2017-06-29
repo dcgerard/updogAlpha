@@ -7,3 +7,4 @@
 ^README\.html$
 ^appveyor\.yml$
 ^codecov\.yml$
+^ubib.bib
