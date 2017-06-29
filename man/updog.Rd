@@ -8,13 +8,14 @@ updog(ocounts, osize, ploidy, model = c("f1", "s1", "hw", "uniform"), ...)
 }
 \arguments{
 \item{ocounts}{A vector of non-negative integers. The ith element
-is the number of reads of the reference allele the ith child.}
+is the number of reads of the reference allele in the ith child.}
 
 \item{osize}{A vector of positive integers. The ith element is the
 total number of reads for the ith child.}
 
 \item{ploidy}{A positive integer. The number of copies of the
-genome in the species.}
+genome in the species. This is the assumed to be the same
+for all individuals.}
 
 \item{model}{The model for the genotype distribution. Do we assume an
 F1 population (\code{"f1"}), an S1 population (\code{"s1"}), Hardy-Weinberg equilibrium (\code{"hw"}),
@@ -25,33 +26,32 @@ or a uniform distribution (\code{"uniform"}).}
 \value{
 A list of class \code{updog} with some or all of the following elements:
     \describe{
-        \item{\code{bias_val}}{The estimated bias parameter.}
-        \item{\code{seq_error}}{The estimated sequencing error rate.}
-        \item{\code{od_param}}{The estimated overdispersion parameter.}
-        \item{\code{p1geno}}{The estimated genotype of one parent.}
-        \item{\code{p1geno}}{The estimated genotype of the other parent.}
+        \item{\code{ogeno}}{A vector. Each element of which is the maximum a posteriori estimate of each individual's genotype.}
+        \item{\code{maxpostprob}}{A vector. The maximum posterior probability of a genotype for each individual.}
+        \item{\code{postmean}}{A vector. The posterior mean genotype for each individual.}
+        \item{\code{bias_val}}{The estimated bias parameter. This is a value greater than 0 which is the ratio of the probability of correctly mapping a read containing the alternative allele to the probability of correctly mapping a read containing the reference allele. A value of 1 indicates no bias. A value less than one indicates bias towards the reference alelle. A value greater than 1 indiciates bias towards the alternative allele.}
+        \item{\code{seq_error}}{The estimated sequencing error rate. This is between 0 and 1.}
+        \item{\code{od_param}}{The estimated overdispersion parameter. Also known as the "intra-class correlation", this is the overdispersion parameter in the underlying beta of the beta-binomial distribution of the counts. Between 0 and 1, a value closer to 0 indicates less overdispersion and a value greater than 1 indicates greater overdispersion. In real data, we we typically see estimates between 0 and 0.01.}
+        \item{\code{p1geno}}{The estimated genotype of one parent. The number of copies of the reference allele one of the parents has.}
+        \item{\code{p1geno}}{The estimated genotype of the other parent. The number of copies of the reference allele the other parent has.}
+        \item{\code{allele_freq}}{The estimated allele-frequency of the reference allele. This is the binomial proportion. Between 0 and 1, a value closer to 1 indicates a larger amount of reference alleles in the population.}
         \item{\code{out_prop}}{The estimated proportion of points that are outliers.}
-        \item{\code{out_mean}}{The estimated mean of the outlier distribution.}
-        \item{\code{out_disp}}{The estimated overdispersion parameter of the outlier distribution.}
+        \item{\code{out_mean}}{The estimated mean of the outlier distribution. The outlier distribution is beta-binomial.}
+        \item{\code{out_disp}}{The estimated overdispersion parameter of the outlier distribution. This is the "intra-class correlation" parameter of the beta-binomial outlier distribution.}
         \item{\code{prob_out}}{A vector. Each element of which is the posterior probability that a point is an outlier.}
-        \item{\code{allele_freq}}{The estimated allele-frequency of the reference allele.}
+        \item{\code{prob_ok}}{The posterior probability that a point is a non-outlier.}
         \item{\code{p1_prob_out}}{The posterior probability that parent 1 is an outlier.}
         \item{\code{p2_prob_out}}{The posterior probability that parent 2 is an outlier.}
         \item{\code{num_iter}}{The number of iterations the optimization program was run.}
         \item{\code{convergence}}{1 is we reached \code{maxiter} and 0 otherwise.}
         \item{\code{llike}}{The final log-likelihood of the estimates.}
-        \item{\code{hessian}}{The Fisher information under the parameterization (s, ell, r), where s = log(bias_val) = log(d),
-ell = logit(seq_error) = logit(eps), and r = - logit(od_param) = - logit(tau).}
-        \item{\code{ogeno}}{A vector. Each element of which is the maximum a posteriori estimate of each individual genotype.}
-        \item{\code{maxpostprob}}{The maximum posterior probability of a genotype for each individual.}
-        \item{\code{postmean}}{The posterior mean genotype for each individual.}
-        \item{\code{prob_ok}}{The posterior probability that a point is a non-outlier.}
+        \item{\code{hessian}}{The negative-Fisher information under the parameterization (s, ell, r), where s = log(bias_val) = log(d), ell = logit(seq_error) = logit(eps), and r = - logit(od_param) = - logit(tau). If you want standard errors for these parameters (in the described parameterization), simply take the negative inverse of the hessian.}
         \item{\code{input}}{A list with the input counts (\code{ocounts}), the input sizes (\code{osize}), input parental counts (\code{p1counts} and \code{p2counts}), input parental sizes (\code{p2size} and \code{p1size}), the ploidy (\code{ploidy}) and the model (\code{model}).}
     }
 }
 \description{
 This function fits a hierarchical model to sequence counts from
-collection of siblings --- or a population of individuals
+a collection of siblings --- or a population of individuals
 in Hardy-Weinberg equilibrium --- and returns genotyped information. The
 hierarchy comes from either the fact that they share the same parents or they come
 from a population in Hardy-Weinberg equilibrium. If

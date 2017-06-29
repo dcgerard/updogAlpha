@@ -19,7 +19,7 @@ up_obj(pival, p1geno, p2geno, alpha, beta, ocounts, osize, dbinommat, qarray,
 \item{beta}{The beta parameter in \code{\link{dbetabinom}}.}
 
 \item{ocounts}{A vector of non-negative integers. The ith element
-is the number of reads of the reference allele the ith child.}
+is the number of reads of the reference allele in the ith child.}
 
 \item{osize}{A vector of positive integers. The ith element is the
 total number of reads for the ith child.}

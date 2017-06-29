@@ -621,8 +621,8 @@ plot_geno <- function(ocounts, osize, ploidy, p1counts = NULL, p1size = NULL, p2
   }
 
   if (!is.null(prob_ok)) {
-    assertthat::assert_that(all(prob_ok >= 0))
-    assertthat::assert_that(all(prob_ok <= 1))
+    assertthat::assert_that(all(prob_ok >= 0, na.rm = TRUE))
+    assertthat::assert_that(all(prob_ok <= 1, na.rm = TRUE))
     dfdat$prob_ok <- prob_ok
   }
 

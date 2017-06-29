@@ -10,7 +10,7 @@ good_bb_obj(rho, ocounts, osize, theta, avec, pk)
 \item{rho}{The overdispersion parameter.}
 
 \item{ocounts}{A vector of non-negative integers. The ith element
-is the number of reads of the reference allele the ith child.}
+is the number of reads of the reference allele in the ith child.}
 
 \item{osize}{A vector of positive integers. The ith element is the
 total number of reads for the ith child.}

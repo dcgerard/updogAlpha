@@ -851,27 +851,26 @@ bb_simple_post <- function(ncounts, ssize, ploidy, p1geno, p2geno, seq_error = 0
 #'
 #' @return A list of class \code{updog} with some or all of the following elements:
 #'     \describe{
-#'         \item{\code{bias_val}}{The estimated bias parameter.}
-#'         \item{\code{seq_error}}{The estimated sequencing error rate.}
-#'         \item{\code{od_param}}{The estimated overdispersion parameter.}
-#'         \item{\code{p1geno}}{The estimated genotype of one parent.}
-#'         \item{\code{p1geno}}{The estimated genotype of the other parent.}
+#'         \item{\code{ogeno}}{A vector. Each element of which is the maximum a posteriori estimate of each individual's genotype.}
+#'         \item{\code{maxpostprob}}{A vector. The maximum posterior probability of a genotype for each individual.}
+#'         \item{\code{postmean}}{A vector. The posterior mean genotype for each individual.}
+#'         \item{\code{bias_val}}{The estimated bias parameter. This is a value greater than 0 which is the ratio of the probability of correctly mapping a read containing the alternative allele to the probability of correctly mapping a read containing the reference allele. A value of 1 indicates no bias. A value less than one indicates bias towards the reference alelle. A value greater than 1 indiciates bias towards the alternative allele.}
+#'         \item{\code{seq_error}}{The estimated sequencing error rate. This is between 0 and 1.}
+#'         \item{\code{od_param}}{The estimated overdispersion parameter. Also known as the "intra-class correlation", this is the overdispersion parameter in the underlying beta of the beta-binomial distribution of the counts. Between 0 and 1, a value closer to 0 indicates less overdispersion and a value greater than 1 indicates greater overdispersion. In real data, we we typically see estimates between 0 and 0.01.}
+#'         \item{\code{p1geno}}{The estimated genotype of one parent. The number of copies of the reference allele one of the parents has.}
+#'         \item{\code{p1geno}}{The estimated genotype of the other parent. The number of copies of the reference allele the other parent has.}
+#'         \item{\code{allele_freq}}{The estimated allele-frequency of the reference allele. This is the binomial proportion. Between 0 and 1, a value closer to 1 indicates a larger amount of reference alleles in the population.}
 #'         \item{\code{out_prop}}{The estimated proportion of points that are outliers.}
-#'         \item{\code{out_mean}}{The estimated mean of the outlier distribution.}
-#'         \item{\code{out_disp}}{The estimated overdispersion parameter of the outlier distribution.}
+#'         \item{\code{out_mean}}{The estimated mean of the outlier distribution. The outlier distribution is beta-binomial.}
+#'         \item{\code{out_disp}}{The estimated overdispersion parameter of the outlier distribution. This is the "intra-class correlation" parameter of the beta-binomial outlier distribution.}
 #'         \item{\code{prob_out}}{A vector. Each element of which is the posterior probability that a point is an outlier.}
-#'         \item{\code{allele_freq}}{The estimated allele-frequency of the reference allele.}
+#'         \item{\code{prob_ok}}{The posterior probability that a point is a non-outlier.}
 #'         \item{\code{p1_prob_out}}{The posterior probability that parent 1 is an outlier.}
 #'         \item{\code{p2_prob_out}}{The posterior probability that parent 2 is an outlier.}
 #'         \item{\code{num_iter}}{The number of iterations the optimization program was run.}
 #'         \item{\code{convergence}}{1 is we reached \code{maxiter} and 0 otherwise.}
 #'         \item{\code{llike}}{The final log-likelihood of the estimates.}
-#'         \item{\code{hessian}}{The Fisher information under the parameterization (s, ell, r), where s = log(bias_val) = log(d),
-#' ell = logit(seq_error) = logit(eps), and r = - logit(od_param) = - logit(tau).}
-#'         \item{\code{ogeno}}{A vector. Each element of which is the maximum a posteriori estimate of each individual genotype.}
-#'         \item{\code{maxpostprob}}{The maximum posterior probability of a genotype for each individual.}
-#'         \item{\code{postmean}}{The posterior mean genotype for each individual.}
-#'         \item{\code{prob_ok}}{The posterior probability that a point is a non-outlier.}
+#'         \item{\code{hessian}}{The negative-Fisher information under the parameterization (s, ell, r), where s = log(bias_val) = log(d), ell = logit(seq_error) = logit(eps), and r = - logit(od_param) = - logit(tau). If you want standard errors for these parameters (in the described parameterization), simply take the negative inverse of the hessian.}
 #'         \item{\code{input}}{A list with the input counts (\code{ocounts}), the input sizes (\code{osize}), input parental counts (\code{p1counts} and \code{p2counts}), input parental sizes (\code{p2size} and \code{p1size}), the ploidy (\code{ploidy}) and the model (\code{model}).}
 #'     }
 #' @author David Gerard
@@ -910,6 +909,12 @@ updog_vanilla <- function(ocounts, osize, ploidy,
                           bias_val_sd = 1,
                           allele_freq = 0.5,
                           model = c("f1", "s1", "hw", "uniform")) {
+  ## Deal with missing data -----------------------------------------------------------
+  which_na <- is.na(ocounts) | is.na(osize)
+  ocounts  <- ocounts[!which_na]
+  osize    <- osize[!which_na]
+
+
   ## Check input -----------------------------------------------------------------------
   assertthat::assert_that(is.logical(print_val))
   assertthat::assert_that(is.logical(update_outmean))
@@ -994,7 +999,6 @@ updog_vanilla <- function(ocounts, osize, ploidy,
   parout$ogeno[abs(parout$prob_out - 1) < 10 ^ -3] <- NA   ## Put NA for ogeno when prob_out is almost 1 ----
   parout$maxpostprob   <- parout$postmat[cbind(1:nrow(parout$postmat), parout$ogeno + 1)]
   parout$postmean      <- c(parout$postmat %*% 0:ploidy)
-  parout$prob_ok       <- 1 - parout$prob_out
   parout$input         <- list()
   parout$input$ocounts <- ocounts
   parout$input$osize   <- osize
@@ -1009,7 +1013,7 @@ updog_vanilla <- function(ocounts, osize, ploidy,
   parout$input$ploidy <- ploidy
   parout$input$model  <- model
 
-  ## Fix output according to model
+  ## Fix output according to model ----------------------------------------
   if (model == "hw") {
     parout$p1geno <- -1
     parout$p2geno <- -1
@@ -1023,6 +1027,36 @@ updog_vanilla <- function(ocounts, osize, ploidy,
     parout$p1geno <- -1
     parout$p2geno <- -1
   }
+
+  ## deal with missingness again -----------------------------------------
+  temp <- rep(NA, length = length(which_na))
+  temp[!which_na] <- parout$prob_out
+  parout$prob_out <- temp
+  parout$prob_ok  <- 1 - parout$prob_out
+
+  temp <- matrix(NA, nrow = length(which_na), ncol = ncol(parout$postmat))
+  temp[!which_na, ] <- parout$postmat
+  parout$postmat <- temp
+
+  temp <- rep(NA, length = length(which_na))
+  temp[!which_na] <- parout$ogeno
+  parout$ogeno <- temp
+
+  temp <- rep(NA, length = length(which_na))
+  temp[!which_na] <- parout$maxpostprob
+  parout$maxpostprob <- temp
+
+  temp <- rep(NA, length = length(which_na))
+  temp[!which_na] <- parout$postmean
+  parout$postmean <- temp
+
+  temp <- rep(NA, length = length(which_na))
+  temp[!which_na] <- parout$input$ocounts
+  parout$input$ocounts <- temp
+
+  temp <- rep(NA, length = length(which_na))
+  temp[!which_na] <- parout$input$osize
+  parout$input$osize <- temp
 
   class(parout) <- "updog"
   return(parout)

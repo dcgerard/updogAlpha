@@ -11,7 +11,7 @@ outlier_bb_obj(par, ocounts, osize, theta)
 beta-binomial. The second is the overdispersion parameter.}
 
 \item{ocounts}{A vector of non-negative integers. The ith element
-is the number of reads of the reference allele the ith child.}
+is the number of reads of the reference allele in the ith child.}
 
 \item{osize}{A vector of positive integers. The ith element is the
 total number of reads for the ith child.}

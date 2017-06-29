@@ -23,7 +23,7 @@ mistake. Estimated if \code{est_fudge = TRUE}. Set to 0.99. Only used if \code{e
 \item{out_rho}{The outlier overdispersion parameter.}
 
 \item{ocounts}{A vector of non-negative integers. The ith element
-is the number of reads of the reference allele the ith child.}
+is the number of reads of the reference allele in the ith child.}
 
 \item{osize}{A vector of positive integers. The ith element is the
 total number of reads for the ith child.}

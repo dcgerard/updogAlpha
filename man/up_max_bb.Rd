@@ -11,7 +11,7 @@ up_max_bb(ocounts, osize, qarray, r1vec, r2vec, pk, pival = 0.99,
 }
 \arguments{
 \item{ocounts}{A vector of non-negative integers. The ith element
-is the number of reads of the reference allele the ith child.}
+is the number of reads of the reference allele in the ith child.}
 
 \item{osize}{A vector of positive integers. The ith element is the
 total number of reads for the ith child.}

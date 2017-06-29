@@ -6,7 +6,7 @@ NULL
 #' @inherit updog_vanilla
 #'
 #' @description This function fits a hierarchical model to sequence counts from
-#' collection of siblings --- or a population of individuals
+#' a collection of siblings --- or a population of individuals
 #' in Hardy-Weinberg equilibrium --- and returns genotyped information. The
 #' hierarchy comes from either the fact that they share the same parents or they come
 #' from a population in Hardy-Weinberg equilibrium. If
@@ -65,7 +65,7 @@ updog <- function(ocounts, osize, ploidy,
 #' between the offspring by setting \code{update_geno} to \code{TRUE}.
 #'
 #' @param ocounts A vector of non-negative integers. The ith element
-#'     is the number of reads of the reference allele the ith child.
+#'     is the number of reads of the reference allele in the ith child.
 #' @param osize A vector of positive integers. The ith element is the
 #'     total number of reads for the ith child.
 #' @param p1counts A vector of non-negative integers. The ith element
@@ -85,7 +85,8 @@ updog <- function(ocounts, osize, ploidy,
 #'     \code{NULL} then the prior probabilities on parent 2's genotype
 #'     will default to uniform.
 #' @param ploidy A positive integer. The number of copies of the
-#'     genome in the species.
+#'     genome in the species. This is the assumed to be the same
+#'     for all individuals.
 #' @param seq_error A non-negative numeric. This is the known
 #'     sequencing error rate. The default is to estimate this
 #'     using data that are all approximately the reference allele.

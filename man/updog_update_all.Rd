@@ -18,13 +18,14 @@ updog_update_all(ocounts, osize, ploidy, p1counts = NULL, p1size = NULL,
 }
 \arguments{
 \item{ocounts}{A vector of non-negative integers. The ith element
-is the number of reads of the reference allele the ith child.}
+is the number of reads of the reference allele in the ith child.}
 
 \item{osize}{A vector of positive integers. The ith element is the
 total number of reads for the ith child.}
 
 \item{ploidy}{A positive integer. The number of copies of the
-genome in the species.}
+genome in the species. This is the assumed to be the same
+for all individuals.}
 
 \item{p1counts}{A vector of non-negative integers. The ith element
 is the number of reads of the reference allele in the ith
