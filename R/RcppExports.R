@@ -386,14 +386,14 @@ obj_offspring <- function(ocounts, osize, ploidy, prob_geno, bias_val = 1, seq_e
 #' Just a reparameterization of \code{\link{obj_offspring}}.
 #'
 #' @inheritParams obj_offspring_vec
-#' @param s Same as \code{exp(bias_val)} in \code{\link{obj_offspring}}.
+#' @param s Same as \code{log(bias_val)} in \code{\link{obj_offspring}}.
 #' @param ell We have \code{seq_error = expit(ell)} from \code{\link{obj_offspring}}.
 #' @param r Same as \code{log((1.0 - od_param) / od_param)} from \code{\link{obj_offspring}}.
 #'
 #' @author David Gerard
 #'
-obj_offspring_reparam <- function(ocounts, osize, ploidy, prob_geno, s, ell, r) {
-    .Call('updog_obj_offspring_reparam', PACKAGE = 'updog', ocounts, osize, ploidy, prob_geno, s, ell, r)
+obj_offspring_reparam <- function(ocounts, osize, ploidy, prob_geno, s, ell, r, outlier = FALSE, out_prop = 0.01) {
+    .Call('updog_obj_offspring_reparam', PACKAGE = 'updog', ocounts, osize, ploidy, prob_geno, s, ell, r, outlier, out_prop)
 }
 
 #' Same thing as \code{\link{obj_offspring}}, but each sample's log-density has a weight.
@@ -491,8 +491,8 @@ obj_parent <- function(pcounts, psize, ploidy, pgeno, bias_val = 1, seq_error = 
 #'
 #' @author David Gerard
 #'
-obj_parent_reparam <- function(pcounts, psize, ploidy, pgeno, s, ell, r, weight = 1.0) {
-    .Call('updog_obj_parent_reparam', PACKAGE = 'updog', pcounts, psize, ploidy, pgeno, s, ell, r, weight)
+obj_parent_reparam <- function(pcounts, psize, ploidy, pgeno, s, ell, r, weight = 1.0, outlier = FALSE, out_prop = 0.01) {
+    .Call('updog_obj_parent_reparam', PACKAGE = 'updog', pcounts, psize, ploidy, pgeno, s, ell, r, weight, outlier, out_prop)
 }
 
 #' Gradient of \code{\link{obj_parent}} (when \code{outlier = FALSE}) with respect to

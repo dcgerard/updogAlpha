@@ -788,7 +788,104 @@ updog_update_all <- function(ocounts, osize, ploidy,
   return_list$convergence <- (index >= maxiter) * 1
   return_list$llike       <- llike_new
   return_list$hessian     <- gout$hessian
+  return_list$log_bias           <- log(return_list$bias_val)
+  return_list$logit_seq_error    <- log(return_list$seq_error / (1 - return_list$seq_error))
+  return_list$neg_logit_od_param <- log((1 - return_list$od_param) / return_list$od_param)
+
+  ## get covariance matrix of updated parameters
+  if (update_bias_val | update_seq_error | update_od_param) {
+    keep_vec <- c(1, 2, 3)[c(update_bias_val, update_seq_error, update_od_param)]
+    return_list$covmat <- matrix(NA, nrow = 3, ncol = 3)
+    return_list$covmat[keep_vec, keep_vec] <- -1 * solve(return_list$hessian[keep_vec, keep_vec])
+  } else {
+    return_list$covmat <- NULL
+  }
+
   return(return_list)
+}
+
+#' Calculate the negative inverse hessian of the parameters from
+#' \code{\link{obj_offspring_reparam}}.
+#'
+#' This is the covariance matrix if evaluated at the MLE's of these parameters.
+#'
+#' @inheritParams obj_offspring_vec
+#' @inheritParams updog_old
+#' @inheritParams updog_update_all
+#'
+#' @author David Gerard
+get_cov_mle <- function(ocounts, osize, ploidy, prob_geno, bias_val,
+                        seq_error, od_param, out_prop,
+                        p1counts = NULL, p1size = NULL, p1geno = NULL,
+                        p2counts = NULL, p2size = NULL, p2geno = NULL,
+                        bias_val_mean = 0, bias_val_sd = 1,
+                        seq_error_mean = -4.7, seq_error_sd = 1,
+                        model = c("f1", "s1", "hw", "uniform")) {
+  model    <- match.arg(model)
+  s        <- log(bias_val)
+  ell      <- log(seq_error / (1 - seq_error))
+  r        <- log((1 - od_param) / od_param)
+  logitout <- log(out_prop / (1 - out_prop))
+  parvec <- c(s, ell, r, logitout)
+  hessout <- stats::optimHess(par = parvec, fn = fn_cov_mle,
+                       ocounts = ocounts, osize = osize, ploidy = ploidy,
+                       prob_geno = prob_geno, model = model,
+                       p1counts = p1counts, p1size = p1size, p1geno = p1geno,
+                       p2counts = p2counts, p2size = p2size, p2geno = p2geno,
+                       bias_val_mean = bias_val_mean, bias_val_sd = bias_val_sd,
+                       seq_error_mean = seq_error_mean, seq_error_sd = seq_error_sd)
+  fisherinfo <- -1 * solve(hessout)
+  return(list(coefficients = parvec, cov = fisherinfo))
+}
+
+#' Wrapper for \code{\link{obj_offspring_reparam}}.
+#'
+#' This exists to calculate the Hessian of the parameters at the end of
+#' \code{\link{updog_update_all}}.
+#'
+#' @inheritParams obj_offspring_vec
+#' @inheritParams updog_old
+#' @inheritParams updog_update_all
+#' @param par A numeric vector of length 4. The elements are \code{s},
+#'     \code{ell}, \code{r}, and the logit of \code{out_prop} from
+#'     \code{\link{obj_offspring_reparam}}.
+#'
+#' @author David Gerard
+#'
+fn_cov_mle <- function(par, ocounts, osize, ploidy, prob_geno, p1counts = NULL,
+                       p1size = NULL, p2counts = NULL, p2size = NULL, p1geno = NULL,
+                       p2geno = NULL,
+                       bias_val_mean = 0, bias_val_sd = 1,
+                       seq_error_mean = -4.7, seq_error_sd = 1,
+                       model = c("f1", "s1", "hw", "uniform")) {
+  model <- match.arg(model)
+  out_prop <- expit(par[4])
+  llike_new <- obj_offspring_reparam(ocounts = ocounts, osize = osize, ploidy = ploidy,
+                                     prob_geno = prob_geno, s = par[1], ell = par[2], r = par[3],
+                                     outlier = TRUE, out_prop = out_prop)
+  if (!is.null(p1counts) & !is.null(p1size) & !is.null(p1geno) &
+      (model == "f1" | model == "s1")) {
+    llike_new <- llike_new + obj_parent_reparam(pcounts = p1counts, psize = p1size,
+                                                ploidy = ploidy, pgeno = p1geno,
+                                                s = par[1], ell = par[2],
+                                                r = par[3], weight = 1,
+                                                outlier = TRUE, out_prop = out_prop)
+  }
+  if (!is.null(p2counts) & !is.null(p2size) & !is.null(p2geno) & model == "f1") {
+    llike_new <- llike_new + obj_parent_reparam(pcounts = p2counts, psize = p2size,
+                                                ploidy = ploidy, pgeno = p2geno,
+                                                s = par[1], ell = par[2],
+                                                r = par[3], weight = 1,
+                                                outlier = TRUE, out_prop = out_prop)
+  }
+
+  ## Add sequencing error penalty ---
+  llike_new <- llike_new - (par[2] - seq_error_mean) ^ 2 / (2 * seq_error_sd ^ 2)
+
+  ## add bias_val penalty ---
+  llike_new <- llike_new - (par[1] - bias_val_mean) ^ 2 / (2 * bias_val_sd ^ 2)
+
+  return(llike_new)
 }
 
 
@@ -868,10 +965,14 @@ bb_simple_post <- function(ncounts, ssize, ploidy, p1geno, p2geno, seq_error = 0
 #'         \item{\code{p1_prob_out}}{The posterior probability that parent 1 is an outlier.}
 #'         \item{\code{p2_prob_out}}{The posterior probability that parent 2 is an outlier.}
 #'         \item{\code{num_iter}}{The number of iterations the optimization program was run.}
-#'         \item{\code{convergence}}{1 is we reached \code{maxiter} and 0 otherwise.}
+#'         \item{\code{convergence}}{\code{1} if we reached \code{maxiter} and \code{0} otherwise.}
 #'         \item{\code{llike}}{The final log-likelihood of the estimates.}
 #'         \item{\code{hessian}}{The negative-Fisher information under the parameterization (s, ell, r), where s = log(bias_val) = log(d), ell = logit(seq_error) = logit(eps), and r = - logit(od_param) = - logit(tau). If you want standard errors for these parameters (in the described parameterization), simply take the negative inverse of the hessian.}
 #'         \item{\code{input}}{A list with the input counts (\code{ocounts}), the input sizes (\code{osize}), input parental counts (\code{p1counts} and \code{p2counts}), input parental sizes (\code{p2size} and \code{p1size}), the ploidy (\code{ploidy}) and the model (\code{model}).}
+#'         \item{\code{log_bias}}{The log of \code{bias_val}}
+#'         \item{\code{logit_seq_error}}{The logit of \code{seq_error}. I.e. \code{log(seq_error / (1 - seq_error))}}
+#'         \item{\code{neg_logit_od_param}}{The negative logit of \code{od_param}. I.e. \code{log((1 - od_param) / od_param)}}
+#'         \item{\code{covmat}}{The observed Fisher information matrix of \code{c(log_bias, logit_seq_error, neg_logit_od_param)}. This can be used as the covariance matrix of these estimates.}
 #'     }
 #' @author David Gerard
 #'
@@ -1061,5 +1162,4 @@ updog_vanilla <- function(ocounts, osize, ploidy,
   class(parout) <- "updog"
   return(parout)
 }
-
 

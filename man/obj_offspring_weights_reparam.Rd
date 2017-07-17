@@ -21,7 +21,7 @@ to be the same for each individual.}
 
 \item{prob_geno}{The allele frequencies of the genotypes. See \code{\link{get_prob_geno}}.}
 
-\item{s}{Same as \code{exp(bias_val)} in \code{\link{obj_offspring}}.}
+\item{s}{Same as \code{log(bias_val)} in \code{\link{obj_offspring}}.}
 
 \item{ell}{We have \code{seq_error = expit(ell)} from \code{\link{obj_offspring}}.}
 

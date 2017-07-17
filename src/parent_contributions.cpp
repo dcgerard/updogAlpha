@@ -81,7 +81,8 @@ double obj_parent(double pcounts, double psize,
 // [[Rcpp::export]]
 double obj_parent_reparam(double pcounts, double psize, int ploidy,
                           int pgeno, double s, double ell, double r,
-                          double weight = 1.0) {
+                          double weight = 1.0,
+                          bool outlier = false, double out_prop = 0.01) {
   double tol = 2.0 * DBL_EPSILON;
   if ((weight < -1.0 * tol) | (weight > 1.0 + tol)) {
     Rcpp::stop("weight must be between 0 and 1.");
@@ -94,7 +95,7 @@ double obj_parent_reparam(double pcounts, double psize, int ploidy,
   if (tau > (1.0 - tol)) {
     tau = 1.0 - 2.0 * tol;
   }
-  return weight * obj_parent(pcounts, psize, ploidy, pgeno, d, eps, tau, false, 0.01, 0.5, 1.0 / 3.0);
+  return weight * obj_parent(pcounts, psize, ploidy, pgeno, d, eps, tau, outlier, out_prop, 0.5, 1.0 / 3.0);
 }
 
 //////////////////////////////////////////////////

@@ -4,7 +4,8 @@
 \alias{obj_offspring_reparam}
 \title{Just a reparameterization of \code{\link{obj_offspring}}.}
 \usage{
-obj_offspring_reparam(ocounts, osize, ploidy, prob_geno, s, ell, r)
+obj_offspring_reparam(ocounts, osize, ploidy, prob_geno, s, ell, r,
+  outlier = FALSE, out_prop = 0.01)
 }
 \arguments{
 \item{ocounts}{The observed counts of the refernce
@@ -18,11 +19,17 @@ to be the same for each individual.}
 
 \item{prob_geno}{The allele frequencies of the genotypes. See \code{\link{get_prob_geno}}.}
 
-\item{s}{Same as \code{exp(bias_val)} in \code{\link{obj_offspring}}.}
+\item{s}{Same as \code{log(bias_val)} in \code{\link{obj_offspring}}.}
 
 \item{ell}{We have \code{seq_error = expit(ell)} from \code{\link{obj_offspring}}.}
 
 \item{r}{Same as \code{log((1.0 - od_param) / od_param)} from \code{\link{obj_offspring}}.}
+
+\item{outlier}{A logical. Should we include an outlier model (\code{TRUE})
+or not (\code{FALSE})? Defaults to \code{FALSE}.}
+
+\item{out_prop}{The proportion of points that are outliers. Defaults
+(quite arbitrarily) to \code{0.01}.}
 }
 \description{
 Just a reparameterization of \code{\link{obj_offspring}}.

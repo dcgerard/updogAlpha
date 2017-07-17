@@ -711,3 +711,42 @@ test_that("out_grad_wrapp matches out_obj_wrapp", {
   expect_equal(cderiv, c(attr(nout, "gradient")), tol = 10 ^ -6)
 }
 )
+
+
+test_that("get_cov_mle works", {
+  skip("need to load snpdat")
+  data("snpdat")
+  subdat    <- snpdat[snpdat$snp == "SNP1", ]
+  ocounts   <- subdat$counts
+  osize     <- subdat$size
+
+  p1geno <- 5
+  p2geno <- 5
+  model  <- "f1"
+  ploidy <- 6
+
+  old_hess <- structure(c(-602.766513627832, -5.23302863060546, -26.1415245533606,
+                          -5.23302863060546, -5.13155719179381, -1.95466333012144, -26.1415245533606,
+                          -1.95466333012144, -17.585650065388), .Dim = c(3L, 3L))
+  prob_geno <- get_prob_geno(ploidy = ploidy, model = model, p1geno = p1geno,
+                             p2geno = p2geno, allele_freq = 0)
+  bias_val  <- 1.022
+  seq_error <- 0.001102
+  od_param  <- 0.01264
+  out_prop  <- 0.02
+  bias_val_mean  <- 0
+  bias_val_sd    <- 1
+  seq_error_mean <- -4.7
+  seq_error_sd   <- 1
+
+  p1counts <- NULL
+  p1size <- NULL
+  p2counts <- NULL
+  p2size <- NULL
+
+  covout <- get_cov_mle(ocounts = ocounts, osize = osize, ploidy = ploidy, prob_geno = prob_geno, bias_val = bias_val, seq_error = seq_error, od_param = od_param, out_prop = out_prop, p1counts = p1counts, p1size = p1size, p1geno = p1geno, p2counts = p2counts, p2size = p2size, p2geno = p2geno, bias_val_mean = bias_val_mean, bias_val_sd = bias_val_sd, seq_error_mean = seq_error_mean, seq_error_sd = seq_error_sd, model = model)
+  covout$cov
+  old_cov <- -1 * solve(old_hess)
+  expect_true(all(abs(old_cov - covout$cov[1:3, 1:3]) < 10 ^ -1))
+}
+)

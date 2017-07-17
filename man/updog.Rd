@@ -43,10 +43,14 @@ A list of class \code{updog} with some or all of the following elements:
         \item{\code{p1_prob_out}}{The posterior probability that parent 1 is an outlier.}
         \item{\code{p2_prob_out}}{The posterior probability that parent 2 is an outlier.}
         \item{\code{num_iter}}{The number of iterations the optimization program was run.}
-        \item{\code{convergence}}{1 is we reached \code{maxiter} and 0 otherwise.}
+        \item{\code{convergence}}{\code{1} if we reached \code{maxiter} and \code{0} otherwise.}
         \item{\code{llike}}{The final log-likelihood of the estimates.}
         \item{\code{hessian}}{The negative-Fisher information under the parameterization (s, ell, r), where s = log(bias_val) = log(d), ell = logit(seq_error) = logit(eps), and r = - logit(od_param) = - logit(tau). If you want standard errors for these parameters (in the described parameterization), simply take the negative inverse of the hessian.}
         \item{\code{input}}{A list with the input counts (\code{ocounts}), the input sizes (\code{osize}), input parental counts (\code{p1counts} and \code{p2counts}), input parental sizes (\code{p2size} and \code{p1size}), the ploidy (\code{ploidy}) and the model (\code{model}).}
+        \item{\code{log_bias}}{The log of \code{bias_val}}
+        \item{\code{logit_seq_error}}{The logit of \code{seq_error}. I.e. \code{log(seq_error / (1 - seq_error))}}
+        \item{\code{neg_logit_od_param}}{The negative logit of \code{od_param}. I.e. \code{log((1 - od_param) / od_param)}}
+        \item{\code{covmat}}{The observed Fisher information matrix of \code{c(log_bias, logit_seq_error, neg_logit_od_param)}. This can be used as the covariance matrix of these estimates.}
     }
 }
 \description{

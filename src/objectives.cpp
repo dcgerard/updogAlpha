@@ -146,7 +146,7 @@ double obj_offspring(Rcpp::NumericVector ocounts, Rcpp::NumericVector osize,
 //' Just a reparameterization of \code{\link{obj_offspring}}.
 //'
 //' @inheritParams obj_offspring_vec
-//' @param s Same as \code{exp(bias_val)} in \code{\link{obj_offspring}}.
+//' @param s Same as \code{log(bias_val)} in \code{\link{obj_offspring}}.
 //' @param ell We have \code{seq_error = expit(ell)} from \code{\link{obj_offspring}}.
 //' @param r Same as \code{log((1.0 - od_param) / od_param)} from \code{\link{obj_offspring}}.
 //'
@@ -156,7 +156,8 @@ double obj_offspring(Rcpp::NumericVector ocounts, Rcpp::NumericVector osize,
 double obj_offspring_reparam(Rcpp::NumericVector ocounts, Rcpp::NumericVector osize,
                              int ploidy, Rcpp::NumericVector prob_geno,
                              double s, double ell,
-                             double r) {
+                             double r,
+                             bool outlier = false, double out_prop = 0.01) {
   double tol = 2.0 * DBL_EPSILON;
 
   double eps = expit(ell); // sequencing error rate
@@ -166,7 +167,7 @@ double obj_offspring_reparam(Rcpp::NumericVector ocounts, Rcpp::NumericVector os
   if (tau > (1.0 - tol)) {
     tau = 1.0 - 2.0 * tol;
   }
-  return obj_offspring(ocounts, osize, ploidy, prob_geno, d, eps, tau, false, 0.01, 0.5, 1.0 / 3.0);
+  return obj_offspring(ocounts, osize, ploidy, prob_geno, d, eps, tau, outlier, out_prop, 0.5, 1.0 / 3.0);
 }
 
 //' Same thing as \code{\link{obj_offspring}}, but each sample's log-density has a weight.

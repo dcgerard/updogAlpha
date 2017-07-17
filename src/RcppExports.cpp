@@ -433,8 +433,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // obj_offspring_reparam
-double obj_offspring_reparam(Rcpp::NumericVector ocounts, Rcpp::NumericVector osize, int ploidy, Rcpp::NumericVector prob_geno, double s, double ell, double r);
-RcppExport SEXP updog_obj_offspring_reparam(SEXP ocountsSEXP, SEXP osizeSEXP, SEXP ploidySEXP, SEXP prob_genoSEXP, SEXP sSEXP, SEXP ellSEXP, SEXP rSEXP) {
+double obj_offspring_reparam(Rcpp::NumericVector ocounts, Rcpp::NumericVector osize, int ploidy, Rcpp::NumericVector prob_geno, double s, double ell, double r, bool outlier, double out_prop);
+RcppExport SEXP updog_obj_offspring_reparam(SEXP ocountsSEXP, SEXP osizeSEXP, SEXP ploidySEXP, SEXP prob_genoSEXP, SEXP sSEXP, SEXP ellSEXP, SEXP rSEXP, SEXP outlierSEXP, SEXP out_propSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -445,7 +445,9 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type s(sSEXP);
     Rcpp::traits::input_parameter< double >::type ell(ellSEXP);
     Rcpp::traits::input_parameter< double >::type r(rSEXP);
-    rcpp_result_gen = Rcpp::wrap(obj_offspring_reparam(ocounts, osize, ploidy, prob_geno, s, ell, r));
+    Rcpp::traits::input_parameter< bool >::type outlier(outlierSEXP);
+    Rcpp::traits::input_parameter< double >::type out_prop(out_propSEXP);
+    rcpp_result_gen = Rcpp::wrap(obj_offspring_reparam(ocounts, osize, ploidy, prob_geno, s, ell, r, outlier, out_prop));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -556,8 +558,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // obj_parent_reparam
-double obj_parent_reparam(double pcounts, double psize, int ploidy, int pgeno, double s, double ell, double r, double weight);
-RcppExport SEXP updog_obj_parent_reparam(SEXP pcountsSEXP, SEXP psizeSEXP, SEXP ploidySEXP, SEXP pgenoSEXP, SEXP sSEXP, SEXP ellSEXP, SEXP rSEXP, SEXP weightSEXP) {
+double obj_parent_reparam(double pcounts, double psize, int ploidy, int pgeno, double s, double ell, double r, double weight, bool outlier, double out_prop);
+RcppExport SEXP updog_obj_parent_reparam(SEXP pcountsSEXP, SEXP psizeSEXP, SEXP ploidySEXP, SEXP pgenoSEXP, SEXP sSEXP, SEXP ellSEXP, SEXP rSEXP, SEXP weightSEXP, SEXP outlierSEXP, SEXP out_propSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -569,7 +571,9 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type ell(ellSEXP);
     Rcpp::traits::input_parameter< double >::type r(rSEXP);
     Rcpp::traits::input_parameter< double >::type weight(weightSEXP);
-    rcpp_result_gen = Rcpp::wrap(obj_parent_reparam(pcounts, psize, ploidy, pgeno, s, ell, r, weight));
+    Rcpp::traits::input_parameter< bool >::type outlier(outlierSEXP);
+    Rcpp::traits::input_parameter< double >::type out_prop(out_propSEXP);
+    rcpp_result_gen = Rcpp::wrap(obj_parent_reparam(pcounts, psize, ploidy, pgeno, s, ell, r, weight, outlier, out_prop));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -830,14 +834,14 @@ static const R_CallMethodDef CallEntries[] = {
     {"updog_grad_offspring_weights_original", (DL_FUNC) &updog_grad_offspring_weights_original, 8},
     {"updog_obj_offspring_vec", (DL_FUNC) &updog_obj_offspring_vec, 11},
     {"updog_obj_offspring", (DL_FUNC) &updog_obj_offspring, 11},
-    {"updog_obj_offspring_reparam", (DL_FUNC) &updog_obj_offspring_reparam, 7},
+    {"updog_obj_offspring_reparam", (DL_FUNC) &updog_obj_offspring_reparam, 9},
     {"updog_obj_offspring_weights", (DL_FUNC) &updog_obj_offspring_weights, 12},
     {"updog_obj_offspring_weights_reparam", (DL_FUNC) &updog_obj_offspring_weights_reparam, 8},
     {"updog_outlier_obj", (DL_FUNC) &updog_outlier_obj, 5},
     {"updog_dbeta_dtau_withxi", (DL_FUNC) &updog_dbeta_dtau_withxi, 4},
     {"updog_outlier_grad", (DL_FUNC) &updog_outlier_grad, 5},
     {"updog_obj_parent", (DL_FUNC) &updog_obj_parent, 12},
-    {"updog_obj_parent_reparam", (DL_FUNC) &updog_obj_parent_reparam, 8},
+    {"updog_obj_parent_reparam", (DL_FUNC) &updog_obj_parent_reparam, 10},
     {"updog_grad_parent", (DL_FUNC) &updog_grad_parent, 8},
     {"updog_grad_parent_reparam", (DL_FUNC) &updog_grad_parent_reparam, 8},
     {"updog_out_grad_parent", (DL_FUNC) &updog_out_grad_parent, 5},

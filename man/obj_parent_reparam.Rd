@@ -4,7 +4,8 @@
 \alias{obj_parent_reparam}
 \title{A reparameterization of \code{\link{obj_parent}}}
 \usage{
-obj_parent_reparam(pcounts, psize, ploidy, pgeno, s, ell, r, weight = 1)
+obj_parent_reparam(pcounts, psize, ploidy, pgeno, s, ell, r, weight = 1,
+  outlier = FALSE, out_prop = 0.01)
 }
 \arguments{
 \item{pcounts}{The number of counts of the reference allele we observe in
@@ -17,7 +18,7 @@ to be the same for each individual.}
 
 \item{pgeno}{The genotype of the parent.}
 
-\item{s}{Same as \code{exp(bias_val)} in \code{\link{obj_offspring}}.}
+\item{s}{Same as \code{log(bias_val)} in \code{\link{obj_offspring}}.}
 
 \item{ell}{We have \code{seq_error = expit(ell)} from \code{\link{obj_offspring}}.}
 
@@ -26,6 +27,12 @@ to be the same for each individual.}
 \item{weight}{A double between 0 and 1. This should only not be 1 when
 doing the em algorithm and the weight is the probabiility that
 a point being ok.}
+
+\item{outlier}{A logical. Should we include an outlier model (\code{TRUE})
+or not (\code{FALSE})? Defaults to \code{FALSE}.}
+
+\item{out_prop}{The proportion of points that are outliers. Defaults
+(quite arbitrarily) to \code{0.01}.}
 }
 \description{
 A reparameterization of \code{\link{obj_parent}}
