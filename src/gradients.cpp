@@ -33,20 +33,35 @@ double dbeta_dprop(double x, double n, double xi, double tau) {
   }
 
   double tol = 2 * DBL_EPSILON;
-  if (tau > (1.0 - tol)) {
+  if (tau > (1.0 - tol)) { // if OD parameter is too large
     tau = 1.0 - 2 * tol;
   }
 
-  double ldense = dbetabinom_mu_rho_cpp_double(x, n, xi, tau, true);
-
-  // Compute all needed gamma and digamma functions ------------
-  double h     = (1 - tau) / tau;
-  double comp1 = h * R::digamma(x + xi * h); // in numer
-  double comp2 = -1.0 * h * R::digamma(n - x + (1 - xi) * h); // in numer
-  double comp3 = h * R::digamma(xi * h); // in denom
-  double comp4 = -1.0 * h * R::digamma((1.0 - xi) * h); // in denom
-  double deriv = (comp1 + comp2 - comp3 - comp4) * std::exp(ldense);
-
+  double deriv;
+  if (tau < tol && xi > tol && xi < 1 - tol) { // resort to binomial
+    deriv = x / xi - (n - x) / xi;
+  } else if (xi < tol) {
+    if (x == 0) {
+      deriv = -1.0 * n;
+    } else {
+      deriv = R_PosInf;
+    }
+  } else if (xi > 1 - tol) {
+    if (x == n) {
+      deriv = n;
+    } else {
+      deriv = R_NegInf;
+    }
+  } else {
+    double ldense = dbetabinom_mu_rho_cpp_double(x, n, xi, tau, true);
+    // Compute all needed gamma and digamma functions ------------
+    double h     = (1 - tau) / tau;
+    double comp1 = h * R::digamma(x + xi * h); // in numer
+    double comp2 = -1.0 * h * R::digamma(n - x + (1 - xi) * h); // in numer
+    double comp3 = h * R::digamma(xi * h); // in denom
+    double comp4 = -1.0 * h * R::digamma((1.0 - xi) * h); // in denom
+    deriv = (comp1 + comp2 - comp3 - comp4) * std::exp(ldense);
+  }
   return deriv;
 }
 
@@ -307,7 +322,6 @@ Rcpp::NumericMatrix grad_offspring_mat(Rcpp::NumericVector ocounts, Rcpp::Numeri
   Rcpp::NumericVector ldenom_vec = obj_offspring_vec(ocounts, osize,
                                                      ploidy, prob_geno,
                                                      d, eps, tau, false, 0, 1.0 / 2.0, 1.0 / 3.0);
-
   // Get possible probabilities ----------------------------------------------------
   Rcpp::NumericVector probs(ploidy + 1);
   for (int i = 0; i < ploidy + 1; i++) {

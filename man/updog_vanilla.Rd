@@ -101,11 +101,13 @@ using data that are all approximately the reference allele.}
 
 \item{seq_error_mean}{The mean of the logit-normal prior on the sequencing error rate, which corresponds
 to \code{parvec[2]}. Set \code{seq_error_sd = Inf} to have no penalty on the sequencing error rate.
-The default is -4.7, which roughly corresponds to a mean sequencing error value of 0.009.}
+The default is -4.7, which roughly corresponds to a mean sequencing error value of 0.009. If you want
+to constain \code{seq_error} to be zero, you need to set \code{update_seq_error = FALSE},
+\code{seq_error = 0}, and\code{seq_error_mean = -Inf}.}
 
 \item{seq_error_sd}{The standard deviation of the logit-normal prior on the sequencing error rate, which
 corresponds to \code{parvec[2]}. The default is 1, which at three standard deviations is about a sequencing
-error rate of 0.15.}
+error rate of 0.15. Set \code{seq_error_sd = Inf} to have no penalty on the sequencing error rate.}
 
 \item{bias_val_mean}{The prior mean on the log of \code{bias_val} (corresponding to \code{parvec[1]}).
 Set \code{bias_val_sd = Inf} to have no penalty on the bias parameter.}

@@ -88,7 +88,15 @@ obj_wrapp_all <- function(parvec, ocounts, osize, weight_vec,
   }
 
   ## seq_error penalty ---
-  val <- val - (parvec[2] - seq_error_mean) ^ 2 / (2 * seq_error_sd ^ 2)
+  if (seq_error_mean != -Inf) { ## to specify a zero sequencing error rate
+    val <- val - (parvec[2] - seq_error_mean) ^ 2 / (2 * seq_error_sd ^ 2)
+  } else {
+    if (parvec[2] != -Inf & seq_error_sd != Inf) {
+      warning("seq_error_mean = -Inf but seq_error != 0. Are you sure this is ok?")
+      val <- -Inf
+    }
+  }
+
 
   ## bias_val penalty ---
   val <- val - (parvec[1] - bias_val_mean) ^ 2 / (2 * bias_val_sd ^ 2)
@@ -148,7 +156,14 @@ grad_wrapp_all <- function(parvec, ocounts, osize, weight_vec, ploidy, p1geno, p
   }
 
   ## sequencing error penalty -----------------------------
-  gout[2] <- gout[2] - (parvec[2] - seq_error_mean) / (seq_error_sd ^ 2)
+  if (seq_error_mean != -Inf) {
+    gout[2] <- gout[2] - (parvec[2] - seq_error_mean) / (seq_error_sd ^ 2)
+  } else {
+    if (parvec[2] != -Inf & seq_error_sd != Inf) {
+      gout[2] <- NA
+    }
+  }
+
 
   ## Bias parameter penalty -------------------------------
   gout[1] <- gout[1] - (parvec[1] - bias_val_mean) / (bias_val_sd ^ 2)
@@ -204,7 +219,11 @@ update_good <- function(parvec, ocounts, osize, weight_vec, ploidy,
 
     for (p1geno in 0:ploidy) {
       if (model == "f1") {
-        possible_p2geno_vec <- 0:p1geno
+        if (is.null(p1counts) | is.null(p2counts) | is.null(p1size) | is.null(p2size)) {
+          possible_p2geno_vec <- 0:p1geno ## to deal with identifiability, constain p2geno to be less than or equal to p1geno
+        } else {
+          possible_p2geno_vec <- 0:ploidy
+        }
       } else if (model == "s1") {
         possible_p2geno_vec <- p1geno
       }
@@ -458,10 +477,12 @@ out_grad_wrapp <- function(parvec, ocounts, osize, weight_vec,
 #'     (\code{TRUE}) or not (\code{FALSE})?
 #' @param seq_error_mean The mean of the logit-normal prior on the sequencing error rate, which corresponds
 #'     to \code{parvec[2]}. Set \code{seq_error_sd = Inf} to have no penalty on the sequencing error rate.
-#'     The default is -4.7, which roughly corresponds to a mean sequencing error value of 0.009.
+#'     The default is -4.7, which roughly corresponds to a mean sequencing error value of 0.009. If you want
+#'     to constain \code{seq_error} to be zero, you need to set \code{update_seq_error = FALSE},
+#'     \code{seq_error = 0}, and\code{seq_error_mean = -Inf}.
 #' @param seq_error_sd The standard deviation of the logit-normal prior on the sequencing error rate, which
 #'     corresponds to \code{parvec[2]}. The default is 1, which at three standard deviations is about a sequencing
-#'     error rate of 0.15.
+#'     error rate of 0.15. Set \code{seq_error_sd = Inf} to have no penalty on the sequencing error rate.
 #' @param bias_val_mean The prior mean on the log of \code{bias_val} (corresponding to \code{parvec[1]}).
 #'     Set \code{bias_val_sd = Inf} to have no penalty on the bias parameter.
 #' @param bias_val_sd The prior standard deviation on the log of \code{bias_val}
