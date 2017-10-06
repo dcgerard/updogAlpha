@@ -11,7 +11,7 @@ updog_update_all(ocounts, osize, ploidy, p1counts = NULL, p1size = NULL,
   update_seq_error = TRUE, update_od_param = TRUE, update_pgeno = TRUE,
   p1geno = round(ploidy/2), p2geno = round(ploidy/2), seq_error = 0.01,
   od_param = 0.01, bias_val = 1, out_prop = 0.001, out_mean = 0.5,
-  out_disp = 1/3, non_mono_max = 2, bound_bias = TRUE,
+  out_disp = 1/3, non_mono_max = 2, bound_bias = FALSE,
   seq_error_mean = -4.7, seq_error_sd = 1, bias_val_mean = 0,
   bias_val_sd = 1, allele_freq = 0.5, model = c("f1", "s1", "hw",
   "uniform"))

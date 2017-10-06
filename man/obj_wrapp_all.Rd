@@ -6,8 +6,8 @@
 \usage{
 obj_wrapp_all(parvec, ocounts, osize, weight_vec, ploidy, p1geno, p2geno,
   allele_freq = 0.5, p1counts = NULL, p1size = NULL, p1weight = NULL,
-  p2counts = NULL, p2size = NULL, p2weight = NULL, bound_bias = TRUE,
-  bound_od = TRUE, update_bias_val = TRUE, update_seq_error = TRUE,
+  p2counts = NULL, p2size = NULL, p2weight = NULL, bound_bias = FALSE,
+  bound_od = FALSE, update_bias_val = TRUE, update_seq_error = TRUE,
   update_od_param = TRUE, seq_error_mean = -4.7, seq_error_sd = 1,
   bias_val_mean = 0, bias_val_sd = 1, model = c("f1", "s1", "hw",
   "uniform"))

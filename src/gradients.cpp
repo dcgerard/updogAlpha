@@ -38,22 +38,14 @@ double dbeta_dprop(double x, double n, double xi, double tau) {
   }
 
   double deriv;
+  double ldense;
   if (tau < tol && xi > tol && xi < 1 - tol) { // resort to binomial
-    deriv = x / xi - (n - x) / xi;
-  } else if (xi < tol) {
-    if (x == 0) {
-      deriv = -1.0 * n;
-    } else {
-      deriv = R_PosInf;
-    }
-  } else if (xi > 1 - tol) {
-    if (x == n) {
-      deriv = n;
-    } else {
-      deriv = R_NegInf;
-    }
+    ldense = R::dbinom(x, n, xi, true);
+    deriv = (x / xi - (n - x) / (1 - xi)) * std::exp(ldense);
+  } else if (tau < tol) {
+    deriv = x * std::pow(xi, x - 1.0) * R::choose(n, x) * std::pow(1.0 - xi, n - x) - (n - x) * std::pow(1 - xi, n - x - 1.0) * R::choose(n, x) * std::pow(xi, x);
   } else {
-    double ldense = dbetabinom_mu_rho_cpp_double(x, n, xi, tau, true);
+    ldense = dbetabinom_mu_rho_cpp_double(x, n, xi, tau, true);
     // Compute all needed gamma and digamma functions ------------
     double h     = (1 - tau) / tau;
     double comp1 = h * R::digamma(x + xi * h); // in numer
@@ -89,8 +81,10 @@ double dbeta_dh(double x, double n, double xi, double h) {
   if (rho > (1.0 - tol)) {
     rho = 1.0 - 2 * tol;
   }
-  double ldense = dbetabinom_mu_rho_cpp_double(x, n, xi, rho, true);
 
+  double deriv;
+
+  double ldense = dbetabinom_mu_rho_cpp_double(x, n, xi, rho, true);
   // get six components -----------------------------------
   double comp1 =  xi * R::digamma(x + xi * h);
   double comp2 = (1.0 - xi) * R::digamma(n - x + (1.0 - xi) * h);
@@ -98,7 +92,7 @@ double dbeta_dh(double x, double n, double xi, double h) {
   double comp4 = R::digamma(n + h);
   double comp5 = xi * R::digamma(xi * h);
   double comp6 = (1.0 - xi) * R::digamma((1.0 - xi) * h);
-  double deriv = (comp1 + comp2 + comp3 - comp4 - comp5 - comp6) * std::exp(ldense);
+  deriv = (comp1 + comp2 + comp3 - comp4 - comp5 - comp6) * std::exp(ldense);
 
   return deriv;
 }
@@ -259,6 +253,8 @@ double dxi_dd(double d, double f) {
 // [[Rcpp::export]]
 double dbeta_ds(double x, double n, double s, double ell, double p, double h) {
 
+  double tol = 2.0 * DBL_EPSILON;
+
   // intermediate parameters --------------------------------------------------
   double d   = std::exp(s);
   double tau = 1.0 / (h + 1.0);
@@ -267,10 +263,11 @@ double dbeta_ds(double x, double n, double s, double ell, double p, double h) {
   double f   = (1.0 - p) * eps + p * (1.0 - eps);
 
   // derivatives --------------------------------------------------------------
+  double deriv;
   double dbdxi = dbeta_dprop(x, n, xi, tau);
   double dxidd = dxi_dd(d, f);
   double ddds  = dd_ds(s);
-  double deriv = dbdxi * dxidd * ddds;
+  deriv = dbdxi * dxidd * ddds;
   return deriv;
 }
 

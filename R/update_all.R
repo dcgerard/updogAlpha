@@ -46,8 +46,8 @@ obj_wrapp_all <- function(parvec, ocounts, osize, weight_vec,
                           ploidy, p1geno, p2geno, allele_freq = 0.5,
                           p1counts = NULL, p1size = NULL, p1weight = NULL,
                           p2counts = NULL, p2size = NULL, p2weight = NULL,
-                          bound_bias = TRUE,
-                          bound_od = TRUE,
+                          bound_bias = FALSE,
+                          bound_od = FALSE,
                           update_bias_val = TRUE,
                           update_seq_error = TRUE,
                           update_od_param = TRUE,
@@ -58,11 +58,11 @@ obj_wrapp_all <- function(parvec, ocounts, osize, weight_vec,
                           model = c("f1", "s1", "hw", "uniform")) {
   model <- match.arg(model)
   eps <- expit(parvec[2])
-  if (bound_od) {
-    if (parvec[3] > 18) {
-      return(-Inf)
-    }
-  }
+  # if (bound_od) {
+  #   if (parvec[3] > 18) {
+  #     return(-Inf)
+  #   }
+  # }
   if (model == "s1") {
     model <- "f1"
     assertthat::are_equal(p1geno, p2geno)
@@ -120,7 +120,7 @@ obj_wrapp_all <- function(parvec, ocounts, osize, weight_vec,
 grad_wrapp_all <- function(parvec, ocounts, osize, weight_vec, ploidy, p1geno, p2geno, allele_freq = 0.5,
                            p1counts = NULL, p1size = NULL, p1weight = NULL,
                            p2counts = NULL, p2size = NULL, p2weight = NULL,
-                           bound_bias = TRUE,
+                           bound_bias = FALSE,
                            update_bias_val = TRUE,
                            update_seq_error = TRUE,
                            update_od_param = TRUE,
@@ -201,7 +201,7 @@ update_good <- function(parvec, ocounts, osize, weight_vec, ploidy,
                         p1counts = NULL, p1size = NULL, p1weight = NULL,
                         p2counts = NULL, p2size = NULL, p2weight = NULL,
                         p1geno = NULL, p2geno = NULL, allele_freq = 0.5,
-                        bound_bias = TRUE,
+                        bound_bias = FALSE,
                         update_bias_val = TRUE,
                         update_seq_error = TRUE,
                         update_od_param = TRUE,
@@ -544,7 +544,7 @@ updog_update_all <- function(ocounts, osize, ploidy,
                              out_mean = 0.5,
                              out_disp = 1/3,
                              non_mono_max = 2,
-                             bound_bias = TRUE,
+                             bound_bias = FALSE,
                              seq_error_mean = -4.7,
                              seq_error_sd = 1,
                              bias_val_mean = 0,
@@ -1024,7 +1024,7 @@ updog_vanilla <- function(ocounts, osize, ploidy,
                           out_mean = 0.5,
                           out_disp = 1/3,
                           non_mono_max = 2,
-                          bound_bias = TRUE,
+                          bound_bias = FALSE,
                           seq_error_mean = -4.7,
                           seq_error_sd = 1,
                           bias_val_mean = 0,
@@ -1035,6 +1035,11 @@ updog_vanilla <- function(ocounts, osize, ploidy,
   which_na <- is.na(ocounts) | is.na(osize)
   ocounts  <- ocounts[!which_na]
   osize    <- osize[!which_na]
+
+  ## Hacky way so that I don't have to recode everything for od_param == 0 ------------
+  if (od_param < 10 ^ -100) {
+    od_param <- 10 ^ -100
+  }
 
 
   ## Check input -----------------------------------------------------------------------
