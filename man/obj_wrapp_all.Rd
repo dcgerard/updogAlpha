@@ -10,7 +10,7 @@ obj_wrapp_all(parvec, ocounts, osize, weight_vec, ploidy, p1geno, p2geno,
   bound_od = FALSE, update_bias_val = TRUE, update_seq_error = TRUE,
   update_od_param = TRUE, seq_error_mean = -4.7, seq_error_sd = 1,
   bias_val_mean = 0, bias_val_sd = 1, model = c("f1", "s1", "hw",
-  "uniform"))
+  "uniform"), is_seq_ninf = FALSE)
 }
 \arguments{
 \item{parvec}{A vector of three elements, s, ell, and r. We have s = log(bias_val) = log(d),
@@ -80,6 +80,10 @@ Set \code{bias_val_sd = Inf} to have no penalty on the bias parameter.}
 \item{model}{The model for the genotype distribution. Should we assume an F1 population (\code{"f1"}),
 an S1 population (\code{"s1"}),
 Hardy-Weinberg equilibrium (\code{"hw"}), or a uniform distribution (\code{"uniform"})?}
+
+\item{is_seq_ninf}{Hacky way to get around fact that optim won't allow \code{-Inf} in
+\code{par}, even if \code{gr} will always be zero for that parameter.
+How dare they not anticipate my unique situation!}
 }
 \description{
 wrapper for \code{\link{obj_offspring_weights_reparam}}

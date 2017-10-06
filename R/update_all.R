@@ -39,6 +39,9 @@
 #'     an S1 population (\code{"s1"}),
 #'     Hardy-Weinberg equilibrium (\code{"hw"}), or a uniform distribution (\code{"uniform"})?
 #' @param allele_freq The allele-frequency if \code{model = "hw"}
+#' @param is_seq_ninf Hacky way to get around fact that optim won't allow \code{-Inf} in
+#'     \code{par}, even if \code{gr} will always be zero for that parameter.
+#'     How dare they not anticipate my unique situation!
 #'
 #' @author David Gerard
 #'
@@ -55,14 +58,21 @@ obj_wrapp_all <- function(parvec, ocounts, osize, weight_vec,
                           seq_error_sd = 1,
                           bias_val_mean = 0,
                           bias_val_sd = 1,
-                          model = c("f1", "s1", "hw", "uniform")) {
+                          model = c("f1", "s1", "hw", "uniform"),
+                          is_seq_ninf = FALSE) {
+
+  assertthat::assert_that(is.logical(is_seq_ninf))
+  if (is_seq_ninf) {
+    ell <- -Inf
+    if (update_seq_error) {
+      stop("can't have seq_error == 0 and update_seq_error == TRUE")
+    }
+  } else {
+    ell <- parvec[2]
+  }
+
   model <- match.arg(model)
-  eps <- expit(parvec[2])
-  # if (bound_od) {
-  #   if (parvec[3] > 18) {
-  #     return(-Inf)
-  #   }
-  # }
+  eps <- expit(ell)
   if (model == "s1") {
     model <- "f1"
     assertthat::are_equal(p1geno, p2geno)
@@ -74,29 +84,26 @@ obj_wrapp_all <- function(parvec, ocounts, osize, weight_vec,
   ## Normal value ------------------------------------------------------------------------
   val <- obj_offspring_weights_reparam(ocounts = ocounts, osize = osize, weight_vec = weight_vec,
                                         ploidy = ploidy, prob_geno = prob_geno,
-                                        s = parvec[1], ell = parvec[2], r = parvec[3])
+                                        s = parvec[1], ell = ell, r = parvec[3])
 
   if (!is.null(p1counts) & !is.null(p1size) & !is.null(p1weight)) { ## add contribution from parent 1
     val <- val + obj_parent_reparam(pcounts = p1counts, psize = p1size, ploidy = ploidy,
-                                    pgeno = p1geno, s = parvec[1], ell = parvec[2],
+                                    pgeno = p1geno, s = parvec[1], ell = ell,
                                     r = parvec[3], weight = p1weight)
   }
   if (!is.null(p2counts) & !is.null(p2size) & !is.null(p2weight)) { ## add contribution from parent 2
     val <- val + obj_parent_reparam(pcounts = p2counts, psize = p2size, ploidy = ploidy,
-                                    pgeno = p2geno, s = parvec[1], ell = parvec[2],
+                                    pgeno = p2geno, s = parvec[1], ell = ell,
                                     r = parvec[3], weight = p2weight)
   }
 
   ## seq_error penalty ---
   if (seq_error_mean != -Inf) { ## to specify a zero sequencing error rate
-    val <- val - (parvec[2] - seq_error_mean) ^ 2 / (2 * seq_error_sd ^ 2)
-  } else {
-    if (parvec[2] != -Inf & seq_error_sd != Inf) {
-      warning("seq_error_mean = -Inf but seq_error != 0. Are you sure this is ok?")
-      val <- -Inf
+    if (ell == -Inf) {
+      stop("seq_error_mean != -Inf but seq_error = 0, this is not allowed")
     }
+    val <- val - (ell - seq_error_mean) ^ 2 / (2 * seq_error_sd ^ 2)
   }
-
 
   ## bias_val penalty ---
   val <- val - (parvec[1] - bias_val_mean) ^ 2 / (2 * bias_val_sd ^ 2)
@@ -128,7 +135,20 @@ grad_wrapp_all <- function(parvec, ocounts, osize, weight_vec, ploidy, p1geno, p
                            seq_error_sd = 1,
                            bias_val_mean = 0,
                            bias_val_sd = 1,
-                           model = c("f1", "s1", "hw", "uniform")) {
+                           model = c("f1", "s1", "hw", "uniform"),
+                           is_seq_ninf = FALSE) {
+
+  assertthat::assert_that(is.logical(is_seq_ninf))
+  if (is_seq_ninf) {
+    ell <- -Inf
+    if (update_seq_error) {
+      stop("can't have seq_error == 0 and update_seq_error == TRUE")
+    }
+  } else {
+    ell <- parvec[2]
+  }
+
+
   model <- match.arg(model)
   if (model == "s1") {
     model <- "f1"
@@ -140,26 +160,26 @@ grad_wrapp_all <- function(parvec, ocounts, osize, weight_vec, ploidy, p1geno, p
 
   gout <- grad_offspring_weights(ocounts = ocounts, osize = osize, weight_vec = weight_vec,
                                  ploidy = ploidy, prob_geno = prob_geno, s = parvec[1],
-                                 ell = parvec[2], r = parvec[3])
+                                 ell = ell, r = parvec[3])
 
   if (!is.null(p1counts) & !is.null(p1size) & !is.null(p1weight)) {
     gout <- gout + grad_parent_reparam(pcounts = p1counts, psize = p1size,
                                        ploidy = ploidy, pgeno = p1geno,
-                                       s = parvec[1], ell = parvec[2],
+                                       s = parvec[1], ell = ell,
                                        r = parvec[3], weight = p1weight)
   }
   if (!is.null(p2counts) & !is.null(p2size) & !is.null(p2weight)) {
     gout <- gout + grad_parent_reparam(pcounts = p2counts, psize = p2size,
                                        ploidy = ploidy, pgeno = p2geno,
-                                       s = parvec[1], ell = parvec[2],
+                                       s = parvec[1], ell = ell,
                                        r = parvec[3], weight = p2weight)
   }
 
   ## sequencing error penalty -----------------------------
   if (seq_error_mean != -Inf) {
-    gout[2] <- gout[2] - (parvec[2] - seq_error_mean) / (seq_error_sd ^ 2)
+    gout[2] <- gout[2] - (ell - seq_error_mean) / (seq_error_sd ^ 2)
   } else {
-    if (parvec[2] != -Inf & seq_error_sd != Inf) {
+    if (ell != -Inf & seq_error_sd != Inf) {
       gout[2] <- NA
     }
   }
@@ -210,6 +230,21 @@ update_good <- function(parvec, ocounts, osize, weight_vec, ploidy,
                         bias_val_mean = 0,
                         bias_val_sd = 1,
                         model = c("f1", "s1", "hw", "uniform")) {
+
+  ## deal with ell = -Inf
+  if (parvec[2] == -Inf) {
+    is_seq_ninf <- TRUE
+    if (update_seq_error) {
+      stop("cannot have both update_seq_error = TRUE and seq_error = 0")
+    }
+    if (seq_error_mean != -Inf) {
+      stop("cannot have both seq_error_mean != -Inf and seq_error = 0")
+    }
+  } else {
+    is_seq_ninf <- FALSE
+  }
+
+
   model <- match.arg(model)
   best_par <- parvec
   if ((is.null(p1geno) | is.null(p2geno)) & (model == "f1" | model == "s1")) { ## try all p1geno/p2geno combos --
@@ -228,46 +263,60 @@ update_good <- function(parvec, ocounts, osize, weight_vec, ploidy,
         possible_p2geno_vec <- p1geno
       }
       for (p2geno in possible_p2geno_vec) {
-        ## get genotype frequencies --------------------------------------------------------
-        prob_geno <- get_prob_geno(ploidy = ploidy, model = model, p1geno = p1geno, p2geno = p2geno, allele_freq = allele_freq)
 
-        ## If start position has -Inf, start somewhere else
-        val <- obj_offspring_weights_reparam(ocounts = ocounts, osize = osize,
-                                             weight_vec = weight_vec,
-                                             ploidy = ploidy, prob_geno = prob_geno,
-                                             s = parvec[1], ell = parvec[2],
-                                             r = parvec[3])
-        if (val == -Inf) {
-          start_vec <- c(0, -4.5, 4.5) ## about (1, 0.01, 0.01) for (bias_val, seq_error, od_param)
+        if (is_seq_ninf & ((p1geno == 0 & p2geno == 0) | (p1geno == ploidy & p2geno == ploidy))) {
+          ## skip iteration
         } else {
-          start_vec <- parvec
-        }
-        oout <- stats::optim(par = start_vec, fn = obj_wrapp_all, gr = grad_wrapp_all,
-                             hessian = TRUE,
-                             ocounts = ocounts, osize = osize, weight_vec = weight_vec,
-                             ploidy = ploidy, p1geno = p1geno, p2geno = p2geno,
-                             p1counts = p1counts, p1size = p1size, p1weight = p1weight,
-                             p2counts = p2counts, p2size = p2size, p2weight = p2weight,
-                             method = "BFGS",
-                             control = list(fnscale = -1, maxit = 1000),
-                             bound_bias = bound_bias,
-                             update_bias_val = update_bias_val,
-                             update_seq_error = update_seq_error,
-                             update_od_param = update_od_param,
-                             seq_error_mean = seq_error_mean,
-                             seq_error_sd = seq_error_sd,
-                             bias_val_mean = bias_val_mean,
-                             bias_val_sd = bias_val_sd,
-                             model = model)
-        if (oout$convergence != 0) {
-          warning(oout$message)
-        }
-        ## cat(p1geno, p2geno, ":", oout$value, "\n")
-        if (best_llike < oout$value) {
-          best_par   <- oout$par
-          best_llike <- oout$value
-          best_p1    <- p1geno
-          best_p2    <- p2geno
+          ## get genotype frequencies --------------------------------------------------------
+          prob_geno <- get_prob_geno(ploidy = ploidy, model = model, p1geno = p1geno, p2geno = p2geno, allele_freq = allele_freq)
+
+          ## If start position has -Inf, start somewhere else
+          val <- obj_offspring_weights_reparam(ocounts = ocounts, osize = osize,
+                                               weight_vec = weight_vec,
+                                               ploidy = ploidy, prob_geno = prob_geno,
+                                               s = parvec[1], ell = parvec[2],
+                                               r = parvec[3])
+          if (val == -Inf) {
+            start_vec <- c(0, -4.5, 4.5) ## about (1, 0.01, 0.01) for (bias_val, seq_error, od_param)
+          } else {
+            start_vec <- parvec
+          }
+
+          if (is_seq_ninf) { ## deals with ell = -Inf
+            start_vec[2] <- 0
+          }
+          oout <- stats::optim(par = start_vec, fn = obj_wrapp_all, gr = grad_wrapp_all,
+                               hessian = TRUE,
+                               ocounts = ocounts, osize = osize, weight_vec = weight_vec,
+                               ploidy = ploidy, p1geno = p1geno, p2geno = p2geno,
+                               p1counts = p1counts, p1size = p1size, p1weight = p1weight,
+                               p2counts = p2counts, p2size = p2size, p2weight = p2weight,
+                               method = "BFGS",
+                               control = list(fnscale = -1, maxit = 1000),
+                               bound_bias = bound_bias,
+                               update_bias_val = update_bias_val,
+                               update_seq_error = update_seq_error,
+                               update_od_param = update_od_param,
+                               seq_error_mean = seq_error_mean,
+                               seq_error_sd = seq_error_sd,
+                               bias_val_mean = bias_val_mean,
+                               bias_val_sd = bias_val_sd,
+                               model = model,
+                               is_seq_ninf = is_seq_ninf)
+          if (is_seq_ninf) {## deals with ell = -Inf
+            oout$par[2] <- -Inf
+          }
+
+          if (oout$convergence != 0) {
+            warning(oout$message)
+          }
+          ## cat(p1geno, p2geno, ":", oout$value, "\n")
+          if (best_llike < oout$value) {
+            best_par   <- oout$par
+            best_llike <- oout$value
+            best_p1    <- p1geno
+            best_p2    <- p2geno
+          }
         }
       }
     }
@@ -287,6 +336,11 @@ update_good <- function(parvec, ocounts, osize, weight_vec, ploidy,
     } else {
       start_vec <- parvec
     }
+
+
+    if (is_seq_ninf) { ## deals with ell = -Inf
+      start_vec[2] <- 0
+    }
     oout <- stats::optim(par = start_vec, fn = obj_wrapp_all, gr = grad_wrapp_all,
                          hessian = TRUE,
                          ocounts = ocounts, osize = osize, weight_vec = weight_vec,
@@ -303,7 +357,12 @@ update_good <- function(parvec, ocounts, osize, weight_vec, ploidy,
                          seq_error_sd = seq_error_sd,
                          bias_val_mean = bias_val_mean,
                          bias_val_sd = bias_val_sd,
-                         model = model)
+                         model = model,
+                         is_seq_ninf = is_seq_ninf)
+    if (is_seq_ninf) { ## deals with ell = -Inf
+      oout$par[2] <- -Inf
+    }
+
     best_p1 <- p1geno
     best_p2 <- p2geno
     best_llike <- oout$value
@@ -329,10 +388,14 @@ update_good <- function(parvec, ocounts, osize, weight_vec, ploidy,
                               seq_error_sd = seq_error_sd,
                               bias_val_mean = bias_val_mean,
                               bias_val_sd = bias_val_sd,
-                              model = model)
+                              model = model,
+                              is_seq_ninf = is_seq_ninf)
 
       allele_freq <- oaf_out$par ## new allele_freq
 
+      if (is_seq_ninf) { ## deals with ell = -Inf
+        start_vec[2] <- 0
+      }
       oout <- stats::optim(par = start_vec, fn = obj_wrapp_all, gr = grad_wrapp_all,
                            hessian = TRUE,
                            ocounts = ocounts, osize = osize, weight_vec = weight_vec,
@@ -350,7 +413,12 @@ update_good <- function(parvec, ocounts, osize, weight_vec, ploidy,
                            seq_error_sd = seq_error_sd,
                            bias_val_mean = bias_val_mean,
                            bias_val_sd = bias_val_sd,
-                           model = model)
+                           model = model,
+                           is_seq_ninf = is_seq_ninf)
+      if (is_seq_ninf) { ## deals with ell = -Inf
+        oout$par[2] <- -Inf
+      }
+
       start_vec <- oout$par
     }
     best_llike <- oout$value
@@ -752,7 +820,9 @@ updog_update_all <- function(ocounts, osize, ploidy,
     }
 
     ## Add sequencing error penalty ---
-    llike_new <- llike_new - (log(seq_error / (1 - seq_error)) - seq_error_mean) ^ 2 / (2 * seq_error_sd ^ 2)
+    if (seq_error != 0 & seq_error_mean != -Inf) {
+      llike_new <- llike_new - (log(seq_error / (1 - seq_error)) - seq_error_mean) ^ 2 / (2 * seq_error_sd ^ 2)
+    }
 
     ## add bias_val penalty ---
     llike_new <- llike_new - (log(bias_val) - bias_val_mean) ^ 2 / (2 * bias_val_sd ^ 2)
@@ -1040,6 +1110,10 @@ updog_vanilla <- function(ocounts, osize, ploidy,
   if (od_param < 10 ^ -100) {
     od_param <- 10 ^ -100
   }
+
+  # if (seq_error < 10 ^ -12) {
+  #   stop("We don't support seq_error = 0 right now.")
+  # }
 
 
   ## Check input -----------------------------------------------------------------------

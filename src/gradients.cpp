@@ -264,10 +264,14 @@ double dbeta_ds(double x, double n, double s, double ell, double p, double h) {
 
   // derivatives --------------------------------------------------------------
   double deriv;
-  double dbdxi = dbeta_dprop(x, n, xi, tau);
-  double dxidd = dxi_dd(d, f);
-  double ddds  = dd_ds(s);
-  deriv = dbdxi * dxidd * ddds;
+  if (eps < tol && (p < tol || (1 - p) < tol)) {
+    deriv = 0.0;
+  } else {
+    double dbdxi = dbeta_dprop(x, n, xi, tau);
+    double dxidd = dxi_dd(d, f);
+    double ddds  = dd_ds(s);
+    deriv = dbdxi * dxidd * ddds;
+  }
   return deriv;
 }
 
@@ -281,12 +285,19 @@ double dbeta_ds(double x, double n, double s, double ell, double p, double h) {
 //'
 // [[Rcpp::export]]
 double dbeta_dr_ell(double x, double n, double d, double ell, double p, double r) {
+  double tol = 2.0 * DBL_EPSILON;
+
   // intermediate parameters ---------------------------------------------------
   double eps = expit(ell);
   double xi = pbias_double(p, d, eps);
 
   // derivative ----------------------------------------------------------------
-  double deriv = dbeta_dr(x, n, xi, r);
+  double deriv;
+  if (eps < tol && (p < tol || (1 - p) < tol)) {
+    deriv = 0.0;
+  } else {
+    deriv = dbeta_dr(x, n, xi, r);
+  }
   return deriv;
 }
 
@@ -444,15 +455,21 @@ double dbeta_deps(double x, double n, double d, double eps, double p, double tau
 //'
 // [[Rcpp::export]]
 double dbeta_dd(double x, double n, double d, double eps, double p, double tau) {
+  double tol = 2.0 * DBL_EPSILON;
 
-  // intermediate parameters --------------------------------------------------
-  double xi  = pbias_double(p, d, eps); // adjusted prob of A
-  double f   = (1.0 - p) * eps + p * (1.0 - eps);
+  double deriv;
+  if (eps < tol && (p < tol || (1 - p) < tol)) { // if p = 0 and eps = 0 or p = 1 and eps = 1, need to just return 0
+    deriv = 0.0;
+  } else {
+    // intermediate parameters --------------------------------------------------
+    double xi  = pbias_double(p, d, eps); // adjusted prob of A
+    double f   = (1.0 - p) * eps + p * (1.0 - eps);
 
-  // derivatives --------------------------------------------------------------
-  double dbdxi = dbeta_dprop(x, n, xi, tau);
-  double dxidd = dxi_dd(d, f);
-  double deriv = dbdxi * dxidd;
+    // derivatives --------------------------------------------------------------
+    double dbdxi = dbeta_dprop(x, n, xi, tau);
+    double dxidd = dxi_dd(d, f);
+    deriv = dbdxi * dxidd;
+  }
   return deriv;
 }
 
