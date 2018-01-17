@@ -121,5 +121,12 @@ test_that("update_* doesn't update parameters set to FALSE", {
   uout <- updog_vanilla(ocounts = ocounts, osize = osize,
                         ploidy = 4, update_od_param = FALSE, od_param = 0.1)
   expect_equal(uout$od_param, 0.1)
+
+  uout <- updog_vanilla(ocounts = ocounts, osize = osize,
+                        ploidy = 4, update_od_param = FALSE,
+                        update_bias_val = FALSE,
+                        od_param = 0.1, bias_val = 0.9)
+  expect_equal(uout$od_param, 0.1)
+  expect_equal(uout$bias_val, 0.9)
 }
 )

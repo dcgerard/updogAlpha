@@ -885,7 +885,7 @@ updog_update_all <- function(ocounts, osize, ploidy,
 
   ## get covariance matrix of updated parameters
   if (update_bias_val | update_seq_error | update_od_param) {
-    keep_vec <- c(1, 2, 3)[c(update_bias_val, update_seq_error, update_od_param)]
+    keep_vec <- c(update_bias_val, update_seq_error, update_od_param)
     return_list$covmat <- matrix(NA, nrow = 3, ncol = 3)
     ## Check to see if any parameters are excessively close to the boundary.
     which_boundary <- c(return_list$bias_val < .Machine$double.eps,
