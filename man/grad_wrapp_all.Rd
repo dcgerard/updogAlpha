@@ -9,7 +9,7 @@ grad_wrapp_all(parvec, ocounts, osize, weight_vec, ploidy, p1geno, p2geno,
   p2counts = NULL, p2size = NULL, p2weight = NULL, bound_bias = FALSE,
   update_bias_val = TRUE, update_seq_error = TRUE, update_od_param = TRUE,
   seq_error_mean = -4.7, seq_error_sd = 1, bias_val_mean = 0,
-  bias_val_sd = 1, model = c("f1", "s1", "hw", "uniform"),
+  bias_val_sd = 0.7, model = c("f1", "s1", "hw", "uniform"),
   is_seq_ninf = FALSE)
 }
 \arguments{

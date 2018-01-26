@@ -6,7 +6,7 @@
 \usage{
 fn_cov_mle(par, ocounts, osize, ploidy, prob_geno, p1counts = NULL,
   p1size = NULL, p2counts = NULL, p2size = NULL, p1geno = NULL,
-  p2geno = NULL, bias_val_mean = 0, bias_val_sd = 1,
+  p2geno = NULL, bias_val_mean = 0, bias_val_sd = 0.7,
   seq_error_mean = -4.7, seq_error_sd = 1, model = c("f1", "s1", "hw",
   "uniform"))
 }
