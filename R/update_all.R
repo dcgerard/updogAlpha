@@ -285,24 +285,47 @@ update_good <- function(parvec, ocounts, osize, weight_vec, ploidy,
           if (is_seq_ninf) { ## deals with ell = -Inf
             start_vec[2] <- 0
           }
-          oout <- stats::optim(par = start_vec, fn = obj_wrapp_all, gr = grad_wrapp_all,
-                               hessian = TRUE,
-                               ocounts = ocounts, osize = osize, weight_vec = weight_vec,
-                               ploidy = ploidy, p1geno = p1geno, p2geno = p2geno,
-                               p1counts = p1counts, p1size = p1size, p1weight = p1weight,
-                               p2counts = p2counts, p2size = p2size, p2weight = p2weight,
-                               method = "BFGS",
-                               control = list(fnscale = -1, maxit = 1000),
-                               bound_bias = bound_bias,
-                               update_bias_val = update_bias_val,
-                               update_seq_error = update_seq_error,
-                               update_od_param = update_od_param,
-                               seq_error_mean = seq_error_mean,
-                               seq_error_sd = seq_error_sd,
-                               bias_val_mean = bias_val_mean,
-                               bias_val_sd = bias_val_sd,
-                               model = model,
-                               is_seq_ninf = is_seq_ninf)
+          errout <- try({ ## sometimes BFGS fails but NM works, but is slower.
+            oout <- stats::optim(par = start_vec, fn = obj_wrapp_all, gr = grad_wrapp_all,
+                                 hessian = TRUE,
+                                 ocounts = ocounts, osize = osize, weight_vec = weight_vec,
+                                 ploidy = ploidy, p1geno = p1geno, p2geno = p2geno,
+                                 p1counts = p1counts, p1size = p1size, p1weight = p1weight,
+                                 p2counts = p2counts, p2size = p2size, p2weight = p2weight,
+                                 method = "BFGS",
+                                 control = list(fnscale = -1, maxit = 1000),
+                                 bound_bias = bound_bias,
+                                 update_bias_val = update_bias_val,
+                                 update_seq_error = update_seq_error,
+                                 update_od_param = update_od_param,
+                                 seq_error_mean = seq_error_mean,
+                                 seq_error_sd = seq_error_sd,
+                                 bias_val_mean = bias_val_mean,
+                                 bias_val_sd = bias_val_sd,
+                                 model = model,
+                                 is_seq_ninf = is_seq_ninf)
+          }, TRUE)
+          if ("try-error" %in% class(errout)) {
+            oout <- stats::optim(par = start_vec, fn = obj_wrapp_all, gr = grad_wrapp_all,
+                                 hessian = TRUE,
+                                 ocounts = ocounts, osize = osize, weight_vec = weight_vec,
+                                 ploidy = ploidy, p1geno = p1geno, p2geno = p2geno,
+                                 p1counts = p1counts, p1size = p1size, p1weight = p1weight,
+                                 p2counts = p2counts, p2size = p2size, p2weight = p2weight,
+                                 method = "Nelder-Mead",
+                                 control = list(fnscale = -1, maxit = 1000),
+                                 bound_bias = bound_bias,
+                                 update_bias_val = update_bias_val,
+                                 update_seq_error = update_seq_error,
+                                 update_od_param = update_od_param,
+                                 seq_error_mean = seq_error_mean,
+                                 seq_error_sd = seq_error_sd,
+                                 bias_val_mean = bias_val_mean,
+                                 bias_val_sd = bias_val_sd,
+                                 model = model,
+                                 is_seq_ninf = is_seq_ninf)
+          }
+
           if (is_seq_ninf) {## deals with ell = -Inf
             oout$par[2] <- -Inf
           }
@@ -891,7 +914,9 @@ updog_update_all <- function(ocounts, osize, ploidy,
     which_boundary <- c(return_list$bias_val < .Machine$double.eps,
                         (return_list$seq_error < .Machine$double.eps) | (return_list$seq_error > 1 - .Machine$double.eps),
                         (return_list$od_param < .Machine$double.eps) | (return_list$od_param > 1 - .Machine$double.eps))
-    return_list$covmat[keep_vec & !which_boundary, keep_vec & !which_boundary] <- -1 * solve(return_list$hessian[keep_vec & !which_boundary, keep_vec & !which_boundary])
+    try({
+      return_list$covmat[keep_vec & !which_boundary, keep_vec & !which_boundary] <- -1 * solve(return_list$hessian[keep_vec & !which_boundary, keep_vec & !which_boundary])
+    }, TRUE) ## covmat is NA otherwise.
   } else {
     return_list$covmat <- NULL
   }
@@ -1102,7 +1127,7 @@ updog_vanilla <- function(ocounts, osize, ploidy,
                           seq_error_mean = -4.7,
                           seq_error_sd = 1,
                           bias_val_mean = 0,
-                          bias_val_sd = 1,
+                          bias_val_sd = 0.7,
                           allele_freq = 0.5,
                           model = c("f1", "s1", "hw", "uniform")) {
   ## Deal with missing data -----------------------------------------------------------
