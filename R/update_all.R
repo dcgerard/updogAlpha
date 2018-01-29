@@ -287,15 +287,16 @@ update_good <- function(parvec, ocounts, osize, weight_vec, ploidy,
           if (is_seq_ninf) { ## deals with ell = -Inf
             start_vec[2] <- 0
           }
-          errout <- try({ ## sometimes BFGS fails but NM works, but is slower.
+          errout <- try({ ## sometimes L-BFGS-B fails but NM works, but is slower.
             oout <- stats::optim(par = start_vec, fn = obj_wrapp_all, gr = grad_wrapp_all,
                                  hessian = TRUE,
+                                 upper = c(Inf, 0, Inf),
+                                 method = "L-BFGS-B",
+                                 control = list(fnscale = -1, maxit = 1000),
                                  ocounts = ocounts, osize = osize, weight_vec = weight_vec,
                                  ploidy = ploidy, p1geno = p1geno, p2geno = p2geno,
                                  p1counts = p1counts, p1size = p1size, p1weight = p1weight,
                                  p2counts = p2counts, p2size = p2size, p2weight = p2weight,
-                                 method = "BFGS",
-                                 control = list(fnscale = -1, maxit = 1000),
                                  bound_bias = bound_bias,
                                  update_bias_val = update_bias_val,
                                  update_seq_error = update_seq_error,
@@ -310,12 +311,12 @@ update_good <- function(parvec, ocounts, osize, weight_vec, ploidy,
           if ("try-error" %in% class(errout)) {
             oout <- stats::optim(par = start_vec, fn = obj_wrapp_all, gr = grad_wrapp_all,
                                  hessian = TRUE,
+                                 method = "Nelder-Mead",
+                                 control = list(fnscale = -1, maxit = 1000),
                                  ocounts = ocounts, osize = osize, weight_vec = weight_vec,
                                  ploidy = ploidy, p1geno = p1geno, p2geno = p2geno,
                                  p1counts = p1counts, p1size = p1size, p1weight = p1weight,
                                  p2counts = p2counts, p2size = p2size, p2weight = p2weight,
-                                 method = "Nelder-Mead",
-                                 control = list(fnscale = -1, maxit = 1000),
                                  bound_bias = bound_bias,
                                  update_bias_val = update_bias_val,
                                  update_seq_error = update_seq_error,
@@ -420,7 +421,7 @@ update_good <- function(parvec, ocounts, osize, weight_vec, ploidy,
                               model = model,
                               is_seq_ninf = is_seq_ninf)
 
-      if (oaf_out$value < obj_oaf_par) {
+      if (oaf_out$value < obj_oaf_par - 10^-10) {
         stop("likelihood not increasing.")
       } else {
         obj_oaf_par <- oaf_out$value
@@ -436,31 +437,55 @@ update_good <- function(parvec, ocounts, osize, weight_vec, ploidy,
       if (is_seq_ninf) { ## deals with ell = -Inf
         start_vec[2] <- 0
       }
-      oout <- stats::optim(par = start_vec, fn = obj_wrapp_all, gr = grad_wrapp_all,
-                           hessian = TRUE,
-                           method = "L-BFGS-B",
-                           upper = c(Inf, 0, Inf), ## seq error can be at most 50%
-                           control = list(fnscale = -1),
-                           ocounts = ocounts, osize = osize, weight_vec = weight_vec,
-                           ploidy = ploidy, p1geno = 0, p2geno = 0,
-                           allele_freq = allele_freq,
-                           p1counts = NULL, p1size = NULL, p1weight = NULL,
-                           p2counts = NULL, p2size = NULL, p2weight = NULL,
-                           bound_bias = bound_bias,
-                           update_bias_val = update_bias_val,
-                           update_seq_error = update_seq_error,
-                           update_od_param = update_od_param,
-                           seq_error_mean = seq_error_mean,
-                           seq_error_sd = seq_error_sd,
-                           bias_val_mean = bias_val_mean,
-                           bias_val_sd = bias_val_sd,
-                           model = model,
-                           is_seq_ninf = is_seq_ninf)
+
+      errout <- try({ ## sometimes L-BFGS-B fails but NM works, but is slower.
+        oout <- stats::optim(par = start_vec, fn = obj_wrapp_all, gr = grad_wrapp_all,
+                             hessian = TRUE,
+                             method = "L-BFGS-B",
+                             upper = c(Inf, 0, Inf), ## seq error can be at most 50%
+                             control = list(fnscale = -1),
+                             ocounts = ocounts, osize = osize, weight_vec = weight_vec,
+                             ploidy = ploidy, p1geno = 0, p2geno = 0,
+                             allele_freq = allele_freq,
+                             p1counts = NULL, p1size = NULL, p1weight = NULL,
+                             p2counts = NULL, p2size = NULL, p2weight = NULL,
+                             bound_bias = bound_bias,
+                             update_bias_val = update_bias_val,
+                             update_seq_error = update_seq_error,
+                             update_od_param = update_od_param,
+                             seq_error_mean = seq_error_mean,
+                             seq_error_sd = seq_error_sd,
+                             bias_val_mean = bias_val_mean,
+                             bias_val_sd = bias_val_sd,
+                             model = model,
+                             is_seq_ninf = is_seq_ninf)
+      }, silent = TRUE)
+      if ("try-error" %in% class(errout)) {
+        oout <- stats::optim(par = start_vec, fn = obj_wrapp_all, gr = grad_wrapp_all,
+                             hessian = TRUE,
+                             method = "Nelder-Mead",
+                             control = list(fnscale = -1),
+                             ocounts = ocounts, osize = osize, weight_vec = weight_vec,
+                             ploidy = ploidy, p1geno = 0, p2geno = 0,
+                             allele_freq = allele_freq,
+                             p1counts = NULL, p1size = NULL, p1weight = NULL,
+                             p2counts = NULL, p2size = NULL, p2weight = NULL,
+                             bound_bias = bound_bias,
+                             update_bias_val = update_bias_val,
+                             update_seq_error = update_seq_error,
+                             update_od_param = update_od_param,
+                             seq_error_mean = seq_error_mean,
+                             seq_error_sd = seq_error_sd,
+                             bias_val_mean = bias_val_mean,
+                             bias_val_sd = bias_val_sd,
+                             model = model,
+                             is_seq_ninf = is_seq_ninf)
+      }
       if (is_seq_ninf) { ## deals with ell = -Inf
         oout$par[2] <- -Inf
       }
 
-      if (oout$value < obj_oaf_par) {
+      if (oout$value < obj_oaf_par - 10 ^ -10) {
         stop("likelihood not increasing")
       } else {
         obj_oaf_par <- oout$value
