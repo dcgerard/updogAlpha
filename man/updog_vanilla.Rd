@@ -13,7 +13,7 @@ updog_vanilla(ocounts, osize, ploidy, p1counts = NULL, p1size = NULL,
   out_mean = 0.5, out_disp = 1/3, non_mono_max = 2, bound_bias = FALSE,
   seq_error_mean = -4.7, seq_error_sd = 1, bias_val_mean = 0,
   bias_val_sd = 0.7, allele_freq = 0.5, model = c("f1", "s1", "hw",
-  "uniform"))
+  "uniform"), verbose = FALSE)
 }
 \arguments{
 \item{ocounts}{A vector of non-negative integers. The ith element
@@ -121,6 +121,8 @@ Set \code{bias_val_sd = Inf} to have no penalty on the bias parameter.}
 \item{model}{The model for the genotype distribution. Do we assume an
 F1 population (\code{"f1"}), an S1 population (\code{"s1"}), Hardy-Weinberg equilibrium (\code{"hw"}),
 or a uniform distribution (\code{"uniform"}).}
+
+\item{verbose}{A logical. Should we output a lot more (\code{TRUE}) or not (\code{FALSE})?}
 }
 \value{
 A list of class \code{updog} with some or all of the following elements:

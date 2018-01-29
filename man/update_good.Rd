@@ -10,7 +10,7 @@ update_good(parvec, ocounts, osize, weight_vec, ploidy, p1counts = NULL,
   bound_bias = FALSE, update_bias_val = TRUE, update_seq_error = TRUE,
   update_od_param = TRUE, seq_error_mean = -4.7, seq_error_sd = 1,
   bias_val_mean = 0, bias_val_sd = 0.7, model = c("f1", "s1", "hw",
-  "uniform"))
+  "uniform"), verbose = FALSE)
 }
 \arguments{
 \item{parvec}{A vector of three elements, s, ell, and r. We have s = log(bias_val) = log(d),
@@ -75,6 +75,8 @@ Set \code{bias_val_sd = Inf} to have no penalty on the bias parameter.}
 \item{model}{The model for the genotype distribution. Should we assume an F1 population (\code{"f1"}),
 an S1 population (\code{"s1"}),
 Hardy-Weinberg equilibrium (\code{"hw"}), or a uniform distribution (\code{"uniform"})?}
+
+\item{verbose}{A logical. Should we write more output \code{TRUE} or not \code{FALSE}?}
 }
 \description{
 Update the OK points

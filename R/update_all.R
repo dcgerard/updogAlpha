@@ -214,6 +214,7 @@ grad_wrapp_all <- function(parvec, ocounts, osize, weight_vec, ploidy, p1geno, p
 #'     (the second position of \code{parvec})?
 #' @param update_od_param A logical. Should we update the overdispersion parameter
 #'     (the third position of \code{parvec})?
+#' @param verbose A logical. Should we write more output \code{TRUE} or not \code{FALSE}?
 #'
 #' @author David Gerard
 #'
@@ -229,7 +230,8 @@ update_good <- function(parvec, ocounts, osize, weight_vec, ploidy,
                         seq_error_sd = 1,
                         bias_val_mean = 0,
                         bias_val_sd = 0.7,
-                        model = c("f1", "s1", "hw", "uniform")) {
+                        model = c("f1", "s1", "hw", "uniform"),
+                        verbose = FALSE) {
 
   ## deal with ell = -Inf
   if (parvec[2] == -Inf) {
@@ -394,6 +396,10 @@ update_good <- function(parvec, ocounts, osize, weight_vec, ploidy,
   } else if (model == "hw") { # iteratively estimate allele frequency and updog parameters ---
     start_vec <- parvec
     ## update a couple times
+    if (verbose) {
+      cat("updating allele freq and params\n\n")
+    }
+    obj_oaf_par <- -Inf
     for (index in 1:3) {
       oaf_out <- stats::optim(par = allele_freq, fn = obj_wrapp_all,
                               method = "Brent", lower = 10 ^ -6,
@@ -414,20 +420,32 @@ update_good <- function(parvec, ocounts, osize, weight_vec, ploidy,
                               model = model,
                               is_seq_ninf = is_seq_ninf)
 
+      if (oaf_out$value < obj_oaf_par) {
+        stop("likelihood not increasing.")
+      } else {
+        obj_oaf_par <- oaf_out$value
+      }
+
       allele_freq <- oaf_out$par ## new allele_freq
+
+      if (verbose) {
+        cat("New allele_freq:", allele_freq, "\n")
+        cat("like:", oaf_out$value, "\n\n")
+      }
 
       if (is_seq_ninf) { ## deals with ell = -Inf
         start_vec[2] <- 0
       }
       oout <- stats::optim(par = start_vec, fn = obj_wrapp_all, gr = grad_wrapp_all,
                            hessian = TRUE,
+                           method = "L-BFGS-B",
+                           upper = c(Inf, 0, Inf), ## seq error can be at most 50%
+                           control = list(fnscale = -1),
                            ocounts = ocounts, osize = osize, weight_vec = weight_vec,
                            ploidy = ploidy, p1geno = 0, p2geno = 0,
                            allele_freq = allele_freq,
                            p1counts = NULL, p1size = NULL, p1weight = NULL,
                            p2counts = NULL, p2size = NULL, p2weight = NULL,
-                           method = "BFGS",
-                           control = list(fnscale = -1, maxit = 1000),
                            bound_bias = bound_bias,
                            update_bias_val = update_bias_val,
                            update_seq_error = update_seq_error,
@@ -442,12 +460,27 @@ update_good <- function(parvec, ocounts, osize, weight_vec, ploidy,
         oout$par[2] <- -Inf
       }
 
+      if (oout$value < obj_oaf_par) {
+        stop("likelihood not increasing")
+      } else {
+        obj_oaf_par <- oout$value
+      }
+
+      if (verbose) {
+        cat("New (s, ell, r):", oout$par, "\n")
+        cat("like:", oout$value, "\n\n")
+      }
+
       start_vec <- oout$par
     }
     best_llike <- oout$value
     best_par   <- oout$par
     best_p1 <- 0
     best_p2 <- 0
+
+    if (verbose) {
+      cat("done updating allele freq and params\n\n")
+    }
   } else {
     stop("check update_good because corner case observed.")
   }
@@ -583,6 +616,7 @@ out_grad_wrapp <- function(parvec, ocounts, osize, weight_vec,
 #' @param model The model for the genotype distribution. Do we assume an
 #'    F1 population (\code{"f1"}), an S1 population (\code{"s1"}), Hardy-Weinberg equilibrium (\code{"hw"}),
 #'    or a uniform distribution (\code{"uniform"}).
+#' @param verbose A logical. Should we output a lot more (\code{TRUE}) or not (\code{FALSE})?
 #'
 #' @return A list of the following elements
 #'     \itemize{
@@ -641,7 +675,8 @@ updog_update_all <- function(ocounts, osize, ploidy,
                              bias_val_mean = 0,
                              bias_val_sd = 0.7,
                              allele_freq = 0.5,
-                             model = c("f1", "s1", "hw", "uniform")) {
+                             model = c("f1", "s1", "hw", "uniform"),
+                             verbose = FALSE) {
   ## Check input ----------------------------------------------------
   if (!is.null(p1counts) & !is.null(p1size)) {
     assertthat::are_equal(length(p1counts), length(p1size), 1)
@@ -753,7 +788,7 @@ updog_update_all <- function(ocounts, osize, ploidy,
                           bias_val_mean = bias_val_mean,
                           bias_val_sd = bias_val_sd,
                           allele_freq = allele_freq,
-                          model = model)
+                          model = model, verbose = verbose)
     } else {
       gout <- update_good(parvec = parvec, ocounts = ocounts, osize = osize,
                           weight_vec = 1 - weight_vec, ploidy = ploidy,
@@ -767,7 +802,7 @@ updog_update_all <- function(ocounts, osize, ploidy,
                           seq_error_sd = seq_error_sd,
                           bias_val_mean = bias_val_mean,
                           bias_val_sd = bias_val_sd,
-                          model = model)
+                          model = model, verbose = verbose)
     }
 
     bias_val    <- gout$bias
@@ -1129,7 +1164,8 @@ updog_vanilla <- function(ocounts, osize, ploidy,
                           bias_val_mean = 0,
                           bias_val_sd = 0.7,
                           allele_freq = 0.5,
-                          model = c("f1", "s1", "hw", "uniform")) {
+                          model = c("f1", "s1", "hw", "uniform"),
+                          verbose = FALSE) {
   ## Deal with missing data -----------------------------------------------------------
   which_na <- is.na(ocounts) | is.na(osize)
   ocounts  <- ocounts[!which_na]
@@ -1208,7 +1244,8 @@ updog_vanilla <- function(ocounts, osize, ploidy,
                              bias_val_mean = bias_val_mean,
                              bias_val_sd = bias_val_sd,
                              allele_freq = allele_freq,
-                             model = model)
+                             model = model,
+                             verbose = verbose)
 
   if (parout$od_param < 10 ^ -13) { ## fix for getting some weird postmat's
     parout$od_param <- 0
