@@ -6,19 +6,15 @@
 
 src-i386/
 src-x64
-
 ## Compiled
 *.o
 *.so
 *.dll
-
 ## Temp files
 *~
 *.#*
-
 ## ignore mostly when using Rmarkdown
 *.html
-
 ## LaTeX
 *.aux
 *.bbl
@@ -31,7 +27,6 @@ _region_.tex
 *.nav
 *.snm
 *.toc
-
 # packages #
 ############
 # it's better to unpack these files and commit the raw source
@@ -46,3 +41,4 @@ _region_.tex
 *.tar
 *.zip
 *.egg-info
+inst/doc

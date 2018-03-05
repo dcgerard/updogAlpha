@@ -1,0 +1,106 @@
+---
+title: "Smells Like Updog"
+author: "David Gerard"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+bibliography: "genobib.bib"
+vignette: >
+  %\VignetteIndexEntry{Smells Like Updog}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(fig.width=4.5, fig.height=3.5) 
+```
+
+
+# What's Updog?
+
+Updog is an empirical Bayes approach to genotype individuals (particularly polyploids) from next generation sequencing (NGS) data. We had in mind NGS data that results from a reduced representation library, such as "genotyping-by-sequencing" (GBS) [@elshire2011robust] or "restriction site-associated DNA sequencing" (RAD-seq) [@baird2008rapid].
+
+Updog wields the power of hierarchical modeling to account for some key features of NGS data overlooked in most other analyses: allelic bias, overdispersion, and outlying observations. Updog will also automatically account for sequencing errors.
+
+To efficiently account for these features, updog needs to know the distribution of the individual genotypes in the population. Updog can accurately estimate this distribution if the population consists of full siblings (option `model = "s1"` or `model = "f1"`) or if the population is in Hardy-Weinberg equilibrium (`model = "hw"`).
+
+# Fit Updog
+
+Load `updog` and the `snpdat` dataset. The data frame `snpdat` contains three example SNPs (single nucleotide polymorphisms) from the study of @shirasawa2017high. The individuals in this dataset resulted from a single generation of selfing (an S1 population). You can read more about it by typing `?snpdat`.
+
+```{r}
+set.seed(1)
+library(updog)
+data("snpdat")
+```
+
+We'll use the `tidyverse` to extract the First SNP.
+
+```{r, message=FALSE}
+library(tidyverse)
+snpdat %>% 
+  filter(snp == "SNP1") %>%
+  select(counts, size, id) ->
+  smalldat
+head(smalldat)
+```
+
+We will separate the counts between the children and the parent (the first individual). Note that you do *not* need the parental counts to fit updog, but they can help.
+
+```{r}
+pcounts <- smalldat$counts[1]
+psize   <- smalldat$size[1]
+ocounts <- smalldat$counts[-1]
+osize   <- smalldat$size[-1]
+ploidy  <- 6 # sweet potatoes are hexaploid
+```
+
+We can first use `plot_geno` to visualize the raw data.
+
+```{r, warning=FALSE}
+plot_geno(ocounts = ocounts, osize = osize, ploidy = ploidy)
+```
+
+Now we fit `updog`. We use `model = "s1"` because the individuals resulted from one generation of selfing of the same parent.
+
+```{r}
+uout <- updog(ocounts = ocounts, osize = osize, ploidy = ploidy, 
+              p1counts = pcounts, p1size = psize, model = "s1")
+```
+
+# Analyzing Output
+
+We use `plot.updog` to visualize the fit. Points are color coded according to the genotype with the highest posterior probability. For example, a genotype of "4" represents four copies of the reference allele and two copies of the alternative allele (AAAAaa). The level of transparency is proportional to the posterior probability of a point being an outlier. The lines represent the mean counts at a given genotype. The "+" symbol with a black dot is the location of the parent.
+
+```{r}
+plot(uout)
+```
+
+I have incorporated a colorblind safe palate.
+
+```{r, warning=TRUE}
+plot(uout, use_colorblind = TRUE)
+```
+
+
+The fit seems reasonable. We can test how reasonable our genotype distribution is using `summary.updog`.
+
+```{r}
+summary(uout)
+```
+
+The goodness of fit $p$-value is quite large, indicating no evidence of lack of fit.
+
+We can sample from the fitted model using `rupdog`.
+
+```{r}
+rout <- rupdog(uout)
+```
+
+If we plot the sampled output, it looks similar to the real data.
+
+```{r}
+plot(rout, show_outlier = FALSE)
+```
+
+
+# References

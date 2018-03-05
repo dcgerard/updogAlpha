@@ -17,7 +17,10 @@ Suggests:
     ggplot2,
     VGAM,
     txtplot,
-    ggthemes
+    ggthemes,
+    knitr,
+    rmarkdown,
+    tidyverse
 Imports:
     assertthat,
     Rcpp,
@@ -27,3 +30,4 @@ Depends:
 RoxygenNote: 6.0.1
 LinkingTo: Rcpp,
     RcppArmadillo
+VignetteBuilder: knitr
