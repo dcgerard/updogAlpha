@@ -60,6 +60,18 @@
 <li>
   <a href="../reference/index.html">Reference</a>
 </li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Articles
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="../articles/smells_like_updog.html">Smells Like Updog</a>
+    </li>
+  </ul>
+</li>
       </ul>
       
       <ul class="nav navbar-nav navbar-right">
@@ -94,10 +106,10 @@
   <span class='kw'>update_seq_error</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>update_od_param</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>update_pgeno</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
   <span class='kw'>p1geno</span> <span class='kw'>=</span> <span class='fu'>round</span>(<span class='no'>ploidy</span>/<span class='fl'>2</span>), <span class='kw'>p2geno</span> <span class='kw'>=</span> <span class='fu'>round</span>(<span class='no'>ploidy</span>/<span class='fl'>2</span>), <span class='kw'>seq_error</span> <span class='kw'>=</span> <span class='fl'>0.01</span>,
   <span class='kw'>od_param</span> <span class='kw'>=</span> <span class='fl'>0.01</span>, <span class='kw'>bias_val</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>out_prop</span> <span class='kw'>=</span> <span class='fl'>0.001</span>, <span class='kw'>out_mean</span> <span class='kw'>=</span> <span class='fl'>0.5</span>,
-  <span class='kw'>out_disp</span> <span class='kw'>=</span> <span class='fl'>1</span>/<span class='fl'>3</span>, <span class='kw'>non_mono_max</span> <span class='kw'>=</span> <span class='fl'>2</span>, <span class='kw'>bound_bias</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
+  <span class='kw'>out_disp</span> <span class='kw'>=</span> <span class='fl'>1</span>/<span class='fl'>3</span>, <span class='kw'>non_mono_max</span> <span class='kw'>=</span> <span class='fl'>2</span>, <span class='kw'>bound_bias</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
   <span class='kw'>seq_error_mean</span> <span class='kw'>=</span> -<span class='fl'>4.7</span>, <span class='kw'>seq_error_sd</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>bias_val_mean</span> <span class='kw'>=</span> <span class='fl'>0</span>,
-  <span class='kw'>bias_val_sd</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>allele_freq</span> <span class='kw'>=</span> <span class='fl'>0.5</span>, <span class='kw'>model</span> <span class='kw'>=</span> <span class='fu'>c</span>(<span class='st'>"f1"</span>, <span class='st'>"s1"</span>, <span class='st'>"hw"</span>,
-  <span class='st'>"uniform"</span>))</pre>
+  <span class='kw'>bias_val_sd</span> <span class='kw'>=</span> <span class='fl'>0.7</span>, <span class='kw'>allele_freq</span> <span class='kw'>=</span> <span class='fl'>0.5</span>, <span class='kw'>model</span> <span class='kw'>=</span> <span class='fu'>c</span>(<span class='st'>"f1"</span>, <span class='st'>"s1"</span>, <span class='st'>"hw"</span>,
+  <span class='st'>"uniform"</span>), <span class='kw'>verbose</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a> Arguments</h2>
     <table class="ref-arguments">
@@ -249,13 +261,15 @@ points being outliers.</p></td>
       <th>seq_error_mean</th>
       <td><p>The mean of the logit-normal prior on the sequencing error rate, which corresponds
 to <code>parvec[2]</code>. Set <code>seq_error_sd = Inf</code> to have no penalty on the sequencing error rate.
-The default is -4.7, which roughly corresponds to a mean sequencing error value of 0.009.</p></td>
+The default is -4.7, which roughly corresponds to a mean sequencing error value of 0.009. If you want
+to constain <code>seq_error</code> to be zero, you need to set <code>update_seq_error = FALSE</code>,
+<code>seq_error = 0</code>, and<code>seq_error_mean = -Inf</code>.</p></td>
     </tr>
     <tr>
       <th>seq_error_sd</th>
       <td><p>The standard deviation of the logit-normal prior on the sequencing error rate, which
 corresponds to <code>parvec[2]</code>. The default is 1, which at three standard deviations is about a sequencing
-error rate of 0.15.</p></td>
+error rate of 0.15. Set <code>seq_error_sd = Inf</code> to have no penalty on the sequencing error rate.</p></td>
     </tr>
     <tr>
       <th>bias_val_mean</th>
@@ -277,6 +291,10 @@ Set <code>bias_val_sd = Inf</code> to have no penalty on the bias parameter.</p>
       <td><p>The model for the genotype distribution. Do we assume an
 F1 population (<code>"f1"</code>), an S1 population (<code>"s1"</code>), Hardy-Weinberg equilibrium (<code>"hw"</code>),
 or a uniform distribution (<code>"uniform"</code>).</p></td>
+    </tr>
+    <tr>
+      <th>verbose</th>
+      <td><p>A logical. Should we output a lot more (<code>TRUE</code>) or not (<code>FALSE</code>)?</p></td>
     </tr>
     </table>
     

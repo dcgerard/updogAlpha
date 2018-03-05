@@ -3,7 +3,7 @@
 updog: Using Parental Data for Offspring Genotyping
 ===================================================
 
-[![Linux Build Status](https://travis-ci.org/dcgerard/updog.svg?branch=master)](https://travis-ci.org/dcgerard/updog) [![Windows Build Status](https://ci.appveyor.com/api/projects/status/github/dcgerard/updog?branch=master&svg=true)](https://ci.appveyor.com/project/dcgerard/updog) <!-- [![Coverage Status](https://img.shields.io/codecov/c/github/dcgerard/updog/master.svg)](https://codecov.io/github/dcgerard/updog?branch=master) --> <!-- [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0) -->
+[![Linux Build Status](https://travis-ci.org/dcgerard/updog.svg?branch=master)](https://travis-ci.org/dcgerard/updog) [![Windows Build Status](https://ci.appveyor.com/api/projects/status/github/dcgerard/updog?branch=master&svg=true)](https://ci.appveyor.com/project/dcgerard/updog) [![Coverage Status](https://img.shields.io/codecov/c/github/dcgerard/updog/master.svg)](https://codecov.io/github/dcgerard/updog?branch=master) [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0)
 
 This package will fit an empirical Bayesian procedure to genotype autopolyploid individuals using reduced-representation next-generation sequencing (NGS) data, such as genotyping by sequencing (GBS) (Elshire 2011) or restriction site-associated DNA sequencing (RAD-Seq) (Baird 2008). For such NGS data there exist other methods for genotyping --- see for example [ebg](https://github.com/pblischak/polyploid-genotyping) (Blischak, Kubatko, and Wolfe 2017) and [TET](http://www.g3journal.org/lookup/suppl/doi:10.1534/g3.117.039008/-/DC1) (Maruki and Lynch 2017). `updog` adds to this field by:
 
@@ -54,7 +54,7 @@ References
 
 Baird, Paul D. AND Atwood, Nathan A. AND Etter. 2008. “Rapid SNP Discovery and Genetic Mapping Using Sequenced RAD Markers.” *PLOS ONE* 3 (10). Public Library of Science: 1–7. doi:[10.1371/journal.pone.0003376](https://doi.org/10.1371/journal.pone.0003376).
 
-Blischak, Paul, Laura Kubatko, and Andrea Wolfe. 2017. “SNP Genotyping and Parameter Estimation in Polyploids Using Low-Coverage Sequencing Data.” *BioRxiv*. Cold Spring Harbor Labs Journals. doi:[10.1101/120261](https://doi.org/10.1101/120261).
+Blischak, Paul, Laura Kubatko, and Andrea Wolfe. 2017. “SNP Genotyping and Parameter Estimation in Polyploids Using Low-Coverage Sequencing Data.” *bioRxiv*. Cold Spring Harbor Labs Journals. doi:[10.1101/120261](https://doi.org/10.1101/120261).
 
 Elshire, Jeffrey C. AND Sun, Robert J. AND Glaubitz. 2011. “A Robust, Simple Genotyping-by-Sequencing (GBS) Approach for High Diversity Species.” *PLOS ONE* 6 (5). Public Library of Science: 1–10. doi:[10.1371/journal.pone.0019379](https://doi.org/10.1371/journal.pone.0019379).
 

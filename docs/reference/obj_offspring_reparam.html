@@ -60,6 +60,18 @@
 <li>
   <a href="../reference/index.html">Reference</a>
 </li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Articles
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="../articles/smells_like_updog.html">Smells Like Updog</a>
+    </li>
+  </ul>
+</li>
       </ul>
       
       <ul class="nav navbar-nav navbar-right">
@@ -87,7 +99,8 @@
     <p>Just a reparameterization of <code><a href='obj_offspring.html'>obj_offspring</a></code>.</p>
     
 
-    <pre class="usage"><span class='fu'>obj_offspring_reparam</span>(<span class='no'>ocounts</span>, <span class='no'>osize</span>, <span class='no'>ploidy</span>, <span class='no'>prob_geno</span>, <span class='no'>s</span>, <span class='no'>ell</span>, <span class='no'>r</span>)</pre>
+    <pre class="usage"><span class='fu'>obj_offspring_reparam</span>(<span class='no'>ocounts</span>, <span class='no'>osize</span>, <span class='no'>ploidy</span>, <span class='no'>prob_geno</span>, <span class='no'>s</span>, <span class='no'>ell</span>, <span class='no'>r</span>,
+  <span class='kw'>outlier</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>out_prop</span> <span class='kw'>=</span> <span class='fl'>0.01</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a> Arguments</h2>
     <table class="ref-arguments">
@@ -113,7 +126,7 @@ to be the same for each individual.</p></td>
     </tr>
     <tr>
       <th>s</th>
-      <td><p>Same as <code>exp(bias_val)</code> in <code><a href='obj_offspring.html'>obj_offspring</a></code>.</p></td>
+      <td><p>Same as <code>log(bias_val)</code> in <code><a href='obj_offspring.html'>obj_offspring</a></code>.</p></td>
     </tr>
     <tr>
       <th>ell</th>
@@ -122,6 +135,16 @@ to be the same for each individual.</p></td>
     <tr>
       <th>r</th>
       <td><p>Same as <code>log((1.0 - od_param) / od_param)</code> from <code><a href='obj_offspring.html'>obj_offspring</a></code>.</p></td>
+    </tr>
+    <tr>
+      <th>outlier</th>
+      <td><p>A logical. Should we include an outlier model (<code>TRUE</code>)
+or not (<code>FALSE</code>)? Defaults to <code>FALSE</code>.</p></td>
+    </tr>
+    <tr>
+      <th>out_prop</th>
+      <td><p>The proportion of points that are outliers. Defaults
+(quite arbitrarily) to <code>0.01</code>.</p></td>
     </tr>
     </table>
     

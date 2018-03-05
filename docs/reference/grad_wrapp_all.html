@@ -60,6 +60,18 @@
 <li>
   <a href="../reference/index.html">Reference</a>
 </li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Articles
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="../articles/smells_like_updog.html">Smells Like Updog</a>
+    </li>
+  </ul>
+</li>
       </ul>
       
       <ul class="nav navbar-nav navbar-right">
@@ -89,10 +101,11 @@
 
     <pre class="usage"><span class='fu'>grad_wrapp_all</span>(<span class='no'>parvec</span>, <span class='no'>ocounts</span>, <span class='no'>osize</span>, <span class='no'>weight_vec</span>, <span class='no'>ploidy</span>, <span class='no'>p1geno</span>, <span class='no'>p2geno</span>,
   <span class='kw'>allele_freq</span> <span class='kw'>=</span> <span class='fl'>0.5</span>, <span class='kw'>p1counts</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>p1size</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>p1weight</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>p2counts</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>p2size</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>p2weight</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>bound_bias</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
+  <span class='kw'>p2counts</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>p2size</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>p2weight</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>bound_bias</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
   <span class='kw'>update_bias_val</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>update_seq_error</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>update_od_param</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
   <span class='kw'>seq_error_mean</span> <span class='kw'>=</span> -<span class='fl'>4.7</span>, <span class='kw'>seq_error_sd</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>bias_val_mean</span> <span class='kw'>=</span> <span class='fl'>0</span>,
-  <span class='kw'>bias_val_sd</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>model</span> <span class='kw'>=</span> <span class='fu'>c</span>(<span class='st'>"f1"</span>, <span class='st'>"s1"</span>, <span class='st'>"hw"</span>, <span class='st'>"uniform"</span>))</pre>
+  <span class='kw'>bias_val_sd</span> <span class='kw'>=</span> <span class='fl'>0.7</span>, <span class='kw'>model</span> <span class='kw'>=</span> <span class='fu'>c</span>(<span class='st'>"f1"</span>, <span class='st'>"s1"</span>, <span class='st'>"hw"</span>, <span class='st'>"uniform"</span>),
+  <span class='kw'>is_seq_ninf</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a> Arguments</h2>
     <table class="ref-arguments">
@@ -205,6 +218,12 @@ Set <code>bias_val_sd = Inf</code> to have no penalty on the bias parameter.</p>
       <td><p>The model for the genotype distribution. Should we assume an F1 population (<code>"f1"</code>),
 an S1 population (<code>"s1"</code>),
 Hardy-Weinberg equilibrium (<code>"hw"</code>), or a uniform distribution (<code>"uniform"</code>)?</p></td>
+    </tr>
+    <tr>
+      <th>is_seq_ninf</th>
+      <td><p>Hacky way to get around fact that optim won't allow <code>-Inf</code> in
+<code>par</code>, even if <code>gr</code> will always be zero for that parameter.
+How dare they not anticipate my unique situation!</p></td>
     </tr>
     </table>
     
