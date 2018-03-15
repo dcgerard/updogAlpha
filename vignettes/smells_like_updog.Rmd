@@ -106,7 +106,7 @@ plot(rout, show_outlier = FALSE)
 
 ## Filtering SNPs
 
-For downstream analyses, you might want to filter out poorly behaved SNPs. These SNPs might be poorly behaved for a variety of reasons (they might not be real SNPs, it might much more very difficult to map one allele to the correct location relative to the other allele, etc). Updog gives you some measures to filter out these SNPs.
+For downstream analyses, you might want to filter out poorly behaved SNPs. These SNPs might be poorly behaved for a variety of reasons (they might not be real SNPs, it might be much more very difficult to map one allele to the correct location relative to the other allele, etc). Updog gives you some measures to filter out these SNPs.
 
 The most intuitive measure would be the (posterior) proportion of individuals mis-genotyped:
 ```{r}
@@ -116,6 +116,8 @@ uout$prop_mis
 For this SNP, we expect about `r round(uout$prop_mis, digits = 4) * 100` percent of the individuals to be mis-genotyped. The specific cutoff you use is context and data dependent. But as a starting point, you could try a loose cutoff by keeping SNPs only if they have a `prop_mis` of less than 0.2.
 
 From our simulation studies, we also generally get rid of SNPs with overdispersion parameters greater than 0.05 or SNPs with bias parameters either less than 0.5 or greater than 2. However, if you have higher or lower read depths than what we looked at in our simulations, you should adjust these levels accordingly.
+
+You should probably also get rid of SNPs if they have a high sequencing error rate, but we didn't explore this in simulations so I don't have any heuristic recommendations.
 
 # Special Considerations for Population Studies
 
