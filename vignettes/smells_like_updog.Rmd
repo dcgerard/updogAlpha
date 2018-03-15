@@ -23,7 +23,9 @@ Updog wields the power of hierarchical modeling to account for some key features
 
 To efficiently account for these features, updog needs to know the distribution of the individual genotypes in the population. Updog can accurately estimate this distribution if the population consists of full siblings (option `model = "s1"` or `model = "f1"`) or if the population is in Hardy-Weinberg equilibrium (`model = "hw"`).
 
-# Fit Updog
+# Example from an S1 Population
+
+## Fit updog
 
 Load `updog` and the `snpdat` dataset. The data frame `snpdat` contains three example SNPs (single nucleotide polymorphisms) from the study of @shirasawa2017high. The individuals in this dataset resulted from a single generation of selfing (an S1 population). You can read more about it by typing `?snpdat`.
 
@@ -44,7 +46,7 @@ snpdat %>%
 head(smalldat)
 ```
 
-We will separate the counts between the children and the parent (the first individual). Note that you do *not* need the parental counts to fit updog, but they can help.
+We will separate the counts between the children and the parent (the first individual). Note that you do *not* need the parental counts to fit updog, but they can help improve estimates of the parameters in the updog model.
 
 ```{r}
 pcounts <- smalldat$counts[1]
@@ -67,7 +69,7 @@ uout <- updog(ocounts = ocounts, osize = osize, ploidy = ploidy,
               p1counts = pcounts, p1size = psize, model = "s1")
 ```
 
-# Analyzing Output
+## Analyze Output
 
 We use `plot.updog` to visualize the fit. Points are color coded according to the genotype with the highest posterior probability. For example, a genotype of "4" represents four copies of the reference allele and two copies of the alternative allele (AAAAaa). The level of transparency is proportional to the posterior probability of a point being an outlier. The lines represent the mean counts at a given genotype. The "+" symbol with a black dot is the location of the parent.
 
@@ -102,5 +104,24 @@ If we plot the sampled output, it looks similar to the real data.
 plot(rout, show_outlier = FALSE)
 ```
 
+## Filtering SNPs
+
+For downstream analyses, you might want to filter out poorly behaved SNPs. These SNPs might be poorly behaved for a variety of reasons (they might not be real SNPs, it might much more very difficult to map one allele to the correct location relative to the other allele, etc). Updog gives you some measures to filter out these SNPs.
+
+The most intuitive measure would be the (posterior) proportion of individuals mis-genotyped:
+```{r}
+uout$prop_mis
+```
+
+For this SNP, we expect about `r round(uout$prop_mis, digits = 4) * 100` percent of the individuals to be mis-genotyped. The specific cutoff you use is context and data dependent. But as a starting point, you could try a loose cutoff by keeping SNPs only if they have a `prop_mis` of less than 0.2.
+
+From our simulation studies, we also generally get rid of SNPs with overdispersion parameters greater than 0.05 or SNPs with bias parameters either less than 0.5 or greater than 2. However, if you have higher or lower read depths than what we looked at in our simulations, you should adjust these levels accordingly.
+
+# Special Considerations for Population Studies
+
+For population studies, I would always use the options `model = "hw"`, `update_outprop = FALSE`, and `out_prop = 0`. This is for two (extremely heuristic) reasons:
+
+1. Updog (particularly the bias estimates) seems to be very sensitive to the form of the prior distribution and it seems that a binomial distribution is more common (or at least a better fit) in most datasets than a uniform distribution. Thus, I would never use `model = "uniform"`.
+2. I don't trust outlier estimates unless I have a very strong prior. If your population consists of full siblings, then we have this strong prior. But in population settings, our prior is much less strong. Thus, I would force updog to not allow for outliers with `update_outprop = FALSE`, and `out_prop = 0`.
 
 # References

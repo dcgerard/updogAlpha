@@ -51,6 +51,7 @@ A list of class \code{updog} with some or all of the following elements:
         \item{\code{logit_seq_error}}{The logit of \code{seq_error}. I.e. \code{log(seq_error / (1 - seq_error))}}
         \item{\code{neg_logit_od_param}}{The negative logit of \code{od_param}. I.e. \code{log((1 - od_param) / od_param)}}
         \item{\code{covmat}}{The observed Fisher information matrix of \code{c(log_bias, logit_seq_error, neg_logit_od_param)}. This can be used as the covariance matrix of these estimates.}
+        \item{\code{prop_mis}}{The (posterior) proportion of individuals mis-genotyped. Equal to \code{1 - maxpostprob}.}
     }
 }
 \description{
