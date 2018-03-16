@@ -12,7 +12,7 @@
 
 <meta name="author" content="David Gerard" />
 
-<meta name="date" content="2018-03-15" />
+<meta name="date" content="2018-03-16" />
 
 <title>Smells Like Updog</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">Smells Like Updog</h1>
 <h4 class="author"><em>David Gerard</em></h4>
-<h4 class="date"><em>2018-03-15</em></h4>
+<h4 class="date"><em>2018-03-16</em></h4>
 
 
 
@@ -79,6 +79,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <p>Updog is an empirical Bayes approach to genotype individuals (particularly polyploids) from next generation sequencing (NGS) data. We had in mind NGS data that results from a reduced representation library, such as “genotyping-by-sequencing” (GBS) <span class="citation">(Elshire 2011)</span> or “restriction site-associated DNA sequencing” (RAD-seq) <span class="citation">(Baird 2008)</span>.</p>
 <p>Updog wields the power of hierarchical modeling to account for some key features of NGS data overlooked in most other analyses: allelic bias, overdispersion, and outlying observations. Updog will also automatically account for sequencing errors.</p>
 <p>To efficiently account for these features, updog needs to know the distribution of the individual genotypes in the population. Updog can accurately estimate this distribution if the population consists of full siblings (option <code>model = &quot;s1&quot;</code> or <code>model = &quot;f1&quot;</code>) or if the population is in Hardy-Weinberg equilibrium (<code>model = &quot;hw&quot;</code>).</p>
+<p>You can read more about the updog method in <span class="citation">Gerard et al. (2018)</span>.</p>
 </div>
 <div id="example-from-an-s1-population" class="section level1">
 <h1>Example from an S1 Population</h1>
@@ -96,9 +97,9 @@ snpdat <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">  </span>smalldat
 <span class="kw">head</span>(smalldat)</code></pre></div>
 <pre><code>## # A tibble: 6 x 3
-##   counts  size            id
-##    &lt;int&gt; &lt;int&gt;         &lt;chr&gt;
-## 1    298   354       Xushu18
+##   counts  size id           
+##    &lt;int&gt; &lt;int&gt; &lt;chr&gt;        
+## 1    298   354 Xushu18      
 ## 2    187   187 Xushu18S1-001
 ## 3    201   201 Xushu18S1-002
 ## 4    157   184 Xushu18S1-003
@@ -177,6 +178,9 @@ ploidy  &lt;-<span class="st"> </span><span class="dv">6</span> <span class="co"
 </div>
 <div id="ref-elshire2011robust">
 <p>Elshire, Jeffrey C. AND Sun, Robert J. AND Glaubitz. 2011. “A Robust, Simple Genotyping-by-Sequencing (GBS) Approach for High Diversity Species.” <em>PLOS ONE</em> 6 (5). Public Library of Science: 1–10. doi:<a href="https://doi.org/10.1371/journal.pone.0019379">10.1371/journal.pone.0019379</a>.</p>
+</div>
+<div id="ref-gerard2018harnessing">
+<p>Gerard, David, Luis Felipe Ventorim Ferrão, Antonio Augusto Franco Garcia, and Matthew Stephens. 2018. “Harnessing Empirical Bayes and Mendelian Segregation for Genotyping Autopolyploids from Messy Sequencing Data.” <em>bioRxiv</em>. Cold Spring Harbor Laboratory. doi:<a href="https://doi.org/10.1101/281550">10.1101/281550</a>.</p>
 </div>
 <div id="ref-shirasawa2017high">
 <p>Shirasawa, Kenta, Masaru Tanaka, Yasuhiro Takahata, Daifu Ma, Qinghe Cao, Qingchang Liu, Hong Zhai, et al. 2017. “A High-Density SNP Genetic Map Consisting of a Complete Set of Homologous Groups in Autohexaploid Sweetpotato (<em>Ipomoea Batatas</em>).” <em>Scientific Reports</em> 7. Nature Publishing Group. doi:<a href="https://doi.org/10.1038/srep44207">10.1038/srep44207</a>.</p>
