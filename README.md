@@ -37,7 +37,7 @@ Citation
 
 If you find the methods in this package useful, please cite
 
-> Gerard, D., Ferrão L.F.V., Garcia, A.A.F., & Stephens, M. (2018). Harnessing Empirical Bayes and Mendelian Segregation for Genotyping Autopolyploids from Messy Sequencing Data. bioRxiv. doi: [10.1101/281550](https://doi.org/10.1101/281550).
+> Gerard, D., Ferrão L.F.V., Garcia, A.A.F., & Stephens, M. (2018). Harnessing Empirical Bayes and Mendelian Segregation for Genotyping Autopolyploids from Messy Sequencing Data. *bioRxiv*. doi: [10.1101/281550](https://doi.org/10.1101/281550).
 
 Or, using BibTex:
 
