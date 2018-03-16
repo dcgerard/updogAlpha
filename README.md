@@ -35,19 +35,22 @@ devtools::install_github("dcgerard/updog")
 Citation
 ========
 
-Please cite this package as
+If you find the methods in this package useful, please cite
 
-> Gerard, David. 2016. *updog: Using Parental Data for Offspring Genotyping*. <https://github.com/dcgerard/updog>.
+> Gerard, D., Ferrão L.F.V., Garcia, A.A.F., & Stephens, M. (2018). Harnessing Empirical Bayes and Mendelian Segregation for Genotyping Autopolyploids from Messy Sequencing Data. bioRxiv. doi: [10.1101/281550](https://doi.org/10.1101/281550).
 
 Or, using BibTex:
 
 ``` tex
-@Manual{gerard2016updog,
-    title = {{updog}: Using Parental Data for Offspring Genotyping},
-    author = {David Gerard},
-    year = {2016},
-    note = {R package version 0.1.0},
-    url = {https://github.com/dcgerard/updog},
+@article {gerard2018harnessing,
+    author = {Gerard, David and Ferr{\~a}o, Luis Felipe Ventorim and Garcia, Antonio Augusto Franco and Stephens, Matthew},
+    title = {Harnessing Empirical Bayes and Mendelian Segregation for Genotyping Autopolyploids from Messy Sequencing Data},
+    year = {2018},
+    doi = {10.1101/281550},
+    publisher = {Cold Spring Harbor Laboratory},
+    URL = {https://www.biorxiv.org/content/early/2018/03/16/281550},
+    eprint = {https://www.biorxiv.org/content/early/2018/03/16/281550.full.pdf},
+    journal = {bioRxiv}
 }
 ```
 
