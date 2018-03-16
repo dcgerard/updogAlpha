@@ -23,6 +23,8 @@ Updog wields the power of hierarchical modeling to account for some key features
 
 To efficiently account for these features, updog needs to know the distribution of the individual genotypes in the population. Updog can accurately estimate this distribution if the population consists of full siblings (option `model = "s1"` or `model = "f1"`) or if the population is in Hardy-Weinberg equilibrium (`model = "hw"`).
 
+You can read more about the updog method in @gerard2018harnessing.
+
 # Example from an S1 Population
 
 ## Fit updog
