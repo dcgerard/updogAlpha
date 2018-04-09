@@ -1222,6 +1222,9 @@ updog_vanilla <- function(ocounts, osize, ploidy,
   assertthat::assert_that(allele_freq > 0, allele_freq < 1)
 
   model <- match.arg(model)
+  if (model == "uniform") {
+    warning("using model = 'uniform' is usually a terrible idea.\nIf you have natural population data, try model = 'hw' instead.")
+  }
 
   if (!is.null(p1counts) & !is.null(p1size)) {
     assertthat::are_equal(length(p1counts), length(p1size))
