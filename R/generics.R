@@ -8,7 +8,7 @@
 #' \code{\link{plot_geno}}. The "classic" R base graphics version is made
 #' using the function \code{\link{plot_geno_base}}.
 #'
-#' The first plot is what we call a "genotype plot". On the x-axis is the
+#' The returned plot is what we call a "genotype plot". On the x-axis is the
 #' number of "a" reads and on the y-axis is the number of "A" reads, where
 #' "a" and "A" are the possible alleles. If available, the observations are
 #' colorcoded by estimated genotype (via the maximum a posteriori
@@ -40,7 +40,7 @@
 #' (\code{TRUE}), or not (\code{FALSE}).  If ggplot2 is present, then
 #' this defaults to \code{TRUE}. If it is not present, then it
 #' defaults to \code{FALSE}.
-#' @param plot_beta A logical. If true, then we'll also plot the
+#' @param plot_beta A logical. If true, then we'll plot the
 #' estimated beta density of the outlier model, followed by the
 #' estimated beta distributions of the overdispersion models.
 #' @param ask A logical. Should we ask before continuing on to the
@@ -95,7 +95,6 @@ plot.updog <- function(x, gg = requireNamespace("ggplot2", quietly = TRUE),
                     bias_val = x$bias_val,
                     prob_ok = x$prob_ok, maxpostprob = x$maxpostprob,
                     p1geno = x$p1geno, p2geno = x$p2geno, use_colorblind = use_colorblind)
-    print(pl)
   } else if (!gg) {
     plot_geno_base(ocounts = x$input$ocounts, osize = x$input$osize,
                    p1counts = x$input$p1counts, p1size = x$input$p1size,
@@ -156,6 +155,7 @@ plot.updog <- function(x, gg = requireNamespace("ggplot2", quietly = TRUE),
         message("No overdispersion distribution to plot.")
     }
   }
+  return(pl)
 }
 
 #' Summary method for class "\code{updog}".
