@@ -16,7 +16,7 @@
 this defaults to \code{TRUE}. If it is not present, then it
 defaults to \code{FALSE}.}
 
-\item{plot_beta}{A logical. If true, then we'll also plot the
+\item{plot_beta}{A logical. If true, then we'll plot the
 estimated beta density of the outlier model, followed by the
 estimated beta distributions of the overdispersion models.}
 
@@ -48,7 +48,7 @@ used. The ggplot2 version is made using the function
 using the function \code{\link{plot_geno_base}}.
 }
 \details{
-The first plot is what we call a "genotype plot". On the x-axis is the
+The returned plot is what we call a "genotype plot". On the x-axis is the
 number of "a" reads and on the y-axis is the number of "A" reads, where
 "a" and "A" are the possible alleles. If available, the observations are
 colorcoded by estimated genotype (via the maximum a posteriori

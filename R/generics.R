@@ -155,7 +155,9 @@ plot.updog <- function(x, gg = requireNamespace("ggplot2", quietly = TRUE),
         message("No overdispersion distribution to plot.")
     }
   }
-  return(pl)
+  if (gg) {
+    return(pl)
+  }
 }
 
 #' Summary method for class "\code{updog}".
