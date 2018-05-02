@@ -1,4 +1,4 @@
 library(testthat)
 library(updogAlpha)
 
-test_check("updog")
+test_check("updogAlpha")
