@@ -73,12 +73,22 @@ Rcpp::NumericVector bbpost_double(double x, double n, int ploidy, Rcpp::NumericV
 
   // outlier model if outlier = true by point-wise log-sum-exp --------------------------
   if (outlier & (out_prop > tol)) {
-    double out_dense = std::log(out_prop) + dbetabinom_mu_rho_cpp_double(x, n, out_mean, out_disp, true);
-    Rcpp::NumericVector outlier_vec(ploidy + 1, out_dense);
-    outlier_vec = outlier_vec + Rcpp::log(prob_geno);
+    double out_dense = std::log(out_prop) +
+      dbetabinom_mu_rho_cpp_double(x, n, out_mean, out_disp, true);
+    Rcpp::NumericVector outlier_vec(ploidy + 1);
     prob_vec = prob_vec + log(1 - out_prop);
-    Rcpp::NumericVector max_el = Rcpp::pmax(prob_vec, outlier_vec);
-    prob_vec = Rcpp::log(Rcpp::exp(prob_vec - max_el) + Rcpp::exp(outlier_vec - max_el)) + max_el;
+    double max_el;
+    for (int i = 0; i < ploidy + 1; i++) {
+      if (prob_geno(i) > tol) {
+        outlier_vec(i) = out_dense + log(prob_geno(i));
+        max_el = std::max(prob_vec(i), outlier_vec(i));
+        prob_vec(i) = std::log(std::exp(prob_vec(i) - max_el) +
+          std::exp(outlier_vec(i) - max_el)) + max_el;
+      } else {
+        outlier_vec(i) = R_NegInf;
+        prob_vec(i) = R_NegInf;
+      }
+    }
   }
 
   // log-sum-exp probs ------------------------------------------------------------------
