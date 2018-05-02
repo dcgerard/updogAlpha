@@ -1,4 +1,4 @@
-#' @useDynLib updog
+#' @useDynLib updogAlpha
 #' @importFrom Rcpp sourceCpp
 NULL
 

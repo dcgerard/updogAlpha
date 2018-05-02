@@ -22,7 +22,7 @@
 #' @export
 #'
 bbpost_double <- function(x, n, ploidy, prob_geno, seq_error, bias_val, od_param, outlier = FALSE, out_prop = 0.1, out_mean = 0.5, out_disp = 1/3) {
-    .Call('_updog_bbpost_double', PACKAGE = 'updog', x, n, ploidy, prob_geno, seq_error, bias_val, od_param, outlier, out_prop, out_mean, out_disp)
+    .Call('_updogAlpha_bbpost_double', PACKAGE = 'updogAlpha', x, n, ploidy, prob_geno, seq_error, bias_val, od_param, outlier, out_prop, out_mean, out_disp)
 }
 
 #' Posterior inference for each individual.
@@ -36,7 +36,7 @@ bbpost_double <- function(x, n, ploidy, prob_geno, seq_error, bias_val, od_param
 #' @export
 #'
 bbpost_tot <- function(ocounts, osize, ploidy, prob_geno, seq_error, bias_val, od_param, outlier = FALSE, out_prop = 0.1, out_mean = 0.5, out_disp = 1/3) {
-    .Call('_updog_bbpost_tot', PACKAGE = 'updog', ocounts, osize, ploidy, prob_geno, seq_error, bias_val, od_param, outlier, out_prop, out_mean, out_disp)
+    .Call('_updogAlpha_bbpost_tot', PACKAGE = 'updogAlpha', ocounts, osize, ploidy, prob_geno, seq_error, bias_val, od_param, outlier, out_prop, out_mean, out_disp)
 }
 
 #' E step in EM algorithm for a single individual.
@@ -48,7 +48,7 @@ bbpost_tot <- function(ocounts, osize, ploidy, prob_geno, seq_error, bias_val, o
 #' @author David Gerard
 #'
 get_out_prop <- function(ocounts, osize, ploidy, prob_geno, d, eps, tau, out_prop, out_mean, out_disp) {
-    .Call('_updog_get_out_prop', PACKAGE = 'updog', ocounts, osize, ploidy, prob_geno, d, eps, tau, out_prop, out_mean, out_disp)
+    .Call('_updogAlpha_get_out_prop', PACKAGE = 'updogAlpha', ocounts, osize, ploidy, prob_geno, d, eps, tau, out_prop, out_mean, out_disp)
 }
 
 #' Derivative of mean of beta density.
@@ -63,7 +63,7 @@ get_out_prop <- function(ocounts, osize, ploidy, prob_geno, d, eps, tau, out_pro
 #' @author David Gerard
 #'
 dbeta_dprop <- function(x, n, xi, tau) {
-    .Call('_updog_dbeta_dprop', PACKAGE = 'updog', x, n, xi, tau)
+    .Call('_updogAlpha_dbeta_dprop', PACKAGE = 'updogAlpha', x, n, xi, tau)
 }
 
 #' Derivative of overdispersion parameter of beta density.
@@ -77,7 +77,7 @@ dbeta_dprop <- function(x, n, xi, tau) {
 #' @author David Gerard
 #'
 dbeta_dh <- function(x, n, xi, h) {
-    .Call('_updog_dbeta_dh', PACKAGE = 'updog', x, n, xi, h)
+    .Call('_updogAlpha_dbeta_dh', PACKAGE = 'updogAlpha', x, n, xi, h)
 }
 
 #' Just a wrapper for \code{std::exp}.
@@ -88,7 +88,7 @@ dbeta_dh <- function(x, n, xi, h) {
 #'
 #'
 dh_dr <- function(r) {
-    .Call('_updog_dh_dr', PACKAGE = 'updog', r)
+    .Call('_updogAlpha_dh_dr', PACKAGE = 'updogAlpha', r)
 }
 
 #' Just a wrapper for \code{std::exp}.
@@ -99,7 +99,7 @@ dh_dr <- function(r) {
 #'
 #'
 dd_ds <- function(s) {
-    .Call('_updog_dd_ds', PACKAGE = 'updog', s)
+    .Call('_updogAlpha_dd_ds', PACKAGE = 'updogAlpha', s)
 }
 
 #' Derivative of beta(x|n, xi, r), where r = log(h) from \code{\link{dbeta_dh}}.
@@ -110,7 +110,7 @@ dd_ds <- function(s) {
 #' @author David Gerard
 #'
 dbeta_dr <- function(x, n, xi, r) {
-    .Call('_updog_dbeta_dr', PACKAGE = 'updog', x, n, xi, r)
+    .Call('_updogAlpha_dbeta_dr', PACKAGE = 'updogAlpha', x, n, xi, r)
 }
 
 #' Returns derivative to f / (d * (1 - f) + f)
@@ -121,7 +121,7 @@ dbeta_dr <- function(x, n, xi, r) {
 #' @author David Gerard
 #'
 dxi_df <- function(d, f) {
-    .Call('_updog_dxi_df', PACKAGE = 'updog', d, f)
+    .Call('_updogAlpha_dxi_df', PACKAGE = 'updogAlpha', d, f)
 }
 
 #' Returns derivative of p(1 - eps) + (1 - p) * eps
@@ -133,7 +133,7 @@ dxi_df <- function(d, f) {
 #' @author David Gerard
 #'
 df_deps <- function(eps, p) {
-    .Call('_updog_df_deps', PACKAGE = 'updog', eps, p)
+    .Call('_updogAlpha_df_deps', PACKAGE = 'updogAlpha', eps, p)
 }
 
 #' Derivative of exp(ell) / (1 + exp(ell))
@@ -146,7 +146,7 @@ df_deps <- function(eps, p) {
 #' @author David Gerard
 #'
 deps_dell <- function(ell) {
-    .Call('_updog_deps_dell', PACKAGE = 'updog', ell)
+    .Call('_updogAlpha_deps_dell', PACKAGE = 'updogAlpha', ell)
 }
 
 #' Derivative of beta density w.r.t. unconstrained parameterization of sequencing error.
@@ -165,7 +165,7 @@ deps_dell <- function(ell) {
 #' @author David Gerard
 #'
 dbeta_dl <- function(x, n, d, ell, p, h) {
-    .Call('_updog_dbeta_dl', PACKAGE = 'updog', x, n, d, ell, p, h)
+    .Call('_updogAlpha_dbeta_dl', PACKAGE = 'updogAlpha', x, n, d, ell, p, h)
 }
 
 #' Derivative w.r.t. d of xi(d, f) = f / (d * (1 - f) + f)
@@ -176,7 +176,7 @@ dbeta_dl <- function(x, n, d, ell, p, h) {
 #'
 #'
 dxi_dd <- function(d, f) {
-    .Call('_updog_dxi_dd', PACKAGE = 'updog', d, f)
+    .Call('_updogAlpha_dxi_dd', PACKAGE = 'updogAlpha', d, f)
 }
 
 #' Derivative of betabinomial density w.r.t. bias parameter.
@@ -189,7 +189,7 @@ dxi_dd <- function(d, f) {
 #' @author David Gerard
 #'
 dbeta_ds <- function(x, n, s, ell, p, h) {
-    .Call('_updog_dbeta_ds', PACKAGE = 'updog', x, n, s, ell, p, h)
+    .Call('_updogAlpha_dbeta_ds', PACKAGE = 'updogAlpha', x, n, s, ell, p, h)
 }
 
 #' Same as \code{\link{dbeta_dh}}, but with same inputs as \code{\link{dbeta_ds}}
@@ -201,7 +201,7 @@ dbeta_ds <- function(x, n, s, ell, p, h) {
 #' @author David Gerard
 #'
 dbeta_dr_ell <- function(x, n, d, ell, p, r) {
-    .Call('_updog_dbeta_dr_ell', PACKAGE = 'updog', x, n, d, ell, p, r)
+    .Call('_updogAlpha_dbeta_dr_ell', PACKAGE = 'updogAlpha', x, n, d, ell, p, r)
 }
 
 #' Gradient of \code{\link{obj_offspring_reparam}} for each individual.
@@ -215,7 +215,7 @@ dbeta_dr_ell <- function(x, n, d, ell, p, r) {
 #' @author David Gerard
 #'
 grad_offspring_mat <- function(ocounts, osize, ploidy, prob_geno, s, ell, r) {
-    .Call('_updog_grad_offspring_mat', PACKAGE = 'updog', ocounts, osize, ploidy, prob_geno, s, ell, r)
+    .Call('_updogAlpha_grad_offspring_mat', PACKAGE = 'updogAlpha', ocounts, osize, ploidy, prob_geno, s, ell, r)
 }
 
 #' Gradient of \code{\link{obj_offspring_reparam}}.
@@ -228,7 +228,7 @@ grad_offspring_mat <- function(ocounts, osize, ploidy, prob_geno, s, ell, r) {
 #' @export
 #'
 grad_offspring <- function(ocounts, osize, ploidy, prob_geno, s, ell, r) {
-    .Call('_updog_grad_offspring', PACKAGE = 'updog', ocounts, osize, ploidy, prob_geno, s, ell, r)
+    .Call('_updogAlpha_grad_offspring', PACKAGE = 'updogAlpha', ocounts, osize, ploidy, prob_geno, s, ell, r)
 }
 
 #' Gradient of \code{\link{obj_offspring_weights_reparam}}
@@ -237,7 +237,7 @@ grad_offspring <- function(ocounts, osize, ploidy, prob_geno, s, ell, r) {
 #' @param weight_vec A vector of weights between 0 and 1 (do not need to add up to 1).
 #'
 grad_offspring_weights <- function(ocounts, osize, weight_vec, ploidy, prob_geno, s, ell, r) {
-    .Call('_updog_grad_offspring_weights', PACKAGE = 'updog', ocounts, osize, weight_vec, ploidy, prob_geno, s, ell, r)
+    .Call('_updogAlpha_grad_offspring_weights', PACKAGE = 'updogAlpha', ocounts, osize, weight_vec, ploidy, prob_geno, s, ell, r)
 }
 
 #' Derivative of beta density w.r.t. sequencing error rate.
@@ -256,7 +256,7 @@ grad_offspring_weights <- function(ocounts, osize, weight_vec, ploidy, prob_geno
 #' @author David Gerard
 #'
 dbeta_deps <- function(x, n, d, eps, p, tau) {
-    .Call('_updog_dbeta_deps', PACKAGE = 'updog', x, n, d, eps, p, tau)
+    .Call('_updogAlpha_dbeta_deps', PACKAGE = 'updogAlpha', x, n, d, eps, p, tau)
 }
 
 #' Derivative of betabinomial density w.r.t. original bias parameter.
@@ -268,7 +268,7 @@ dbeta_deps <- function(x, n, d, eps, p, tau) {
 #' @author David Gerard
 #'
 dbeta_dd <- function(x, n, d, eps, p, tau) {
-    .Call('_updog_dbeta_dd', PACKAGE = 'updog', x, n, d, eps, p, tau)
+    .Call('_updogAlpha_dbeta_dd', PACKAGE = 'updogAlpha', x, n, d, eps, p, tau)
 }
 
 #' Derivative of h(tau) = (1 - tau) / tau.
@@ -280,7 +280,7 @@ dbeta_dd <- function(x, n, d, eps, p, tau) {
 #' @author David Gerard
 #'
 dh_dtau <- function(tau) {
-    .Call('_updog_dh_dtau', PACKAGE = 'updog', tau)
+    .Call('_updogAlpha_dh_dtau', PACKAGE = 'updogAlpha', tau)
 }
 
 #' Derivative of beta(x|n, xi, tau).
@@ -290,7 +290,7 @@ dh_dtau <- function(tau) {
 #' @author David Gerard
 #'
 dbeta_dtau <- function(x, n, d, eps, p, tau) {
-    .Call('_updog_dbeta_dtau', PACKAGE = 'updog', x, n, d, eps, p, tau)
+    .Call('_updogAlpha_dbeta_dtau', PACKAGE = 'updogAlpha', x, n, d, eps, p, tau)
 }
 
 #' Gradient of \code{\link{obj_offspring}} for each individual. This is in the
@@ -303,7 +303,7 @@ dbeta_dtau <- function(x, n, d, eps, p, tau) {
 #' @author David Gerard
 #'
 grad_offspring_mat_original <- function(ocounts, osize, ploidy, prob_geno, d, eps, tau) {
-    .Call('_updog_grad_offspring_mat_original', PACKAGE = 'updog', ocounts, osize, ploidy, prob_geno, d, eps, tau)
+    .Call('_updogAlpha_grad_offspring_mat_original', PACKAGE = 'updogAlpha', ocounts, osize, ploidy, prob_geno, d, eps, tau)
 }
 
 #' Gradient of \code{\link{obj_offspring}} using the original parameterization.
@@ -319,7 +319,7 @@ grad_offspring_mat_original <- function(ocounts, osize, ploidy, prob_geno, d, ep
 #' @export
 #'
 grad_offspring_original <- function(ocounts, osize, ploidy, prob_geno, d, eps, tau) {
-    .Call('_updog_grad_offspring_original', PACKAGE = 'updog', ocounts, osize, ploidy, prob_geno, d, eps, tau)
+    .Call('_updogAlpha_grad_offspring_original', PACKAGE = 'updogAlpha', ocounts, osize, ploidy, prob_geno, d, eps, tau)
 }
 
 #' Gradient of \code{\link{obj_offspring_weights}} using original parameterization
@@ -332,7 +332,7 @@ grad_offspring_original <- function(ocounts, osize, ploidy, prob_geno, d, eps, t
 #'     \code{d}, \code{eps}, and \code{tau}, in that order.
 #'
 grad_offspring_weights_original <- function(ocounts, osize, weight_vec, ploidy, prob_geno, d, eps, tau) {
-    .Call('_updog_grad_offspring_weights_original', PACKAGE = 'updog', ocounts, osize, weight_vec, ploidy, prob_geno, d, eps, tau)
+    .Call('_updogAlpha_grad_offspring_weights_original', PACKAGE = 'updogAlpha', ocounts, osize, weight_vec, ploidy, prob_geno, d, eps, tau)
 }
 
 #' Vector of objective functions for offspring.
@@ -368,7 +368,7 @@ grad_offspring_weights_original <- function(ocounts, osize, weight_vec, ploidy, 
 #' @seealso \code{\link{up_bb_obj}}.
 #'
 obj_offspring_vec <- function(ocounts, osize, ploidy, prob_geno, bias_val = 1, seq_error = 0, od_param = 0, outlier = FALSE, out_prop = 0.01, out_mean = 0.5, out_disp = 1.0 / 3.0) {
-    .Call('_updog_obj_offspring_vec', PACKAGE = 'updog', ocounts, osize, ploidy, prob_geno, bias_val, seq_error, od_param, outlier, out_prop, out_mean, out_disp)
+    .Call('_updogAlpha_obj_offspring_vec', PACKAGE = 'updogAlpha', ocounts, osize, ploidy, prob_geno, bias_val, seq_error, od_param, outlier, out_prop, out_mean, out_disp)
 }
 
 #' Objective function for the offspring.
@@ -380,7 +380,7 @@ obj_offspring_vec <- function(ocounts, osize, ploidy, prob_geno, bias_val = 1, s
 #' @export
 #'
 obj_offspring <- function(ocounts, osize, ploidy, prob_geno, bias_val = 1, seq_error = 0, od_param = 0, outlier = FALSE, out_prop = 0.01, out_mean = 0.5, out_disp = 1.0 / 3.0) {
-    .Call('_updog_obj_offspring', PACKAGE = 'updog', ocounts, osize, ploidy, prob_geno, bias_val, seq_error, od_param, outlier, out_prop, out_mean, out_disp)
+    .Call('_updogAlpha_obj_offspring', PACKAGE = 'updogAlpha', ocounts, osize, ploidy, prob_geno, bias_val, seq_error, od_param, outlier, out_prop, out_mean, out_disp)
 }
 
 #' Just a reparameterization of \code{\link{obj_offspring}}.
@@ -393,7 +393,7 @@ obj_offspring <- function(ocounts, osize, ploidy, prob_geno, bias_val = 1, seq_e
 #' @author David Gerard
 #'
 obj_offspring_reparam <- function(ocounts, osize, ploidy, prob_geno, s, ell, r, outlier = FALSE, out_prop = 0.01) {
-    .Call('_updog_obj_offspring_reparam', PACKAGE = 'updog', ocounts, osize, ploidy, prob_geno, s, ell, r, outlier, out_prop)
+    .Call('_updogAlpha_obj_offspring_reparam', PACKAGE = 'updogAlpha', ocounts, osize, ploidy, prob_geno, s, ell, r, outlier, out_prop)
 }
 
 #' Same thing as \code{\link{obj_offspring}}, but each sample's log-density has a weight.
@@ -408,7 +408,7 @@ obj_offspring_reparam <- function(ocounts, osize, ploidy, prob_geno, s, ell, r, 
 #' @export
 #'
 obj_offspring_weights <- function(ocounts, osize, weight_vec, ploidy, prob_geno, bias_val = 1, seq_error = 0, od_param = 0, outlier = FALSE, out_prop = 0.01, out_mean = 0.5, out_disp = 1.0 / 3.0) {
-    .Call('_updog_obj_offspring_weights', PACKAGE = 'updog', ocounts, osize, weight_vec, ploidy, prob_geno, bias_val, seq_error, od_param, outlier, out_prop, out_mean, out_disp)
+    .Call('_updogAlpha_obj_offspring_weights', PACKAGE = 'updogAlpha', ocounts, osize, weight_vec, ploidy, prob_geno, bias_val, seq_error, od_param, outlier, out_prop, out_mean, out_disp)
 }
 
 #' Reparameterization of \code{\link{obj_offspring_weights}}.
@@ -421,7 +421,7 @@ obj_offspring_weights <- function(ocounts, osize, weight_vec, ploidy, prob_geno,
 #' @author David Gerard
 #'
 obj_offspring_weights_reparam <- function(ocounts, osize, weight_vec, ploidy, prob_geno, s, ell, r) {
-    .Call('_updog_obj_offspring_weights_reparam', PACKAGE = 'updog', ocounts, osize, weight_vec, ploidy, prob_geno, s, ell, r)
+    .Call('_updogAlpha_obj_offspring_weights_reparam', PACKAGE = 'updogAlpha', ocounts, osize, weight_vec, ploidy, prob_geno, s, ell, r)
 }
 
 #' Objective function of outlier part in EM step
@@ -435,7 +435,7 @@ obj_offspring_weights_reparam <- function(ocounts, osize, weight_vec, ploidy, pr
 #' @author David Gerard
 #'
 outlier_obj <- function(ocounts, osize, weight_vec, out_mean, out_disp) {
-    .Call('_updog_outlier_obj', PACKAGE = 'updog', ocounts, osize, weight_vec, out_mean, out_disp)
+    .Call('_updogAlpha_outlier_obj', PACKAGE = 'updogAlpha', ocounts, osize, weight_vec, out_mean, out_disp)
 }
 
 #' Derivative of overdispersion parameter with mean already calculated
@@ -447,7 +447,7 @@ outlier_obj <- function(ocounts, osize, weight_vec, out_mean, out_disp) {
 #' @seealso dbeta_dtau
 #'
 dbeta_dtau_withxi <- function(x, n, xi, tau) {
-    .Call('_updog_dbeta_dtau_withxi', PACKAGE = 'updog', x, n, xi, tau)
+    .Call('_updogAlpha_dbeta_dtau_withxi', PACKAGE = 'updogAlpha', x, n, xi, tau)
 }
 
 #' The gradient of \code{\link{outlier_obj}}.
@@ -457,7 +457,7 @@ dbeta_dtau_withxi <- function(x, n, xi, tau) {
 #' @author David Gerard
 #'
 outlier_grad <- function(ocounts, osize, weight_vec, out_mean, out_disp) {
-    .Call('_updog_outlier_grad', PACKAGE = 'updog', ocounts, osize, weight_vec, out_mean, out_disp)
+    .Call('_updogAlpha_outlier_grad', PACKAGE = 'updogAlpha', ocounts, osize, weight_vec, out_mean, out_disp)
 }
 
 #' Parent contribution to objective function.
@@ -477,7 +477,7 @@ outlier_grad <- function(ocounts, osize, weight_vec, out_mean, out_disp) {
 #' @author David Gerard
 #'
 obj_parent <- function(pcounts, psize, ploidy, pgeno, bias_val = 1, seq_error = 0, od_param = 0, outlier = FALSE, out_prop = 0.01, out_mean = 0.5, out_disp = 1.0 / 3.0, weight = 1.0) {
-    .Call('_updog_obj_parent', PACKAGE = 'updog', pcounts, psize, ploidy, pgeno, bias_val, seq_error, od_param, outlier, out_prop, out_mean, out_disp, weight)
+    .Call('_updogAlpha_obj_parent', PACKAGE = 'updogAlpha', pcounts, psize, ploidy, pgeno, bias_val, seq_error, od_param, outlier, out_prop, out_mean, out_disp, weight)
 }
 
 #' A reparameterization of \code{\link{obj_parent}}
@@ -492,7 +492,7 @@ obj_parent <- function(pcounts, psize, ploidy, pgeno, bias_val = 1, seq_error = 
 #' @author David Gerard
 #'
 obj_parent_reparam <- function(pcounts, psize, ploidy, pgeno, s, ell, r, weight = 1.0, outlier = FALSE, out_prop = 0.01) {
-    .Call('_updog_obj_parent_reparam', PACKAGE = 'updog', pcounts, psize, ploidy, pgeno, s, ell, r, weight, outlier, out_prop)
+    .Call('_updogAlpha_obj_parent_reparam', PACKAGE = 'updogAlpha', pcounts, psize, ploidy, pgeno, s, ell, r, weight, outlier, out_prop)
 }
 
 #' Gradient of \code{\link{obj_parent}} (when \code{outlier = FALSE}) with respect to
@@ -508,7 +508,7 @@ obj_parent_reparam <- function(pcounts, psize, ploidy, pgeno, s, ell, r, weight 
 #' @author David Gerard
 #'
 grad_parent <- function(pcounts, psize, ploidy, pgeno, bias_val = 1, seq_error = 0, od_param = 0, weight = 1.0) {
-    .Call('_updog_grad_parent', PACKAGE = 'updog', pcounts, psize, ploidy, pgeno, bias_val, seq_error, od_param, weight)
+    .Call('_updogAlpha_grad_parent', PACKAGE = 'updogAlpha', pcounts, psize, ploidy, pgeno, bias_val, seq_error, od_param, weight)
 }
 
 #' The gradient of \code{\link{obj_parent_reparam}} with respect to \code{s}, \code{ell},
@@ -525,7 +525,7 @@ grad_parent <- function(pcounts, psize, ploidy, pgeno, bias_val = 1, seq_error =
 #' @author David Gerard
 #'
 grad_parent_reparam <- function(pcounts, psize, ploidy, pgeno, s, ell, r, weight = 1.0) {
-    .Call('_updog_grad_parent_reparam', PACKAGE = 'updog', pcounts, psize, ploidy, pgeno, s, ell, r, weight)
+    .Call('_updogAlpha_grad_parent_reparam', PACKAGE = 'updogAlpha', pcounts, psize, ploidy, pgeno, s, ell, r, weight)
 }
 
 #' Gradient function for \code{\link{dbetabinom_mu_rho_cpp_double}}.
@@ -542,7 +542,7 @@ grad_parent_reparam <- function(pcounts, psize, ploidy, pgeno, s, ell, r, weight
 #' @author David Gerard
 #'
 out_grad_parent <- function(pcounts, psize, out_mean, out_disp, weight) {
-    .Call('_updog_out_grad_parent', PACKAGE = 'updog', pcounts, psize, out_mean, out_disp, weight)
+    .Call('_updogAlpha_out_grad_parent', PACKAGE = 'updogAlpha', pcounts, psize, out_mean, out_disp, weight)
 }
 
 #' E-step for the parents.
@@ -557,7 +557,7 @@ out_grad_parent <- function(pcounts, psize, out_mean, out_disp, weight) {
 #'
 #'
 get_parent_outprop <- function(pcounts, psize, ploidy, pgeno, d, eps, tau, out_prop, out_mean, out_disp) {
-    .Call('_updog_get_parent_outprop', PACKAGE = 'updog', pcounts, psize, ploidy, pgeno, d, eps, tau, out_prop, out_mean, out_disp)
+    .Call('_updogAlpha_get_parent_outprop', PACKAGE = 'updogAlpha', pcounts, psize, ploidy, pgeno, d, eps, tau, out_prop, out_mean, out_disp)
 }
 
 #' Returns the probability of seeing the reference allele after including
@@ -575,7 +575,7 @@ get_parent_outprop <- function(pcounts, psize, ploidy, pgeno, d, eps, tau, out_p
 #' @author David Gerard
 #'
 pbias <- function(prob, bias, seq_error) {
-    .Call('_updog_pbias', PACKAGE = 'updog', prob, bias, seq_error)
+    .Call('_updogAlpha_pbias', PACKAGE = 'updogAlpha', prob, bias, seq_error)
 }
 
 #' A double version of \code{\link{pbias}}.
@@ -586,7 +586,7 @@ pbias <- function(prob, bias, seq_error) {
 #'
 #' @author David Gerard
 pbias_double <- function(prob, bias, seq_error) {
-    .Call('_updog_pbias_double', PACKAGE = 'updog', prob, bias, seq_error)
+    .Call('_updogAlpha_pbias_double', PACKAGE = 'updogAlpha', prob, bias, seq_error)
 }
 
 #' An Rcpp version of the \code{\link{dbetabinom}}.
@@ -603,7 +603,7 @@ pbias_double <- function(prob, bias, seq_error) {
 #' @author David Gerard
 #'
 dbetabinom_cpp <- function(x, size, alpha_shape, beta_shape, return_log = FALSE) {
-    .Call('_updog_dbetabinom_cpp', PACKAGE = 'updog', x, size, alpha_shape, beta_shape, return_log)
+    .Call('_updogAlpha_dbetabinom_cpp', PACKAGE = 'updogAlpha', x, size, alpha_shape, beta_shape, return_log)
 }
 
 #' An Rcpp version of \code{\link{dbetabinom_mu_rho}}.
@@ -615,7 +615,7 @@ dbetabinom_cpp <- function(x, size, alpha_shape, beta_shape, return_log = FALSE)
 #' @author David Gerard
 #'
 dbetabinom_mu_rho_cpp <- function(x, size, mu, rho, return_log = FALSE) {
-    .Call('_updog_dbetabinom_mu_rho_cpp', PACKAGE = 'updog', x, size, mu, rho, return_log)
+    .Call('_updogAlpha_dbetabinom_mu_rho_cpp', PACKAGE = 'updogAlpha', x, size, mu, rho, return_log)
 }
 
 #' double version of betabinomial density.
@@ -630,7 +630,7 @@ dbetabinom_mu_rho_cpp <- function(x, size, mu, rho, return_log = FALSE) {
 #' @author David Gerard
 #'
 dbetabinom_mu_rho_cpp_double <- function(x, size, mu, rho, return_log) {
-    .Call('_updog_dbetabinom_mu_rho_cpp_double', PACKAGE = 'updog', x, size, mu, rho, return_log)
+    .Call('_updogAlpha_dbetabinom_mu_rho_cpp_double', PACKAGE = 'updogAlpha', x, size, mu, rho, return_log)
 }
 
 #' Vectorized version of \code{\link[stats]{dhyper}} for C++ implementation.
@@ -643,7 +643,7 @@ dbetabinom_mu_rho_cpp_double <- function(x, size, mu, rho, return_log) {
 #' @author David Gerard
 #'
 dhyper_cpp <- function(x, m, n, k) {
-    .Call('_updog_dhyper_cpp', PACKAGE = 'updog', x, m, n, k)
+    .Call('_updogAlpha_dhyper_cpp', PACKAGE = 'updogAlpha', x, m, n, k)
 }
 
 #' Rcpp function to get genotype probabilities assuming either
@@ -662,7 +662,7 @@ dhyper_cpp <- function(x, m, n, k) {
 #' @export
 #'
 get_prob_geno <- function(ploidy, model, p1geno, p2geno, allele_freq) {
-    .Call('_updog_get_prob_geno', PACKAGE = 'updog', ploidy, model, p1geno, p2geno, allele_freq)
+    .Call('_updogAlpha_get_prob_geno', PACKAGE = 'updogAlpha', ploidy, model, p1geno, p2geno, allele_freq)
 }
 
 #' Rcpp implementation of \code{\link{get_q_array}}.
@@ -678,7 +678,7 @@ get_prob_geno <- function(ploidy, model, p1geno, p2geno, allele_freq) {
 #' @export
 #'
 get_q_array_cpp <- function(ploidy) {
-    .Call('_updog_get_q_array_cpp', PACKAGE = 'updog', ploidy)
+    .Call('_updogAlpha_get_q_array_cpp', PACKAGE = 'updogAlpha', ploidy)
 }
 
 #' Log-sum-exponential trick that I use all the time.
@@ -688,7 +688,7 @@ get_q_array_cpp <- function(ploidy) {
 #' @author David Gerard
 #'
 logsumexp <- function(xx) {
-    .Call('_updog_logsumexp', PACKAGE = 'updog', xx)
+    .Call('_updogAlpha_logsumexp', PACKAGE = 'updogAlpha', xx)
 }
 
 #' Gets all possible binomial probabilities for a given ploidy, bias term, and sequencing
@@ -703,7 +703,7 @@ logsumexp <- function(xx) {
 #' @export
 #'
 get_pvec <- function(ploidy, bias_val, seq_error) {
-    .Call('_updog_get_pvec', PACKAGE = 'updog', ploidy, bias_val, seq_error)
+    .Call('_updogAlpha_get_pvec', PACKAGE = 'updogAlpha', ploidy, bias_val, seq_error)
 }
 
 #' Stupid implementation of colSums because I guess not implemented in Rcpp sugar.
@@ -714,7 +714,7 @@ get_pvec <- function(ploidy, bias_val, seq_error) {
 #'
 #'
 colSums_cpp <- function(x) {
-    .Call('_updog_colSums_cpp', PACKAGE = 'updog', x)
+    .Call('_updogAlpha_colSums_cpp', PACKAGE = 'updogAlpha', x)
 }
 
 #' The expit function.
@@ -724,6 +724,6 @@ colSums_cpp <- function(x) {
 #' @author David Gerard
 #'
 expit <- function(x) {
-    .Call('_updog_expit', PACKAGE = 'updog', x)
+    .Call('_updogAlpha_expit', PACKAGE = 'updogAlpha', x)
 }
 

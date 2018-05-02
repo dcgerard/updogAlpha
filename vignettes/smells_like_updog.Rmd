@@ -33,7 +33,7 @@ Load `updog` and the `snpdat` dataset. The data frame `snpdat` contains three ex
 
 ```{r}
 set.seed(1)
-library(updog)
+library(updogAlpha)
 data("snpdat")
 ```
 

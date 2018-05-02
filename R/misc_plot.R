@@ -15,7 +15,7 @@ plot_problines <- function(seq_error, bias_val, ploidy) {
     stop("ggplot2 needs to be installed to run plot_problines.")
   }
   porig <- as.factor(paste0(0:ploidy, "/", ploidy))
-  pvec <- updog::get_pvec(ploidy = ploidy, bias_val = bias_val,
+  pvec <- get_pvec(ploidy = ploidy, bias_val = bias_val,
                           seq_error = seq_error)
   slopevec <- pvec / (1 - pvec)
   xend <- pmin(rep(1, ploidy + 1), 1 / slopevec)

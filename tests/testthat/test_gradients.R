@@ -32,7 +32,7 @@ test_that("dbeta_dprop works", {
   assign("x", x, envir = myenv)
   assign("n", n, envir = myenv)
   assign("xi", xi, envir = myenv)
-  nout <- stats::numericDeriv(quote(updog:::dbetabinom_mu_rho_cpp(x, n, xi, tau, FALSE)), "xi", myenv)
+  nout <- stats::numericDeriv(quote(dbetabinom_mu_rho_cpp(x, n, xi, tau, FALSE)), "xi", myenv)
   expect_equal(attr(nout, "gradient")[1, 1], cderiv)
 
 }
@@ -53,7 +53,7 @@ test_that("dbeta_dh works", {
   ell <- log(eps / (1 - eps))
 
   ## R version -----------------------------------------------
-  dense <- updog:::dbetabinom_mu_rho_cpp(x, n, xi, 1 / (h + 1),
+  dense <- dbetabinom_mu_rho_cpp(x, n, xi, 1 / (h + 1),
                                          return_log = FALSE)
 
   comp1 <-  xi * digamma(x + xi * h)
